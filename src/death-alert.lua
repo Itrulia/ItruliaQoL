@@ -30,38 +30,37 @@ frame.alpha:SetStartDelay(4)
 
 function frame:UpdateStyles()
     if not E then
-        frame:ClearAllPoints()
-        frame:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
+        self:ClearAllPoints()
+        self:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
     end
 
-    frame:SetSize(DeathAlert.db.fontSize, DeathAlert.db.fontSize)
-    frame.text:SetFont(LSM:Fetch("font", DeathAlert.db.font), DeathAlert.db.fontSize, DeathAlert.db.fontOutline)
-    frame.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
-    frame.alpha:SetStartDelay(DeathAlert.db.messageDuration)
+    self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font), DeathAlert.db.fontSize, DeathAlert.db.fontOutline)
+    self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
+    self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
+    self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
 end
 
-local function OnUpdate(self, elapsed, ...)
-    if not self.timeSinceLastUpdate then 
-        self.timeSinceLastUpdate = 0 
-    end
-
-    self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed
-    
-    if self.timeSinceLastUpdate > DeathAlert.db.updateInterval then
-        if not ItruliaQoL.testMode then
-            
-        end
-
-        if ItruliaQoL.testMode then
-            -- frame.text:Show()
-        end
-
-        self.timeSinceLastUpdate = 0
-    end
-end;
-
 local function OnEvent(self, event, deadGUID, ...)
-    frame:UpdateStyles()
+    if ItruliaQoL.testMode then
+        local name = UnitName("player")
+        local _, class = UnitClass("player")
+        
+        local color = C_ClassColor.GetClassColor(class);
+        local customText = CreateColor(
+            DeathAlert.db.color.r,
+            DeathAlert.db.color.g, 
+            DeathAlert.db.color.b, 
+            DeathAlert.db.color.a
+        ):WrapTextInColorCode(DeathAlert.db.customText)
+        local nameText = color:WrapTextInColorCode(name)
+
+        self.text:SetText(nameText .. " " .. customText)
+        self.text:SetAlpha(1)
+
+        self:UpdateStyles()
+
+        return
+    end
 
     if event == "UNIT_DIED" then
         local unitId = UnitTokenFromGUID(deadGUID)
@@ -79,20 +78,22 @@ local function OnEvent(self, event, deadGUID, ...)
             ):WrapTextInColorCode(DeathAlert.db.customText)
             local nameText = color:WrapTextInColorCode(name)
 
-            frame.text:SetText(nameText .. " " .. customText)
-            frame.text:SetAlpha(1)
-            frame.text.anim:Stop()
-            frame.text.anim:Play()
+            self.text:SetText(nameText .. " " .. customText)
+            self.text:SetAlpha(1)
+            self.text.anim:Stop()
+            self.text.anim:Play()
 
             if DeathAlert.db.playSound then
                 PlaySoundFile(LSM:Fetch("sound", DeathAlert.db.sound), "Master")
             end
         else
-            frame.text:SetText("")
+            self.text:SetText("")
         end
     else
-        frame.text:SetText("")
+        self.text:SetText("")
     end
+
+    self:UpdateStyles()
 end
 
 frame:RegisterEvent("UNIT_DIED")
@@ -117,7 +118,6 @@ end
 function DeathAlert:OnEnable()
     if self.db.enabled then 
         frame:SetScript("OnEvent", OnEvent) 
-        frame:SetScript("OnUpdate", OnUpdate) 
     end
 
     if E then
@@ -129,9 +129,18 @@ function DeathAlert:OnEnable()
     end
 end
 
+function DeathAlert:ToggleTestMode()
+    if not self.db.enabled then 
+        return
+    end
+
+    OnEvent(frame)
+end
+
+
 local options = {
     type = "group",
-    name = "Passive Pet",
+    name = "Death Alert",
     order = 2,
     args = {
         enable = {
@@ -236,7 +245,7 @@ local options = {
                     order = 2,
                     type = "range",
                     name = "Font Size",
-                    min = 12,
+                    min = 1,
                     max = 68,
                     step = 1,
                     get = function()

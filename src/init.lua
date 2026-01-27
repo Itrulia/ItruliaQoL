@@ -18,6 +18,8 @@ function ItruliaQoL:OnEnable()
 	ItruliaQoL:GetModule('FocusInterruptIndicator'):Enable()
 	ItruliaQoL:GetModule('PetMissingIndicator'):Enable()
 	ItruliaQoL:GetModule('PetPassiveIndicator'):Enable()
+    ItruliaQoL:GetModule('DeathAlert'):Enable()
+    ItruliaQoL:GetModule('MovementAlert'):Enable()
 	ItruliaQoL:GetModule('CDMSlash'):Enable()
 end
 
@@ -40,7 +42,20 @@ function ItruliaQoL:RegisterOptions()
 			type = "group",
 			name = "Itrulia QoL",
 			order = 50, 
-			args = {}
+			args = {
+                enable = {
+                    order = 1,
+                    type = "toggle",
+                    width = "full",
+                    name = "Test mode",
+                    get = function()
+                        return self.testMode
+                    end,
+                    set = function(_, value)
+                        self:ToggleTestMode(value)
+                    end
+                }
+            }
 		}
     end
 
@@ -61,10 +76,20 @@ function ItruliaQoL:RegisterOptions()
     end
 end
 
+function ItruliaQoL:ToggleTestMode(enabled)
+    self.testMode = enabled
+
+    for name, module in self:IterateModules() do
+        if module.ToggleTestMode then
+            module:ToggleTestMode(enabled)
+        end
+    end
+end
+
 ItruliaQoL:RegisterChatCommand("itrulia", "MySlashProcessorFunc")
 function ItruliaQoL:MySlashProcessorFunc(input)
   if input == "test" then
-    ItruliaQoL.testMode = not ItruliaQoL.testMode
+    self:ToggleTestMode(not ItruliaQoL.testMode)
   end
 
   if input == "help" then
@@ -78,6 +103,6 @@ end
 
 if ItruliaQoL.E then
   hooksecurefunc(ItruliaQoL.E, "ToggleMovers", function(_, enabled)
-      ItruliaQoL.testMode = enabled
+      ItruliaQoL:ToggleTestMode(enabled)
   end)
 end

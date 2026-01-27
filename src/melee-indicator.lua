@@ -68,7 +68,7 @@ frame.meleeSpells = {
 function frame:GetSpellToCheck()
     local class = select(2, UnitClass("player"))
     local specID = select(1, GetSpecializationInfo(GetSpecialization()))
-    local spells = frame.meleeSpells[class]
+    local spells = self.meleeSpells[class]
 
     if not spells or not specID then 
         return nil
@@ -99,57 +99,62 @@ function frame:UpdateMeleeIndicator()
     local inRange = false
 
     if not inCombat then
-        frame.text:Hide()
+        self.text:Hide()
         return
     end
 
     -- Only show when druid in cat or bear form
-    if class == "DRUID" and frame.meleeSpellId then
-        spellUsable, _ = C_Spell.IsSpellUsable(frame.meleeSpellId)
+    if class == "DRUID" and self.meleeSpellId then
+        spellUsable, _ = C_Spell.IsSpellUsable(self.meleeSpellId)
     end
 
-    if targetExists and targetAttackable and frame.meleeSpellName then
-        inRange = C_Spell.IsSpellInRange(frame.meleeSpellId, "target")
+    if targetExists and targetAttackable and self.meleeSpellName then
+        inRange = C_Spell.IsSpellInRange(self.meleeSpellId, "target")
 
         if inRange then
-            frame.text:Hide()
+            self.text:Hide()
         else
             if class == "DRUID" then
                 if spellUsable then
-                    frame.text:Show()
+                    self.text:Show()
                 else
-                    frame.text:Hide()
+                    self.text:Hide()
                 end
             else
-                frame.text:Show()
+                self.text:Show()
             end
         end
     else
-        frame.text:Hide()
+        self.text:Hide()
     end
 end
 
 function frame:UpdateStyles()
     if not E then
-        frame:ClearAllPoints()
-        frame:SetPoint(MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
+        self:ClearAllPoints()
+        self:SetPoint(MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
     end
 
-    frame:SetSize(MeleeIndicator.db.fontSize, MeleeIndicator.db.fontSize)
-    frame.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font), MeleeIndicator.db.fontSize, MeleeIndicator.db.fontOutline)
-    frame.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
-    frame.text:SetText(MeleeIndicator.db.customText)
+    self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font), MeleeIndicator.db.fontSize, MeleeIndicator.db.fontOutline)
+    self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
+    self.text:SetText(MeleeIndicator.db.customText)
+    self:SetSize(math.max(self.text:GetStringWidth(), 50), math.max(self.text:GetStringHeight(), 50))
 end
 
 local function OnEvent(self, ...)
-    frame:UpdateStyles()
+    self:UpdateStyles()
 
-    frame.meleeSpellId = frame:GetSpellToCheck()
-    local spellInfo = frame.meleeSpellId and C_Spell.GetSpellInfo(frame.meleeSpellId)
-    frame.meleeSpellName = spellInfo and spellInfo.name
+    self.meleeSpellId = self:GetSpellToCheck()
+    local spellInfo = self.meleeSpellId and C_Spell.GetSpellInfo(self.meleeSpellId)
+    self.meleeSpellName = spellInfo and spellInfo.name
 
-    if frame.meleeSpellId and not frame:GetScript("OnUpdate") then
-        frame:SetScript("OnUpdate", function(self, elapsed)
+    if ItruliaQoL.testMode then
+        self.text:Show()
+        return
+    end
+
+    if self.meleeSpellId and not self:GetScript("OnUpdate") then
+        self:SetScript("OnUpdate", function(self, elapsed)
             if not self.timeSinceLastUpdate then 
                 self.timeSinceLastUpdate = 0 
             end
@@ -158,19 +163,15 @@ local function OnEvent(self, ...)
             
             if self.timeSinceLastUpdate > MeleeIndicator.db.updateInterval then
                 if not ItruliaQoL.testMode then
-                    frame:UpdateMeleeIndicator()
-                end
-
-                if ItruliaQoL.testMode then
-                    frame.text:Show()
+                    self:UpdateMeleeIndicator()
                 end
 
                 self.timeSinceLastUpdate = 0
             end
         end)
-    elseif not frame.meleeSpellId then
-        frame:SetScript("OnUpdate", nil)
-        frame.text:Hide()
+    elseif not self.meleeSpellId then
+        self:SetScript("OnUpdate", nil)
+        self.text:Hide()
     end
 end
 
@@ -215,6 +216,13 @@ function MeleeIndicator:OnEnable()
     end
 end
 
+function MeleeIndicator:ToggleTestMode()
+    if not self.db.enabled then 
+        return
+    end
+
+    OnEvent(frame)
+end
 
 local options = {
     type = "group",
@@ -307,7 +315,7 @@ local options = {
                     order = 2,
                     type = "range",
                     name = "Font Size",
-                    min = 12,
+                    min = 1,
                     max = 68,
                     step = 1,
                     get = function() 

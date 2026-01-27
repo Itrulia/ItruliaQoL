@@ -39,30 +39,28 @@ end
 
 function frame:UpdateStyles()
     if not E then
-        frame:ClearAllPoints()
-        frame:SetPoint(PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)
+        self:ClearAllPoints()
+        self:SetPoint(PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)
     end
 
-    frame:SetSize(PetPassiveIndicator.db.fontSize, PetPassiveIndicator.db.fontSize)
-    frame.text:SetText(PetPassiveIndicator.db.customText)
-    frame.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font), PetPassiveIndicator.db.fontSize, PetPassiveIndicator.db.fontOutline)
-    frame.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
+    self.text:SetText(PetPassiveIndicator.db.customText)
+    self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font), PetPassiveIndicator.db.fontSize, PetPassiveIndicator.db.fontOutline)
+    self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
+    self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
 end
 
 local function OnEvent(self, event, ...)
-    frame:UpdateStyles()
-    local isPassive = frame:IsPetPassive()
-
-    if not ItruliaQoL.testMode then
-        if isPassive then
-            frame.text:Show()
-        else
-            frame.text:Hide()
-        end
-    end
+    self:UpdateStyles()
 
     if ItruliaQoL.testMode then 
-        frame.text:Show()
+        self.text:Show()
+        return
+    end
+
+    if self:IsPetPassive() then
+        self.text:Show()
+    else
+        self.text:Hide()
     end
 end
 
@@ -103,6 +101,14 @@ function PetPassiveIndicator:OnEnable()
             self.db.point = {point = point, x = x, y = y}
         end, {point = "CENTER", x = 0, y = 300})
     end
+end
+
+function PetPassiveIndicator:ToggleTestMode()
+    if not self.db.enabled then 
+        return
+    end
+
+    OnEvent(frame)
 end
 
 local options = {
@@ -196,7 +202,7 @@ local options = {
                     order = 2,
                     type = "range",
                     name = "Font Size",
-                    min = 12,
+                    min = 1,
                     max = 68,
                     step = 1,
                     get = function()

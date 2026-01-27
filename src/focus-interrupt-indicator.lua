@@ -27,7 +27,7 @@ frame.interruptSpells = {
     DRUID = {[102] = 78675, [103] = 106839, [104] = 106839, [105] = nil},
     Evoker = {[1467] = 351338, [1468] = 351338, [1473] = 351338},
     HUNTER = {[253] = 147362, [254] = 147362, [255] = 187707},
-    MAGE = {[268] = 2139, [269] = 2139, [270] = 2139},
+    MAGE = {[62] = 2139, [63] = 2139, [64] = 2139},
     MONK = {[268] = 116705, [269] = 116705, [270] = nil},
     PALADIN = {[65] = nil, [66] = 96231, [70] = 96231},
     Priest = {[256] = nil, [257] = nil, [258] = 15487},
@@ -77,7 +77,7 @@ function frame:GetSpellToCheck()
     local class = select(2, UnitClass("player"))
     local specID = select(1, GetSpecializationInfo(GetSpecialization()))
 
-    return frame.interruptSpells[class][specID]
+    return self.interruptSpells[class][specID]
 end
 
 function frame:IsInteruptible()
@@ -91,52 +91,55 @@ function frame:IsInteruptible()
 end
 
 function frame:CacheSpellId()
-    self.interruptId = frame:GetSpellToCheck()
+    self.interruptId = self:GetSpellToCheck()
 end
 
 function frame:UpdateStyles()
     if not E then
-        frame:ClearAllPoints()
-        frame:SetPoint(FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
+        self:ClearAllPoints()
+        self:SetPoint(FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
     end
 
-    frame:SetSize(FocusInterruptIndicator.db.fontSize, FocusInterruptIndicator.db.fontSize)
-
-    frame.text:SetText(FocusInterruptIndicator.db.customText)
-    frame.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font), FocusInterruptIndicator.db.fontSize, FocusInterruptIndicator.db.fontOutline)
-    frame.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
+    self.text:SetText(FocusInterruptIndicator.db.customText)
+    self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font), FocusInterruptIndicator.db.fontSize, FocusInterruptIndicator.db.fontOutline)
+    self.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
+    self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
 end
 
 local function OnEvent(self, event, unit, ...)
     self.active = false
-    frame:UpdateStyles()
+    self:UpdateStyles()
 
     if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
-        frame:CacheSpellId()
+        self:CacheSpellId()
+        return
+    end
+
+    if ItruliaQoL.testMode then
+        self.text:Show()
+        self.text:SetAlpha(1)
         return
     end
 
     if unit and UnitCanAttack("player", unit) then
         if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" or event == "PLAYER_FOCUS_CHANGED" then
-            frame:UpdateFocusInterruptIndicator(true)
+            self:UpdateFocusInterruptIndicator(true)
         end
     end
 end
 
 local function OnUpdate(self, elapsed)  
-    if ItruliaQoL.testMode then
-        self.text:Show()
-        self.text:SetAlpha(1)
-    elseif not self.active then
-        self.timeSinceLastUpdate = 0
+    if not ItruliaQoL.testMode then
+        return
+    end;
+
+    if not self.active then
         self.text:Hide()
         self.text:SetAlpha(0);
         return
     end
 
-    if not ItruliaQoL.testMode then
-        self.text:SetAlphaFromBoolean(C_Spell.GetSpellCooldownDuration(self.interruptId):IsZero())
-    end
+    self.text:SetAlphaFromBoolean(C_Spell.GetSpellCooldownDuration(self.interruptId):IsZero())
 end
 
 frame:RegisterEvent("PLAYER_LOGIN")
@@ -190,6 +193,13 @@ function FocusInterruptIndicator:OnEnable()
     end
 end
 
+function FocusInterruptIndicator:ToggleTestMode()
+    if not self.db.enabled then 
+        return
+    end
+
+    OnEvent(frame)
+end
 
 local options = {
     type = "group",
@@ -282,7 +292,7 @@ local options = {
                     order = 2,
                     type = "range",
                     name = "Font Size",
-                    min = 12,
+                    min = 1,
                     max = 68,
                     step = 1,
                     get = function() 

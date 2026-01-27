@@ -26,7 +26,7 @@ frame.petClasses = {
     DRUID = {[102] = false, [103] = false, [104] = false, [105] = false},
     Evoker = {[1467] = false, [1468] = false, [1473] = false},
     HUNTER = {[253] = true, [254] = 1223323, [255] = true},
-    MAGE = {[268] = false, [269] = false, [270] = 31687},
+    MAGE = {[62] = false, [63] = false, [64] = 31687},
     MONK = {[268] = false, [269] = false, [270] = false},
     PALADIN = {[65] = false, [66] = false, [70] = false},
     Priest = {[256] = false, [257] = false, [258] = false},
@@ -36,45 +36,10 @@ frame.petClasses = {
     WARRIOR = {[71] = false, [72] = false, [73] = false}
 }
 
-function frame:IsSpellKnown(spellId)
-    local configId = C_ClassTalents.GetActiveConfigID()
-    if not configId then 
-        return false 
-    end
-
-    local configInfo = C_Traits.GetConfigInfo(configId)
-
-    if not configInfo or not configInfo.treeIDs then 
-        return false 
-    end
-
-    for _, treeID in ipairs(configInfo.treeIDs) do
-        local nodeIDs = C_Traits.GetTreeNodes(treeID)
-
-        for _, nodeID in ipairs(nodeIDs) do
-            local nodeInfo = C_Traits.GetNodeInfo(configId, nodeID)
-
-            if nodeInfo and nodeInfo.activeEntry then
-                local entryInfo = C_Traits.GetEntryInfo(configId, nodeInfo.activeEntry.entryID)
-
-                if entryInfo and entryInfo.definitionID then
-                    local defInfo = C_Traits.GetDefinitionInfo(entryInfo.definitionID)
-
-                    if defInfo and defInfo.spellID == spellId then
-                        return true
-                    end
-                end
-            end
-        end
-    end
-
-    return false
-end
-
 function frame:IsPetSpec()
     local class = select(2, UnitClass("player"))
     local specID = select(1, GetSpecializationInfo(GetSpecialization()))
-    local spells = frame.petClasses[class]
+    local spells = self.petClasses[class]
 
     if not spells or not specID then 
         return nil 
@@ -86,7 +51,7 @@ function frame:IsPetSpec()
         return spellId 
     end
 
-    return frame:IsSpellKnown(spellId)
+    return ItruliaQoL:IsSpellKnown(spellId)
 end
 
 function frame:IsPetPassive()
@@ -110,35 +75,34 @@ end
 
 function frame:UpdateStyles()
     if not E then
-        frame:ClearAllPoints()
-        frame:SetPoint(PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
+        self:ClearAllPoints()
+        self:SetPoint(PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
     end
 
-    frame:SetSize(PetMissingIndicator.db.fontSize, PetMissingIndicator.db.fontSize)
-    frame.text:SetText(PetMissingIndicator.db.customText)
-    frame.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font), PetMissingIndicator.db.fontSize, PetMissingIndicator.db.fontOutline)
-    frame.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
+    self.text:SetText(PetMissingIndicator.db.customText)
+    self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font), PetMissingIndicator.db.fontSize, PetMissingIndicator.db.fontOutline)
+    self.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
+    self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
 end
 
 local function OnEvent(self, event, ...)
-    frame:UpdateStyles()
-    local petSpec = frame:IsPetSpec()
+    self:UpdateStyles()
+    local petSpec = self:IsPetSpec()
     local conditionsWherePetIsntShown = IsMounted() or UnitInVehicle("player") or UnitIsDeadOrGhost("player")
 
-    if not ItruliaQoL.testMode then
-        if not petSpec or conditionsWherePetIsntShown then
-            frame.text:Hide()
-        else
-            if UnitExists("pet") then
-                frame.text:Hide()
-            else
-                frame.text:Show()
-            end
-        end
+    if ItruliaQoL.testMode then 
+        self.text:Show()
+        return
     end
 
-    if ItruliaQoL.testMode then 
-        frame.text:Show()
+    if not petSpec or conditionsWherePetIsntShown then
+        self.text:Hide()
+    else
+        if UnitExists("pet") then
+            self.text:Hide()
+        else
+            self.text:Show()
+        end
     end
 end
 
@@ -183,6 +147,15 @@ function PetMissingIndicator:OnEnable()
         end, {point = "CENTER", x = 0, y = 300})
     end
 end
+
+function PetMissingIndicator:ToggleTestMode()
+    if not self.db.enabled then 
+        return
+    end
+
+    OnEvent(frame)
+end
+
 
 local options = {
     type = "group",
@@ -275,7 +248,7 @@ local options = {
                     order = 2,
                     type = "range",
                     name = "Font Size",
-                    min = 12,
+                    min = 1,
                     max = 68,
                     step = 1,
                     get = function()
