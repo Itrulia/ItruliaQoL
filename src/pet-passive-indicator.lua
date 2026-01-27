@@ -74,19 +74,35 @@ frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
 frame:RegisterEvent("UNIT_ENTERED_VEHICLE")
 frame:RegisterEvent("UNIT_EXITED_VEHICLE")
 
+local defaults = {
+    enabled = true,
+    customText = "**Pet passive!**",
+    color = {r = 1, g = 1, b = 1, a = 1},
+    font = "Expressway",
+    fontSize = 28,
+    fontOutline = "OUTLINE",
+    updateInterval = 0.5,
+    point = {point = "CENTER", x = 0, y = 300}
+}
+
 function PetPassiveIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.PetPassiveIndicator = profile.PetPassiveIndicator or {
-        enabled = true,
-        customText = "**Pet passive!**",
-        color = {r = 1, g = 1, b = 1, a = 1},
-        font = "Expressway",
-        fontSize = 28,
-        fontOutline = "OUTLINE",
-        updateInterval = 0.5,
-        point = {point = "CENTER", x = 0, y = 300}
-    }
+    profile.PetPassiveIndicator = profile.PetPassiveIndicator or defaults
     self.db = profile.PetPassiveIndicator
+end
+
+function PetPassiveIndicator:RefreshConfig()
+    local profile = ItruliaQoL.db.profile
+    profile.PetPassiveIndicator = profile.PetPassiveIndicator or defaults
+    self.db = profile.PetPassiveIndicator
+
+    if self.db.enabled then
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+    else
+        frame:SetScript("OnEvent", nil)
+        frame:SetScript("OnUpdate", nil)
+    end
 end
 
 function PetPassiveIndicator:OnEnable()
@@ -126,14 +142,7 @@ local options = {
             end,
             set = function(info, value)
                 PetPassiveIndicator.db.enabled = value
-
-                if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
-                end
+                PetPassiveIndicator:RefreshConfig()
             end
         },
         displaySettings = {
@@ -242,5 +251,5 @@ function PetPassiveIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Passive Pet", parentCategory)
+    -- CD:AddToBlizOptions(moduleName, "Passive Pet", parentCategory)
 end

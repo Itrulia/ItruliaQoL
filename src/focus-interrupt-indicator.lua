@@ -67,7 +67,7 @@ function frame:UpdateFocusInterruptIndicator(active)
     if self:IsInteruptible() then
         self.text:Show()
         
-        if FocusInterruptIndicator.db.playSound then
+        if FocusInterruptIndicator.db.playSound and FocusInterruptIndicator.db.sound then
             PlaySoundFile(LSM:Fetch("sound", FocusInterruptIndicator.db.sound), "Master")
         end
     end
@@ -75,9 +75,9 @@ end
 
 function frame:GetSpellToCheck()
     local class = select(2, UnitClass("player"))
-    local specID = select(1, GetSpecializationInfo(GetSpecialization()))
+    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
 
-    return self.interruptSpells[class][specID]
+    return self.interruptSpells[class][specId]
 end
 
 function frame:IsInteruptible()
@@ -88,10 +88,6 @@ function frame:IsInteruptible()
     end
 
     return false
-end
-
-function frame:CacheSpellId()
-    self.interruptId = self:GetSpellToCheck()
 end
 
 function frame:UpdateStyles()
@@ -106,18 +102,22 @@ function frame:UpdateStyles()
     self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
 end
 
+function frame:CacheInterruptId()
+    self.interruptId = self:GetSpellToCheck()
+end
+
 local function OnEvent(self, event, unit, ...)
     self.active = false
     self:UpdateStyles()
 
-    if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
-        self:CacheSpellId()
-        return
-    end
-
     if ItruliaQoL.testMode then
         self.text:Show()
         self.text:SetAlpha(1)
+        return
+    end
+
+    if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
+        self:CacheInterruptId()
         return
     end
 
@@ -129,13 +129,13 @@ local function OnEvent(self, event, unit, ...)
 end
 
 local function OnUpdate(self, elapsed)  
-    if not ItruliaQoL.testMode then
+    if ItruliaQoL.testMode then
         return
-    end;
+    end
 
     if not self.active then
         self.text:Hide()
-        self.text:SetAlpha(0);
+        self.text:SetAlpha(0)
         return
     end
 
@@ -153,20 +153,38 @@ frame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "focus")
 frame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "focus")
 frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "focus")
 
+local defaults = {
+    enabled = true,
+    point = { point = "CENTER", x = 0, y = 150 },
+    color = {r = 1, g = 1, b = 1, a = 1},
+    font = "Expressway",
+    fontSize = 28,
+    fontOutline = "OUTLINE",
+    customText = "INTERRUPT",
+    playSound = false,
+    sound = "Kick"
+};
+
 function FocusInterruptIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.FocusInterruptIndicator = profile.FocusInterruptIndicator or {
-        enabled = true,
-        point = { point = "CENTER", x = 0, y = 150 },
-        color = {r = 1, g = 1, b = 1, a = 1},
-        font = "Expressway",
-        fontSize = 28,
-        fontOutline = "OUTLINE",
-        customText = "INTERRUPT",
-        playSound = false,
-        sound = "Kick"
-    }
+    profile.FocusInterruptIndicator = profile.FocusInterruptIndicator or defaults
     self.db = profile.FocusInterruptIndicator
+end
+
+function FocusInterruptIndicator:RefreshConfig()
+    local profile = ItruliaQoL.db.profile
+    profile.FocusInterruptIndicator = profile.FocusInterruptIndicator or defaults
+    self.db = profile.FocusInterruptIndicator
+
+    if self.db.enabled then
+        frame:UpdateStyles()
+        frame:CacheInterruptId()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:SetScript("OnUpdate", OnUpdate)
+    else
+        frame:SetScript("OnEvent", nil)
+        frame:SetScript("OnUpdate", nil)
+    end
 end
 
 function FocusInterruptIndicator:OnEnable()
@@ -216,14 +234,7 @@ local options = {
             end,
             set = function(_, value)
                 FocusInterruptIndicator.db.enabled = value
-
-                if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
-                end
+                FocusInterruptIndicator:RefreshConfig()
             end,
         },
         displaySettings = {
@@ -368,5 +379,5 @@ function FocusInterruptIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Focus Interrupt", parentCategory)
+    -- CD:AddToBlizOptions(moduleName, "Focus Interrupt", parentCategory)
 end

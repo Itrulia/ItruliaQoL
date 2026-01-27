@@ -119,19 +119,36 @@ frame:RegisterEvent("UNIT_EXITED_VEHICLE")
 frame:RegisterEvent("PLAYER_DEAD")
 frame:RegisterEvent("PLAYER_ALIVE")
 
+local defaults = {
+    enabled = true,
+    customText = "**Pet missing!**",
+    color = {r = 1, g = 1, b = 1, a = 1},
+    font = "Expressway",
+    fontSize = 28,
+    fontOutline = "OUTLINE",
+    updateInterval = 0.5,
+    point = {point = "CENTER", x = 0, y = 300}
+}
+
 function PetMissingIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.PetMissingIndicator = profile.PetMissingIndicator or {
-        enabled = true,
-        customText = "**Pet missing!**",
-        color = {r = 1, g = 1, b = 1, a = 1},
-        font = "Expressway",
-        fontSize = 28,
-        fontOutline = "OUTLINE",
-        updateInterval = 0.5,
-        point = {point = "CENTER", x = 0, y = 300}
-    }
+    profile.PetMissingIndicator = profile.PetMissingIndicator or defaults
     self.db = profile.PetMissingIndicator
+end
+
+function PetMissingIndicator:RefreshConfig()
+    local profile = ItruliaQoL.db.profile
+    profile.PetMissingIndicator = profile.PetMissingIndicator or defaults
+    self.db = profile.PetMissingIndicator
+
+    if self.db.enabled then
+        frame:SetScript("OnEvent", OnEvent)
+        frame:SetScript("OnUpdate", OnUpdate) 
+        OnEvent(frame)
+    else
+        frame:SetScript("OnEvent", nil)
+        frame:SetScript("OnUpdate", nil)
+    end
 end
 
 function PetMissingIndicator:OnEnable()
@@ -172,14 +189,7 @@ local options = {
             end,
             set = function(info, value)
                 PetMissingIndicator.db.enabled = value
-
-                if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
-                end
+                PetMissingIndicator:RefreshConfig()
             end
         },
         displaySettings = {
@@ -288,5 +298,5 @@ function PetMissingIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
+    -- CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
 end

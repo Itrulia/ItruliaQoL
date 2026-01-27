@@ -2,12 +2,15 @@
 	<Script file="init.lua"/>
 	<Script file="utils.lua"/>
 
-	<Script file="melee-indicator.lua"/>
 	<Script file="focus-interrupt-indicator.lua"/>
+	<Script file="melee-indicator.lua"/>
 	<Script file="pet-missing-indicator.lua"/>
 	<Script file="pet-passive-indicator.lua"/>
+
 	<Script file="death-alert.lua"/>
+	<Script file="combat-alert.lua"/>
 	<Script file="movement-alert.lua"/>
+
 	<Script file="dungeon-teleports.lua"/>
 	<Script file="cdm_slash.lua"/>
 </Ui>

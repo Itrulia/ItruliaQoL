@@ -57,9 +57,7 @@ local function OnEvent(self, event, deadGUID, ...)
         self.text:SetText(nameText .. " " .. customText)
         self.text:SetAlpha(1)
 
-        self:UpdateStyles()
-
-        return
+        return self:UpdateStyles()
     end
 
     if event == "UNIT_DIED" then
@@ -83,7 +81,7 @@ local function OnEvent(self, event, deadGUID, ...)
             self.text.anim:Stop()
             self.text.anim:Play()
 
-            if DeathAlert.db.playSound then
+            if DeathAlert.db.playSound and DeathAlert.db.sound then
                 PlaySoundFile(LSM:Fetch("sound", DeathAlert.db.sound), "Master")
             end
         else
@@ -98,21 +96,38 @@ end
 
 frame:RegisterEvent("UNIT_DIED")
 
+local defaults = {
+    enabled = true,
+    customText = "DIED!",
+    color = {r = 1, g = 1, b = 1, a = 1},
+    font = "Expressway",
+    fontSize = 28,
+    fontOutline = "OUTLINE",
+    updateInterval = 0.5,
+    messageDuration = 2,
+    point = {point = "CENTER", x = 0, y = 200},
+    playSound = false,
+    sound = "Exit"
+};
+
 function DeathAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.DeathAlert = profile.DeathAlert or {
-        enabled = true,
-        customText = "DIED!",
-        color = {r = 1, g = 1, b = 1, a = 1},
-        font = "Expressway",
-        fontSize = 28,
-        fontOutline = "OUTLINE",
-        updateInterval = 0.5,
-        point = {point = "CENTER", x = 0, y = 200},
-        playSound = false,
-        sound = "Exit"
-    }
+    profile.DeathAlert = profile.DeathAlert or defaults
     self.db = profile.DeathAlert
+end
+
+function DeathAlert:RefreshConfig()
+    local profile = ItruliaQoL.db.profile
+    profile.DeathAlert = profile.DeathAlert or defaults
+    self.db = profile.DeathAlert
+
+    if self.db.enabled then
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+    else
+        frame:SetScript("OnEvent", nil)
+        frame:SetScript("OnUpdate", nil)
+    end
 end
 
 function DeathAlert:OnEnable()
@@ -125,7 +140,7 @@ function DeathAlert:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 300})
+        end, {point = "CENTER", x = 0, y = 200})
     end
 end
 
@@ -321,5 +336,5 @@ function DeathAlert:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Death Alert", parentCategory)
+    -- CD:AddToBlizOptions(moduleName, "Death Alert", parentCategory)
 end

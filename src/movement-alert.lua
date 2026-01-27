@@ -108,14 +108,17 @@ local function OnUpdate(self, elapsed, ...)
 
         self.timeSinceLastUpdate = 0
     end
-end;
+end
 
-local function OnEvent(self, ...)
-    self:UpdateStyles()
-
+function frame:CacheMovementId()
     self.movementId = self:GetSpellToCheck()
     local spellInfo = self.movementId and C_Spell.GetSpellInfo(self.movementId)
     self.movementName = spellInfo and spellInfo.name
+end
+
+local function OnEvent(self, ...)
+    self:UpdateStyles()
+    self:CacheMovementId()
 
     if ItruliaQoL.testMode then
         self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", 15.3))
@@ -129,19 +132,37 @@ frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 frame:RegisterEvent("PLAYER_TALENT_UPDATE")
 frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
 
+local defaults = {
+    enabled = true,
+    precision = 0,
+    color = {r = 1, g = 1, b = 1, a = 1},
+    font = "Expressway",
+    fontSize = 14,
+    fontOutline = "OUTLINE",
+    updateInterval = 0.1,
+    point = {point = "CENTER", x = 0, y = 50},
+}
+
 function MovementAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.MovementAlert = profile.MovementAlert or {
-        enabled = true,
-        precision = 0,
-        color = {r = 1, g = 1, b = 1, a = 1},
-        font = "Expressway",
-        fontSize = 14,
-        fontOutline = "OUTLINE",
-        updateInterval = 0.1,
-        point = {point = "CENTER", x = 0, y = 50},
-    }
+    profile.MovementAlert = profile.MovementAlert or defaults
     self.db = profile.MovementAlert
+end
+
+function MovementAlert:RefreshConfig()
+    local profile = ItruliaQoL.db.profile
+    profile.MovementAlert = profile.MovementAlert or defaults
+    self.db = profile.MovementAlert
+
+    if self.db.enabled then
+        frame:UpdateStyles()
+        frame:CacheMovementId()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:SetScript("OnUpdate", OnUpdate) 
+    else
+        frame:SetScript("OnEvent", nil)
+        frame:SetScript("OnUpdate", nil)
+    end
 end
 
 function MovementAlert:OnEnable()
@@ -155,7 +176,7 @@ function MovementAlert:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 300})
+        end, {point = "CENTER", x = 0, y = 50})
     end
 end
 
@@ -182,14 +203,7 @@ local options = {
             end,
             set = function(info, value)
                 MovementAlert.db.enabled = value
-
-                if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
-                end
+                MovementAlert:RefreshConfig()
             end
         },
         displaySettings = {
@@ -301,5 +315,5 @@ function MovementAlert:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Movement Alert", parentCategory)
+    -- CD:AddToBlizOptions(moduleName, "Movement Alert", parentCategory)
 end

@@ -11,6 +11,9 @@ ItruliaQoL.E = ElvUI and unpack(ElvUI)
 
 function ItruliaQoL:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("ItruliaQoLDB", {}, true)
+    self.db.RegisterCallback(self, "OnProfileChanged", "RefreshModules")
+    self.db.RegisterCallback(self, "OnProfileCopied", "RefreshModules")
+    self.db.RegisterCallback(self, "OnProfileReset", "RefreshModules")
 end
 
 function ItruliaQoL:OnEnable()
@@ -24,7 +27,6 @@ function ItruliaQoL:OnEnable()
 end
 
 function ItruliaQoL:OnEnable()
-	self:RefreshModules()
 	self:RegisterOptions()
 end
 
@@ -37,37 +39,46 @@ function ItruliaQoL:RefreshModules()
 end
 
 function ItruliaQoL:RegisterOptions()
+    local AceDBOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
+
+    local options =  {
+        enable = {
+            order = 1,
+            type = "toggle",
+            width = "full",
+            name = "Test mode",
+            get = function()
+                return self.testMode
+            end,
+            set = function(_, value)
+                self:ToggleTestMode(value)
+            end
+        },
+    }
+    
+
     if (ItruliaQoL.E) then
-      ItruliaQoL.E.Options.args[addonName] = {
-			type = "group",
-			name = "Itrulia QoL",
-			order = 50, 
-			args = {
-                enable = {
-                    order = 1,
-                    type = "toggle",
-                    width = "full",
-                    name = "Test mode",
-                    get = function()
-                        return self.testMode
-                    end,
-                    set = function(_, value)
-                        self:ToggleTestMode(value)
-                    end
-                }
-            }
-		}
+        ItruliaQoL.E.Options.args[addonName] = {
+            type = "group",
+            name = "Itrulia QoL",
+            order = 50, 
+            args = options
+        }
+        ItruliaQoL.E.Options.args[addonName].args.profiles = AceDBOptions
     end
 
 	local parentOptions = {
         type = "group",
         name = "Itrulia QoL",
         childGroups = "tab",
-        args = {}
+        args = options
     }
 
 	self.C:RegisterOptionsTable(addonName, parentOptions)
     self.CD:AddToBlizOptions(addonName, "Itrulia QoL")
+
+    self.C:RegisterOptionsTable(addonName.."Profiles", AceDBOptions)
+    self.CD:AddToBlizOptions(addonName.."Profiles", "Profiles", "Itrulia QoL")
 
     for name, module in self:IterateModules() do
         if module.RegisterOptions then

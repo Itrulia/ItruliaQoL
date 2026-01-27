@@ -24,9 +24,9 @@ frame.text:Hide()
 
 frame.meleeSpells = {
     DEATHKNIGHT = { 
-        [250] = 316239, 
-        [251] = 316239, 
-        [252] = 316239, 
+        [250] = 49998, 
+        [251] = 49998, 
+        [252] = 49998, 
     }, 
     DEMONHUNTER = { 
         [577] = 162794, 
@@ -67,14 +67,14 @@ frame.meleeSpells = {
 
 function frame:GetSpellToCheck()
     local class = select(2, UnitClass("player"))
-    local specID = select(1, GetSpecializationInfo(GetSpecialization()))
+    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
     local spells = self.meleeSpells[class]
 
-    if not spells or not specID then 
+    if not spells or not specId then 
         return nil
     end
 
-    local spellId = spells[specID]
+    local spellId = spells[specId]
     if not spellId then
         return nil
     end
@@ -92,11 +92,10 @@ function frame:UpdateMeleeIndicator()
     local targetAttackable = UnitCanAttack("player", "target")
 
     local class = select(2, UnitClass("player"))
-    local specID = select(1, GetSpecializationInfo(GetSpecialization()))
+    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
     local inCombat = UnitAffectingCombat("player")
 
     local spellUsable = true
-    local inRange = false
 
     if not inCombat then
         self.text:Hide()
@@ -109,7 +108,7 @@ function frame:UpdateMeleeIndicator()
     end
 
     if targetExists and targetAttackable and self.meleeSpellName then
-        inRange = C_Spell.IsSpellInRange(self.meleeSpellId, "target")
+        local inRange = C_Spell.IsSpellInRange(self.meleeSpellId, "target")
 
         if inRange then
             self.text:Hide()
@@ -138,64 +137,88 @@ function frame:UpdateStyles()
     self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font), MeleeIndicator.db.fontSize, MeleeIndicator.db.fontOutline)
     self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
     self.text:SetText(MeleeIndicator.db.customText)
-    self:SetSize(math.max(self.text:GetStringWidth(), 50), math.max(self.text:GetStringHeight(), 50))
+    self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
+end
+
+function frame:CacheMeleeSpellId()
+    self.meleeSpellId = self:GetSpellToCheck()
+    local spellInfo = self.meleeSpellId and C_Spell.GetSpellInfo(self.meleeSpellId)
+    self.meleeSpellName = spellInfo and spellInfo.name
 end
 
 local function OnEvent(self, ...)
     self:UpdateStyles()
-
-    self.meleeSpellId = self:GetSpellToCheck()
-    local spellInfo = self.meleeSpellId and C_Spell.GetSpellInfo(self.meleeSpellId)
-    self.meleeSpellName = spellInfo and spellInfo.name
+    self:CacheMeleeSpellId()
 
     if ItruliaQoL.testMode then
         self.text:Show()
         return
     end
+end
 
-    if self.meleeSpellId and not self:GetScript("OnUpdate") then
-        self:SetScript("OnUpdate", function(self, elapsed)
-            if not self.timeSinceLastUpdate then 
-                self.timeSinceLastUpdate = 0 
-            end
-
-            self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed
-            
-            if self.timeSinceLastUpdate > MeleeIndicator.db.updateInterval then
-                if not ItruliaQoL.testMode then
-                    self:UpdateMeleeIndicator()
-                end
-
-                self.timeSinceLastUpdate = 0
-            end
-        end)
-    elseif not self.meleeSpellId then
+local function OnUpdate(self, elapsed)
+    if not self.meleeSpellId then
         self:SetScript("OnUpdate", nil)
         self.text:Hide()
+        
+        return
+    end
+
+    if not self.timeSinceLastUpdate then 
+        self.timeSinceLastUpdate = 0 
+    end
+
+    self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed
+    
+    if self.timeSinceLastUpdate > MeleeIndicator.db.updateInterval then
+        if not ItruliaQoL.testMode then
+            self:UpdateMeleeIndicator()
+        end
+
+        self.timeSinceLastUpdate = 0
     end
 end
 
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 
+local defaults = {
+    enabled = true,
+    customText = "+",
+    color = {r = 1, g = 0, b = 0, a = 1},
+    font = "Expressway",
+    fontSize = 28,
+    fontOutline = "OUTLINE",
+    updateInterval = 0.5,
+    point = { point = "CENTER", x = 0, y = 0 }
+}
+
 function MeleeIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.MeleeIndicator = profile.MeleeIndicator or {
-        enabled = true,
-        customText = "+",
-        color = {r = 1, g = 0, b = 0, a = 1},
-        font = "Expressway",
-        fontSize = 28,
-        fontOutline = "OUTLINE",
-        updateInterval = 0.5,
-        point = { point = "CENTER", x = 0, y = 0 }
-    }
+    profile.MeleeIndicator = profile.MeleeIndicator or defaults
     self.db = profile.MeleeIndicator
+end
+
+function MeleeIndicator:RefreshConfig()
+    local profile = ItruliaQoL.db.profile
+    profile.MeleeIndicator = profile.MeleeIndicator or defaults
+    self.db = profile.MeleeIndicator
+
+    if self.db.enabled then
+        frame:UpdateStyles()
+        frame:CacheMeleeSpellId()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:SetScript("OnUpdate", OnUpdate)
+    else
+        frame:SetScript("OnEvent", nil)
+        frame:SetScript("OnUpdate", nil)
+    end
 end
 
 function MeleeIndicator:OnEnable()
     if self.db.enabled then
         frame:SetScript("OnEvent", OnEvent)
+        frame:SetScript("OnUpdate", OnUpdate)
     end
 
     if E then
@@ -239,14 +262,7 @@ local options = {
             end,
             set = function(info, value)
                 MeleeIndicator.db.enabled = value
-
-                if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
-                end
+                MeleeIndicator:RefreshConfig()
             end,
         },
         displaySettings = {
@@ -355,5 +371,5 @@ function MeleeIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Melee Indicator", parentCategory)
+    -- CD:AddToBlizOptions(moduleName, "Melee Indicator", parentCategory)
 end
