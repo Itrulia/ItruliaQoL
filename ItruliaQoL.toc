@@ -1,0 +1,12 @@
+## Interface: 110205, 120000
+## Author: Itrulia
+## Version: 0.1
+## Title: ItruliaQoL
+## DefaultState: enabled
+## Category: Itrulia
+## SavedVariables: ItruliaQoLDB
+
+embeds.xml
+
+media\load_media.xml
+src\init.xml
