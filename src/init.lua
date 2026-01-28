@@ -77,14 +77,14 @@ function ItruliaQoL:RegisterOptions()
 	self.C:RegisterOptionsTable(addonName, parentOptions)
     self.CD:AddToBlizOptions(addonName, "Itrulia QoL")
 
-    self.C:RegisterOptionsTable(addonName.."Profiles", AceDBOptions)
-    self.CD:AddToBlizOptions(addonName.."Profiles", "Profiles", "Itrulia QoL")
-
     for name, module in self:IterateModules() do
         if module.RegisterOptions then
             module:RegisterOptions("Itrulia QoL")
         end
     end
+
+    self.C:RegisterOptionsTable(addonName.."Profiles", AceDBOptions)
+    self.CD:AddToBlizOptions(addonName.."Profiles", "Profiles", "Itrulia QoL")
 end
 
 function ItruliaQoL:ToggleTestMode(enabled)
@@ -116,4 +116,12 @@ if ItruliaQoL.E then
   hooksecurefunc(ItruliaQoL.E, "ToggleMovers", function(_, enabled)
       ItruliaQoL:ToggleTestMode(enabled)
   end)
+else 
+    EditModeManagerFrame:HookScript("OnShow", function()
+        ItruliaQoL:ToggleTestMode(true)
+    end)
+
+    EditModeManagerFrame:HookScript("OnHide", function()
+        ItruliaQoL:ToggleTestMode(false)
+    end)
 end

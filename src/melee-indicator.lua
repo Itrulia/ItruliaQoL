@@ -158,9 +158,7 @@ end
 
 local function OnUpdate(self, elapsed)
     if not self.meleeSpellId then
-        self:SetScript("OnUpdate", nil)
         self.text:Hide()
-        
         return
     end
 
@@ -371,5 +369,8 @@ function MeleeIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    -- CD:AddToBlizOptions(moduleName, "Melee Indicator", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Melee Indicator", parentCategory)
+    end
 end

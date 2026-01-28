@@ -186,7 +186,7 @@ local options = {
                         frame:UpdateStyles()
                     end
                 },
-                info = {
+                spacer = {
                     type = "description",
                     name = "",
                     width = "full",
@@ -290,5 +290,8 @@ function CombatAlert:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    -- CD:AddToBlizOptions(moduleName, "Combat Alert", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Combat Alert", parentCategory)
+    end
 end

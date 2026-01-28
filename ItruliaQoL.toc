@@ -5,6 +5,7 @@
 ## DefaultState: enabled
 ## Category: Itrulia
 ## SavedVariables: ItruliaQoLDB
+## OptionalDeps: ElvUI
 
 embeds.xml
 

@@ -24,12 +24,12 @@ frame.petClasses = {
     DEATHKNIGHT = {[250] = false, [251] = false, [252] = true},
     DEMONHUNTER = {[577] = false, [581] = false, [1480] = false},
     DRUID = {[102] = false, [103] = false, [104] = false, [105] = false},
-    Evoker = {[1467] = false, [1468] = false, [1473] = false},
+    EVOKER = {[1467] = false, [1468] = false, [1473] = false},
     HUNTER = {[253] = true, [254] = 1223323, [255] = true},
     MAGE = {[62] = false, [63] = false, [64] = 31687},
     MONK = {[268] = false, [269] = false, [270] = false},
     PALADIN = {[65] = false, [66] = false, [70] = false},
-    Priest = {[256] = false, [257] = false, [258] = false},
+    PRIEST = {[256] = false, [257] = false, [258] = false},
     ROGUE = {[259] = false, [260] = false, [261] = false},
     SHAMAN = {[262] = false, [263] = false, [264] = false},
     WARLOCK = {[265] = true, [266] = true, [267] = true},
@@ -298,5 +298,8 @@ function PetMissingIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    -- CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
+    
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
+    end
 end

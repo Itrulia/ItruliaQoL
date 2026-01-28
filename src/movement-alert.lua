@@ -14,6 +14,7 @@ frame:SetPoint("CENTER", 0, 300)
 frame:SetSize(28, 28)
 frame.movementId = nil;
 frame.movementName = nil;
+frame.timeSpiralOn = false;
 
 frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
@@ -25,16 +26,53 @@ frame.movementAbilities = {
     DEATHKNIGHT = {[250] = {48265}, [251] = {48265}, [252] = {48265}},
     DEMONHUNTER = {[577] = {195072}, [581] = {189110}, [1480] = {1234796}},
     DRUID = {[102] = {102401, 252216, 1850}, [103] = {102401, 252216, 1850}, [104] = {102401, 106898}, [105] = {102401, 252216, 1850}},
-    Evoker = {[1467] = {358267 }, [1468] = {358267 }, [1473] = {358267 }},
+    EVOKER = {[1467] = {358267}, [1468] = {358267}, [1473] = {358267}},
     HUNTER = {[253] = {781}, [254] = {781}, [255] = {781}},
     MAGE = {[62] = {212653, 1953}, [63] = {212653, 1953}, [64] = {212653, 1953}},
     MONK = {[268] = {115008, 109132}, [269] = {109132}, [270] = {109132}},
     PALADIN = {[65] = {190784} , [66] = {190784} , [70] = {190784} },
-    Priest = {[256] = {121536,73325}, [257] = {121536,73325}, [258] = {121536,73325}},
+    PRIEST = {[256] = {121536,73325}, [257] = {121536,73325}, [258] = {121536,73325}},
     ROGUE = {[259] = {36554}, [260] = {195457}, [261] = {36554}},
     SHAMAN = {[262] = {79206, 90328, 192063}, [263] = {90328, 192063}, [264] = {79206, 90328, 192063}},
     WARLOCK = {[265] = {48020}, [266] = {48020}, [267] = {48020}},
     WARRIOR = {[71] = {6544}, [72] = {6544}, [73] = {6544}}
+}
+
+-- List taken from: https://www.curseforge.com/wow/addons/time-spiral-tracker
+frame.timeSpiralAbilities = {
+    -- DK
+    [48265] = true, -- Death's Advance
+    -- DH
+    [195072] = true, -- Fel Rush
+    [189110] = true, -- Infernal Strike
+    [1234796] = true, -- Shift
+    -- Druid
+    [1850] = true, -- Dash
+    [252216] = true, -- Tiger Dash
+    -- Evoker
+    [358267] = true, -- Hover
+    -- Hunter
+    [186257] = true, -- Aspect of the Cheetah
+    -- Mage
+    [212653] = true, -- Shimmer
+    [1953] = true, -- Blink
+    -- Monk
+    [119085] = true, -- Chi Torpedo
+    [361138] = true, -- Roll
+    -- Paladin
+    [190784] = true, -- Divine Steed
+    -- Priest lmao
+    [73325] = true, -- Leap of Faith
+    -- Rogue
+    [2983] = true, -- Sprint
+    -- Shaman
+    [192063] = true, -- Gust of Wind
+    [58875] = true, -- Spirit Walk
+    [79206] = true, -- Spiritwalker's Grace
+    -- Warlock
+    [48020] = true, -- Demonic Circle: Teleport
+    -- Warrior
+    [6544] = true, -- Heroic Leap
 }
 
 function frame:GetSpellToCheck()
@@ -92,10 +130,20 @@ local function OnUpdate(self, elapsed, ...)
     
     if self.timeSinceLastUpdate > MovementAlert.db.updateInterval then
         if not ItruliaQoL.testMode then
-            if self.movementId then
+            if self.timeSpiralOn then
+                local timeSpiralText = CreateColor(
+                    MovementAlert.db.timeSpiralColor.r,
+                    MovementAlert.db.timeSpiralColor.g, 
+                    MovementAlert.db.timeSpiralColor.b, 
+                    MovementAlert.db.timeSpiralColor.a
+                ):WrapTextInColorCode(MovementAlert.db.timeSpiralText)
+                self.text:SetText(timeSpiralText)
+                self.text:Show()
+            elseif self.movementId then
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
-                if cdInfo and cdInfo.timeUntilEndOfStartRecovery then
+                -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
+                if cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and cdInfo.isOnGCD ~= nil  then
                     self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
                     self.text:Show()
                 else
@@ -116,7 +164,7 @@ function frame:CacheMovementId()
     self.movementName = spellInfo and spellInfo.name
 end
 
-local function OnEvent(self, ...)
+local function OnEvent(self, event, ...)
     self:UpdateStyles()
     self:CacheMovementId()
 
@@ -125,12 +173,33 @@ local function OnEvent(self, ...)
         self.text:Show()
         return
     end
+
+    if MovementAlert.db.showTimeSpiral then
+        local spellId = ...
+        if event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
+            if self.timeSpiralAbilities[spellId] then
+                self.timeSpiralOn = true;
+
+                if MovementAlert.db.showTimeSpiral and MovementAlert.db.timeSpiralPlaySound and MovementAlert.db.timeSpiralSound then
+                    PlaySoundFile(LSM:Fetch("sound", MovementAlert.db.timeSpiralSound), "Master")
+                end
+            end
+        elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
+            if self.timeSpiralAbilities[spellId] then
+                self.timeSpiralOn = false;
+            end
+        else
+            self.timeSpiralOn = false;
+        end
+    end
 end
 
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 frame:RegisterEvent("PLAYER_TALENT_UPDATE")
 frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+frame:RegisterUnitEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
+frame:RegisterUnitEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
 
 local defaults = {
     enabled = true,
@@ -141,6 +210,11 @@ local defaults = {
     fontOutline = "OUTLINE",
     updateInterval = 0.1,
     point = {point = "CENTER", x = 0, y = 50},
+    showTimeSpiral = true,
+    timeSpiralText = "Free Movement",
+    timeSpiralColor = {r = 1, g = 1, b = 1, a = 1},
+    timeSpiralPlaySound = false,
+    timeSpiralSound = nil
 }
 
 function MovementAlert:OnInitialize()
@@ -215,7 +289,7 @@ local options = {
                 color = {
                     order = 2,
                     type = "color",
-                    name = "Indicator Color",
+                    name = "Text color",
                     desc = "Set the color of the indicator",
                     hasAlpha = true,
                     get = function()
@@ -306,6 +380,107 @@ local options = {
                 }
             }
         },
+        spacer = {
+            type = "description",
+            name = " ",
+            width = "full",
+            order = 6,
+        },
+        timeSpiralSettings = {
+            type = "group",
+            name = "Time spiral",
+            order = 7,
+            guiInline = true,
+            args = {
+                showTimeSpiral = {
+                    order = 1,
+                    type = "toggle",
+                    width = "full",
+                    name = "Enable",
+                    get = function(info)
+                        return MovementAlert.db.showTimeSpiral
+                    end,
+                    set = function(info, value)
+                        MovementAlert.db.showTimeSpiral = value
+                    end
+                },
+                timeSpiralText = {
+                    order = 2,
+                    type = "input",
+                    name = "Time spiral text",
+                    desc = "Text to display when time spiral is on",
+                    get = function()
+                        return MovementAlert.db.timeSpiralText
+                    end,
+                    set = function(_, value)
+                        MovementAlert.db.timeSpiralText = value
+                    end,
+                    disabled = function()
+                        return not MovementAlert.db.showTimeSpiral
+                    end,
+                },
+                timeSpiralColor = {
+                    order = 3,
+                    type = "color",
+                    name = "Time spiral text color",
+                    desc = "Set the color of the indicator",
+                    hasAlpha = true, 
+                    get = function()
+                        local c = MovementAlert.db.timeSpiralColor
+                        return c.r, c.g, c.b, c.a
+                    end,
+                    set = function(_, r, g, b, a)
+                        MovementAlert.db.timeSpiralColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a,
+                        }
+                    end,
+                    disabled = function()
+                        return not MovementAlert.db.showTimeSpiral
+                    end,
+                },
+                soundGroup = {
+                    type = "group",
+                    name = "",
+                    order = 4,
+                    guiInline = true,
+                    args = {
+                        timeSpiralPlaySound = {
+                            order = 1,
+                            type = "toggle",
+                            name = "Play sound when time spiral becomes active",
+                            get = function() 
+                                return MovementAlert.db.timeSpiralPlaySound
+                            end,
+                            set = function(_, value)
+                                MovementAlert.db.timeSpiralPlaySound = value
+                            end,
+                        },
+                        timeSpiralSound = {
+                            order = 2,
+                            type = "select",
+                            dialogControl = "LSM30_Sound", 
+                            name = "Sound",
+                            values = LSM:HashTable("sound"),
+                            get = function()
+                                return MovementAlert.db.timeSpiralSound
+                            end,
+                            set = function(_, value)
+                                MovementAlert.db.timeSpiralSound = value
+                            end,
+                            disabled = function()
+                                return not MovementAlert.db.timeSpiralPlaySound
+                            end,
+                        },
+                    },
+                    disabled = function()
+                        return not MovementAlert.db.showTimeSpiral
+                    end,
+                },
+            }
+        }
     }
 }
 
@@ -315,5 +490,8 @@ function MovementAlert:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    -- CD:AddToBlizOptions(moduleName, "Movement Alert", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Movement Alert", parentCategory)
+    end
 end
