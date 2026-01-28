@@ -285,7 +285,7 @@ local options = {
                         return DeathAlert.db.fontOutline
                     end,
                     set = function(_, value)
-                        DeathAlert.db.fontOutline = value ~= "NONE" and value or "OUTLINE"
+                        DeathAlert.db.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
                 }

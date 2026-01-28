@@ -19,6 +19,7 @@ end
 function ItruliaQoL:OnEnable()
 	ItruliaQoL:GetModule('MeleeIndicator'):Enable()
 	ItruliaQoL:GetModule('FocusInterruptIndicator'):Enable()
+    ItruliaQoL:GetModule('FocusTargetMarker'):Enable()
 	ItruliaQoL:GetModule('PetMissingIndicator'):Enable()
 	ItruliaQoL:GetModule('PetPassiveIndicator'):Enable()
     ItruliaQoL:GetModule('DeathAlert'):Enable()

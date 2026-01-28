@@ -275,7 +275,7 @@ local options = {
                         return CombatAlert.db.fontOutline
                     end,
                     set = function(_, value)
-                        CombatAlert.db.fontOutline = value ~= "NONE" and value or "OUTLINE"
+                        CombatAlert.db.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
                 }

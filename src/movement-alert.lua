@@ -212,7 +212,7 @@ local defaults = {
     point = {point = "CENTER", x = 0, y = 50},
     showTimeSpiral = true,
     timeSpiralText = "Free Movement",
-    timeSpiralColor = {r = 1, g = 1, b = 1, a = 1},
+    timeSpiralColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
     timeSpiralPlaySound = false,
     timeSpiralSound = nil
 }
@@ -374,7 +374,7 @@ local options = {
                         return MovementAlert.db.fontOutline
                     end,
                     set = function(_, value)
-                        MovementAlert.db.fontOutline = value ~= "NONE" and value or "OUTLINE"
+                        MovementAlert.db.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
                 }

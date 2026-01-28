@@ -283,7 +283,7 @@ local options = {
                         return PetMissingIndicator.db.fontOutline
                     end,
                     set = function(_, value)
-                        PetMissingIndicator.db.fontOutline = value ~= "NONE" and value or "OUTLINE"
+                        PetMissingIndicator.db.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
                 }

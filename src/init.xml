@@ -3,6 +3,7 @@
 	<Script file="utils.lua"/>
 
 	<Script file="focus-interrupt-indicator.lua"/>
+	<Script file="focus-target-marker.lua"/>
 	<Script file="melee-indicator.lua"/>
 	<Script file="pet-missing-indicator.lua"/>
 	<Script file="pet-passive-indicator.lua"/>

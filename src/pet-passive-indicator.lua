@@ -236,7 +236,7 @@ local options = {
                         return PetPassiveIndicator.db.fontOutline
                     end,
                     set = function(_, value)
-                        PetPassiveIndicator.db.fontOutline = value ~= "NONE" and value or "OUTLINE"
+                        PetPassiveIndicator.db.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
                 }
