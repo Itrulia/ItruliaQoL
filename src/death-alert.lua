@@ -65,18 +65,18 @@ local function OnEvent(self, event, deadGUID, ...)
     if event == "UNIT_DIED" then
         local unitId = UnitTokenFromGUID(deadGUID)
 
-        if unitId and (UnitInParty(unitId) or UnitInRaid(unitId) or UnitIsUnit(unitId, "player")) then
+        if unitId and (UnitInParty(unitId) or UnitInRaid(unitId)) then
             local name = UnitName(unitId)
             local _, class = UnitClass(unitId)
-            
-            local color = C_ClassColor.GetClassColor(class);
+            local classColor = C_ClassColor.GetClassColor(class);
+
             local displayText = CreateColor(
                 DeathAlert.db.color.r,
                 DeathAlert.db.color.g, 
                 DeathAlert.db.color.b, 
                 DeathAlert.db.color.a
             ):WrapTextInColorCode(DeathAlert.db.displayText)
-            local nameText = color:WrapTextInColorCode(name)
+            local nameText = classColor:WrapTextInColorCode(name)
 
             self.text:SetText(nameText .. " " .. displayText)
             self.text:SetAlpha(1)

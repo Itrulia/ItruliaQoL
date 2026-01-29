@@ -92,7 +92,8 @@ local function OnEvent(self, event, ...)
             return
         end
 
-        if not IsInGroup() or InCombatLockdown() then
+        local inInstance, instanceType = IsInInstance()
+        if not inInstance or instanceType ~= "party" or InCombatLockdown() then
             return
         end
 
