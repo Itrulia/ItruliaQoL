@@ -28,6 +28,7 @@ function ItruliaQoL:OnEnable()
     ItruliaQoL:GetModule('MovementAlert'):Enable()
     ItruliaQoL:GetModule('DungeonTeleports'):Enable()
 	ItruliaQoL:GetModule('CDMSlash'):Enable()
+    ItruliaQoL:GetModule('AutoAcceptRole'):Enable()
 end
 
 function ItruliaQoL:RefreshModules()

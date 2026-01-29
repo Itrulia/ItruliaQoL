@@ -12,6 +12,7 @@
 	<Script file="combat-alert.lua"/>
 	<Script file="movement-alert.lua"/>
 
+	<Script file="auto-accept-role.lua"/>
 	<Script file="dungeon-teleports.lua"/>
 	<Script file="cdm-slash.lua"/>
 </Ui>
