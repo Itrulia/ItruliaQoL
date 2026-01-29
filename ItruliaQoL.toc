@@ -1,6 +1,6 @@
 ## Interface: 110205, 120000
 ## Author: Itrulia
-## Version: 0.1
+## Version: @project-version@
 ## Title: ItruliaQoL
 ## DefaultState: enabled
 ## Category: Itrulia
