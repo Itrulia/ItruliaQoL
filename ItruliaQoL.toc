@@ -1,4 +1,4 @@
-## Interface: 110205, 120000
+## Interface: 120000
 ## Author: Itrulia
 ## Version: @project-version@
 ## Title: ItruliaQoL
