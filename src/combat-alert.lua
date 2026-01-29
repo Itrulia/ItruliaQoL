@@ -34,7 +34,10 @@ function frame:UpdateStyles()
         self:SetPoint(CombatAlert.db.point.point, CombatAlert.db.point.x, CombatAlert.db.point.y)
     end
 
-    self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font), CombatAlert.db.fontSize, CombatAlert.db.fontOutline)
+    self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
+    self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
+    self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
+
     self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
 end
 
@@ -75,10 +78,16 @@ local defaults = {
     combatStartsColor = {r = 0.9803922176361084, g = 1, b = 0, a = 1},
     combatEndsText = "-Combat",
     combatEndsColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
-    font = "Expressway",
-    fontSize = 14,
-    fontOutline = "OUTLINE",
     point = {point = "CENTER", x = 0, y = 0},
+
+    font = {
+        fontFamily = "Expressway",
+        fontSize = 14,
+        fontOutline = "OUTLINE",
+        fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
+        fontShadowXOffset = 1,
+        fontShadowYOffset = -1,
+    }
 };
 
 function CombatAlert:OnInitialize()
@@ -129,8 +138,14 @@ local options = {
     name = "Combat Alert",
     order = 2,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name = "Shows an alert when entering or leaving combat \n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -236,28 +251,27 @@ local options = {
                     type = "select",
                     dialogControl = "LSM30_Font",
                     name = "Font",
-                    desc = "Select the font used by this module",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return CombatAlert.db.font
+                        return CombatAlert.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        CombatAlert.db.font = value
+                        CombatAlert.db.font.fontFamily = value
                         frame:UpdateStyles()
                     end
                 },
                 fontSize = {
                     order = 2,
                     type = "range",
-                    name = "Font Size",
+                    name = "Size",
                     min = 1,
                     max = 68,
                     step = 1,
                     get = function()
-                        return CombatAlert.db.fontSize
+                        return CombatAlert.db.font.fontSize
                     end,
                     set = function(_, value)
-                        CombatAlert.db.fontSize = value
+                        CombatAlert.db.font.fontSize = value
                         frame:UpdateStyles()
                     end
                 },
@@ -272,13 +286,62 @@ local options = {
                         MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return CombatAlert.db.fontOutline
+                        return CombatAlert.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        CombatAlert.db.fontOutline = value ~= "NONE" and value or nil
+                        CombatAlert.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
-                }
+                },
+                fontShadowColor = {
+                    order = 4,
+                    type = "color",
+                    name = "Shadow Color",
+                    hasAlpha = true,
+                    get = function()
+                        local c = CombatAlert.db.font.fontShadowColor
+                        return c.r, c.g, c.b, c.a
+                    end,
+                    set = function(_, r, g, b, a)
+                        CombatAlert.db.font.fontShadowColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a
+                        }
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowXOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow X Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return CombatAlert.db.font.fontShadowXOffset
+                    end,
+                    set = function(_, value)
+                        CombatAlert.db.font.fontShadowXOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowYOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow Y Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return CombatAlert.db.font.fontShadowYOffset
+                    end,
+                    set = function(_, value)
+                        CombatAlert.db.font.fontShadowYOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
             }
         },
     }

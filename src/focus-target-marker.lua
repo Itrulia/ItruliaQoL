@@ -141,8 +141,14 @@ local options = {
     name = "Focus Marker",
     order = 3,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name =  "Creates a macro called FocusTargetMarker which automatically marks your mouseover or target with the configured raid marker\n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -155,7 +161,7 @@ local options = {
             end,
         },
         announce = {
-            order = 2,
+            order = 3,
             type = "toggle",
             width = "full",
             name = "Announce on ready check",
@@ -167,7 +173,7 @@ local options = {
             end,
         },
          marker = {
-            order = 3,
+            order = 4,
             type = "select",
             name = "Focus Marker",
             values = frame.targetMarkers,

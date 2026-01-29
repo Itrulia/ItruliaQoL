@@ -34,8 +34,10 @@ function frame:UpdateStyles()
         self:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
     end
 
-    self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font), DeathAlert.db.fontSize, DeathAlert.db.fontOutline)
     self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
+    self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
+    self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
+    self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
     self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
     self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
 end
@@ -46,15 +48,15 @@ local function OnEvent(self, event, deadGUID, ...)
         local _, class = UnitClass("player")
         
         local color = C_ClassColor.GetClassColor(class);
-        local customText = CreateColor(
+        local displayText = CreateColor(
             DeathAlert.db.color.r,
             DeathAlert.db.color.g, 
             DeathAlert.db.color.b, 
             DeathAlert.db.color.a
-        ):WrapTextInColorCode(DeathAlert.db.customText)
+        ):WrapTextInColorCode(DeathAlert.db.displayText)
         local nameText = color:WrapTextInColorCode(name)
 
-        self.text:SetText(nameText .. " " .. customText)
+        self.text:SetText(nameText .. " " .. displayText)
         self.text:SetAlpha(1)
 
         return self:UpdateStyles()
@@ -68,15 +70,15 @@ local function OnEvent(self, event, deadGUID, ...)
             local _, class = UnitClass(unitId)
             
             local color = C_ClassColor.GetClassColor(class);
-            local customText = CreateColor(
+            local displayText = CreateColor(
                 DeathAlert.db.color.r,
                 DeathAlert.db.color.g, 
                 DeathAlert.db.color.b, 
                 DeathAlert.db.color.a
-            ):WrapTextInColorCode(DeathAlert.db.customText)
+            ):WrapTextInColorCode(DeathAlert.db.displayText)
             local nameText = color:WrapTextInColorCode(name)
 
-            self.text:SetText(nameText .. " " .. customText)
+            self.text:SetText(nameText .. " " .. displayText)
             self.text:SetAlpha(1)
             self.text.anim:Stop()
             self.text.anim:Play()
@@ -98,16 +100,22 @@ frame:RegisterEvent("UNIT_DIED")
 
 local defaults = {
     enabled = true,
-    customText = "DIED!",
+    displayText = "died",
     color = {r = 1, g = 1, b = 1, a = 1},
-    font = "Expressway",
-    fontSize = 28,
-    fontOutline = "OUTLINE",
     updateInterval = 0.5,
     messageDuration = 2,
     point = {point = "CENTER", x = 0, y = 200},
     playSound = false,
-    sound = "Exit"
+    sound = "Exit",
+
+    font = {
+        fontFamily = "Expressway",
+        fontSize = 28,
+        fontOutline = "OUTLINE",
+        fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
+        fontShadowXOffset = 1,
+        fontShadowYOffset = -1,
+    }
 };
 
 function DeathAlert:OnInitialize()
@@ -158,8 +166,14 @@ local options = {
     name = "Death Alert",
     order = 2,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name = "Shows an alert when someone in your party or raid dies \n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -184,24 +198,22 @@ local options = {
             order = 4,
             guiInline = true,
             args = {
-                customText = {
+                displayText = {
                     order = 2,
                     type = "input",
                     name = "Display text",
-                    desc = "Text to display on the indicator",
                     get = function()
-                        return DeathAlert.db.customText
+                        return DeathAlert.db.displayText
                     end,
                     set = function(_, value)
-                        DeathAlert.db.customText = value
+                        DeathAlert.db.displayText = value
                         frame:UpdateStyles()
                     end
                 },
                 color = {
                     order = 2,
                     type = "color",
-                    name = "Indicator Color",
-                    desc = "Set the color of the indicator",
+                    name = "Color",
                     hasAlpha = true,
                     get = function()
                         local c = DeathAlert.db.color
@@ -224,7 +236,6 @@ local options = {
                     max = 10,
                     step = 1,
                     name = "Display duration",
-                    desc = "How long should the message be displayed?",
                     get = function()
                         return DeathAlert.db.messageDuration
                     end,
@@ -246,28 +257,27 @@ local options = {
                     type = "select",
                     dialogControl = "LSM30_Font",
                     name = "Font",
-                    desc = "Select the font used by this module",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return DeathAlert.db.font
+                        return DeathAlert.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        DeathAlert.db.font = value
+                        DeathAlert.db.font.fontFamily = value
                         frame:UpdateStyles()
                     end
                 },
                 fontSize = {
                     order = 2,
                     type = "range",
-                    name = "Font Size",
+                    name = "Size",
                     min = 1,
                     max = 68,
                     step = 1,
                     get = function()
-                        return DeathAlert.db.fontSize
+                        return DeathAlert.db.font.fontSize
                     end,
                     set = function(_, value)
-                        DeathAlert.db.fontSize = value
+                        DeathAlert.db.font.fontSize = value
                         frame:UpdateStyles()
                     end
                 },
@@ -282,13 +292,62 @@ local options = {
                         MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return DeathAlert.db.fontOutline
+                        return DeathAlert.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        DeathAlert.db.fontOutline = value ~= "NONE" and value or nil
+                        DeathAlert.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
-                }
+                },
+                fontShadowColor = {
+                    order = 4,
+                    type = "color",
+                    name = "Shadow Color",
+                    hasAlpha = true,
+                    get = function()
+                        local c = DeathAlert.db.font.fontShadowColor
+                        return c.r, c.g, c.b, c.a
+                    end,
+                    set = function(_, r, g, b, a)
+                        DeathAlert.db.font.fontShadowColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a
+                        }
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowXOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow X Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return DeathAlert.db.font.fontShadowXOffset
+                    end,
+                    set = function(_, value)
+                        DeathAlert.db.font.fontShadowXOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowYOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow Y Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return DeathAlert.db.font.fontShadowYOffset
+                    end,
+                    set = function(_, value)
+                        DeathAlert.db.font.fontShadowYOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
             }
         },
         soundGroup = {
@@ -313,7 +372,6 @@ local options = {
                     type = "select",
                     dialogControl = "LSM30_Sound", 
                     name = "Sound",
-                    desc = "Select the sound used by this module",
                     values = LSM:HashTable("sound"),
                     get = function()
                         return DeathAlert.db.sound

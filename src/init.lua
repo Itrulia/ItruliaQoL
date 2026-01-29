@@ -17,18 +17,17 @@ function ItruliaQoL:OnInitialize()
 end
 
 function ItruliaQoL:OnEnable()
-	ItruliaQoL:GetModule('MeleeIndicator'):Enable()
+	self:RegisterOptions()
+
+    ItruliaQoL:GetModule('MeleeIndicator'):Enable()
 	ItruliaQoL:GetModule('FocusInterruptIndicator'):Enable()
     ItruliaQoL:GetModule('FocusTargetMarker'):Enable()
 	ItruliaQoL:GetModule('PetMissingIndicator'):Enable()
 	ItruliaQoL:GetModule('PetPassiveIndicator'):Enable()
     ItruliaQoL:GetModule('DeathAlert'):Enable()
     ItruliaQoL:GetModule('MovementAlert'):Enable()
+    ItruliaQoL:GetModule('DungeonTeleports'):Enable()
 	ItruliaQoL:GetModule('CDMSlash'):Enable()
-end
-
-function ItruliaQoL:OnEnable()
-	self:RegisterOptions()
 end
 
 function ItruliaQoL:RefreshModules()
@@ -43,8 +42,14 @@ function ItruliaQoL:RegisterOptions()
     local AceDBOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 
     local options =  {
-        enable = {
+        description = {
+            type = "description",
+            name =  "You can move things around using the native Edit Mode. Test mode will automatically be turned on\n\n Note that it ignores the Edit Mode layouts \n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Test mode",
@@ -65,6 +70,7 @@ function ItruliaQoL:RegisterOptions()
             order = 50, 
             args = options
         }
+        ItruliaQoL.E.Options.args[addonName].args.description.name = "You can move things around using the ElvUI movers. Test mode will automatically be turned on\n\n";
         ItruliaQoL.E.Options.args[addonName].args.profiles = AceDBOptions
     end
 
@@ -100,16 +106,20 @@ end
 
 ItruliaQoL:RegisterChatCommand("itrulia", "MySlashProcessorFunc")
 function ItruliaQoL:MySlashProcessorFunc(input)
+    if not input or input == "" or input == "config" then
+        if self.E then
+            self.E:ToggleOptions(addonName)
+        else
+            self.CD:Open(addonName)
+        end
+    end
+
   if input == "test" then
     self:ToggleTestMode(not ItruliaQoL.testMode)
   end
 
   if input == "help" then
 
-  end
-
-  if input == "config" then
-    InterfaceOptionsFrame_OpenToCategory("ItruliaQoL")
   end
 end
 

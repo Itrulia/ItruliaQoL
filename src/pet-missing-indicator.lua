@@ -79,9 +79,11 @@ function frame:UpdateStyles()
         self:SetPoint(PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
     end
 
-    self.text:SetText(PetMissingIndicator.db.customText)
-    self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font), PetMissingIndicator.db.fontSize, PetMissingIndicator.db.fontOutline)
+    self.text:SetText(PetMissingIndicator.db.displayText)
     self.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
+    self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font.fontFamily), PetMissingIndicator.db.font.fontSize, PetMissingIndicator.db.font.fontOutline)
+    self.text:SetShadowColor(PetMissingIndicator.db.font.fontShadowColor.r, PetMissingIndicator.db.font.fontShadowColor.g, PetMissingIndicator.db.font.fontShadowColor.b, PetMissingIndicator.db.font.fontShadowColor.a)
+    self.text:SetShadowOffset(PetMissingIndicator.db.font.fontShadowXOffset, PetMissingIndicator.db.font.fontShadowYOffset)
     self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
 end
 
@@ -121,13 +123,19 @@ frame:RegisterEvent("PLAYER_ALIVE")
 
 local defaults = {
     enabled = true,
-    customText = "**Pet missing!**",
+    displayText = "**Pet missing!**",
     color = {r = 1, g = 1, b = 1, a = 1},
-    font = "Expressway",
-    fontSize = 28,
-    fontOutline = "OUTLINE",
     updateInterval = 0.5,
-    point = {point = "CENTER", x = 0, y = 300}
+    point = {point = "CENTER", x = 0, y = 300},
+
+    font = {
+        fontFamily = "Expressway",
+        fontSize = 28,
+        fontOutline = "OUTLINE",
+        fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
+        fontShadowXOffset = 1,
+        fontShadowYOffset = -1,
+    }
 }
 
 function PetMissingIndicator:OnInitialize()
@@ -143,7 +151,6 @@ function PetMissingIndicator:RefreshConfig()
 
     if self.db.enabled then
         frame:SetScript("OnEvent", OnEvent)
-        frame:SetScript("OnUpdate", OnUpdate) 
         OnEvent(frame)
     else
         frame:SetScript("OnEvent", nil)
@@ -179,8 +186,14 @@ local options = {
     name = "Missing Pet",
     order = 4,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name =  "Displays a text when you are a pet spec and your pet is missing\n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -198,24 +211,22 @@ local options = {
             order = 4,
             guiInline = true,
             args = {
-                customText = {
+                displayText = {
                     order = 2,
                     type = "input",
                     name = "Display text",
-                    desc = "Text to display on the indicator",
                     get = function()
-                        return PetMissingIndicator.db.customText
+                        return PetMissingIndicator.db.displayText
                     end,
                     set = function(_, value)
-                        PetMissingIndicator.db.customText = value
+                        PetMissingIndicator.db.displayText = value
                         frame:UpdateStyles()
                     end
                 },
                 color = {
                     order = 2,
                     type = "color",
-                    name = "Indicator Color",
-                    desc = "Set the color of the indicator",
+                    name = "Color",
                     hasAlpha = true,
                     get = function()
                         local c = PetMissingIndicator.db.color
@@ -244,28 +255,27 @@ local options = {
                     type = "select",
                     dialogControl = "LSM30_Font",
                     name = "Font",
-                    desc = "Select the font used by this module",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return PetMissingIndicator.db.font
+                        return PetMissingIndicator.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        PetMissingIndicator.db.font = value
+                        PetMissingIndicator.db.font.fontFamily = value
                         frame:UpdateStyles()
                     end
                 },
                 fontSize = {
                     order = 2,
                     type = "range",
-                    name = "Font Size",
+                    name = "Size",
                     min = 1,
                     max = 68,
                     step = 1,
                     get = function()
-                        return PetMissingIndicator.db.fontSize
+                        return PetMissingIndicator.db.font.fontSize
                     end,
                     set = function(_, value)
-                        PetMissingIndicator.db.fontSize = value
+                        PetMissingIndicator.db.font.fontSize = value
                         frame:UpdateStyles()
                     end
                 },
@@ -280,13 +290,62 @@ local options = {
                         MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return PetMissingIndicator.db.fontOutline
+                        return PetMissingIndicator.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        PetMissingIndicator.db.fontOutline = value ~= "NONE" and value or nil
+                        PetMissingIndicator.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
-                }
+                },
+                fontShadowColor = {
+                    order = 4,
+                    type = "color",
+                    name = "Shadow Color",
+                    hasAlpha = true,
+                    get = function()
+                        local c = PetMissingIndicator.db.font.fontShadowColor
+                        return c.r, c.g, c.b, c.a
+                    end,
+                    set = function(_, r, g, b, a)
+                        PetMissingIndicator.db.font.fontShadowColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a
+                        }
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowXOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow X Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return PetMissingIndicator.db.font.fontShadowXOffset
+                    end,
+                    set = function(_, value)
+                        PetMissingIndicator.db.font.fontShadowXOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowYOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow Y Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return PetMissingIndicator.db.font.fontShadowYOffset
+                    end,
+                    set = function(_, value)
+                        PetMissingIndicator.db.font.fontShadowYOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
             }
         }
     }

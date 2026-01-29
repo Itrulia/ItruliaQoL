@@ -134,9 +134,11 @@ function frame:UpdateStyles()
         self:SetPoint(MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
     end
 
-    self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font), MeleeIndicator.db.fontSize, MeleeIndicator.db.fontOutline)
     self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
-    self.text:SetText(MeleeIndicator.db.customText)
+    self.text:SetText(MeleeIndicator.db.displayText)
+    self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font.fontFamily), MeleeIndicator.db.font.fontSize, MeleeIndicator.db.font.fontOutline)
+    self.text:SetShadowColor(MeleeIndicator.db.font.fontShadowColor.r, MeleeIndicator.db.font.fontShadowColor.g, MeleeIndicator.db.font.fontShadowColor.b, MeleeIndicator.db.font.fontShadowColor.a)
+    self.text:SetShadowOffset(MeleeIndicator.db.font.fontShadowXOffset, MeleeIndicator.db.font.fontShadowYOffset)
     self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
 end
 
@@ -157,11 +159,6 @@ local function OnEvent(self, ...)
 end
 
 local function OnUpdate(self, elapsed)
-    if not self.meleeSpellId then
-        self.text:Hide()
-        return
-    end
-
     if not self.timeSinceLastUpdate then 
         self.timeSinceLastUpdate = 0 
     end
@@ -169,7 +166,9 @@ local function OnUpdate(self, elapsed)
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed
     
     if self.timeSinceLastUpdate > MeleeIndicator.db.updateInterval then
-        if not ItruliaQoL.testMode then
+        if not self.meleeSpellId then
+            self.text:Hide()
+        elseif not ItruliaQoL.testMode then
             self:UpdateMeleeIndicator()
         end
 
@@ -182,13 +181,19 @@ frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 
 local defaults = {
     enabled = true,
-    customText = "+",
+    displayText = "+",
     color = {r = 1, g = 0, b = 0, a = 1},
-    font = "Expressway",
-    fontSize = 28,
-    fontOutline = "OUTLINE",
     updateInterval = 0.5,
-    point = { point = "CENTER", x = 0, y = 0 }
+    point = { point = "CENTER", x = 0, y = 0 },
+
+    font = {
+        fontFamily = "Expressway",
+        fontSize = 28,
+        fontOutline = "OUTLINE",
+        fontShadowColor = {r = 0, g = 0, b = 0, a = 0},
+        fontShadowXOffset = 1,
+        fontShadowYOffset = -1,
+    }
 }
 
 function MeleeIndicator:OnInitialize()
@@ -250,8 +255,14 @@ local options = {
     name = "Melee Indicator",
     order = 1,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name =  "Creates an indicator that shows up when you not in melee range as a melee spec\n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -269,24 +280,22 @@ local options = {
             order = 4,
             guiInline = true,
             args = {
-                customText = {
+                displayText = {
                     order = 2,
                     type = "input",
                     name = "Display text",
-                    desc = "Text to display on the indicator",
                     get = function()
-                        return MeleeIndicator.db.customText
+                        return MeleeIndicator.db.displayText
                     end,
                     set = function(_, value)
-                        MeleeIndicator.db.customText = value
+                        MeleeIndicator.db.displayText = value
                         frame:UpdateStyles()
                     end,
                 },
                 color = {
                     order = 2,
                     type = "color",
-                    name = "Indicator Color",
-                    desc = "Set the color of the indicator",
+                    name = "Color",
                     hasAlpha = true, 
                     get = function()
                         local c = MeleeIndicator.db.color
@@ -313,32 +322,31 @@ local options = {
                 font = {
                     order = 1,
                     type = "select",
-                    dialogControl = "LSM30_Font", 
+                    dialogControl = "LSM30_Font",
                     name = "Font",
-                    desc = "Select the font used by this module",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return MeleeIndicator.db.font
+                        return MeleeIndicator.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        MeleeIndicator.db.font = value
+                        MeleeIndicator.db.font.fontFamily = value
                         frame:UpdateStyles()
-                    end,
+                    end
                 },
                 fontSize = {
                     order = 2,
                     type = "range",
-                    name = "Font Size",
+                    name = "Size",
                     min = 1,
                     max = 68,
                     step = 1,
-                    get = function() 
-                        return MeleeIndicator.db.fontSize
+                    get = function()
+                        return MeleeIndicator.db.font.fontSize
                     end,
                     set = function(_, value)
-                        MeleeIndicator.db.fontSize = value
+                        MeleeIndicator.db.font.fontSize = value
                         frame:UpdateStyles()
-                    end,
+                    end
                 },
                 fontOutline = {
                     order = 3,
@@ -348,15 +356,64 @@ local options = {
                         NONE = "None",
                         OUTLINE = "Outline",
                         THICKOUTLINE = "Thick Outline",
-                        MONOCHROME = "Monochrome",
+                        MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return MeleeIndicator.db.fontOutline
+                        return MeleeIndicator.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        MeleeIndicator.db.fontOutline = value ~= "NONE" and value or nil
+                        MeleeIndicator.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
+                    end
+                },
+                fontShadowColor = {
+                    order = 4,
+                    type = "color",
+                    name = "Shadow Color",
+                    hasAlpha = true,
+                    get = function()
+                        local c = MeleeIndicator.db.font.fontShadowColor
+                        return c.r, c.g, c.b, c.a
                     end,
+                    set = function(_, r, g, b, a)
+                        MeleeIndicator.db.font.fontShadowColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a
+                        }
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowXOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow X Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return MeleeIndicator.db.font.fontShadowXOffset
+                    end,
+                    set = function(_, value)
+                        MeleeIndicator.db.font.fontShadowXOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowYOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow Y Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return MeleeIndicator.db.font.fontShadowYOffset
+                    end,
+                    set = function(_, value)
+                        MeleeIndicator.db.font.fontShadowYOffset = value
+                        frame:UpdateStyles()
+                    end
                 },
             }
         },

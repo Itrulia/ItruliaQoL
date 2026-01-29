@@ -96,9 +96,11 @@ function frame:UpdateStyles()
         self:SetPoint(FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
     end
 
-    self.text:SetText(FocusInterruptIndicator.db.customText)
-    self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font), FocusInterruptIndicator.db.fontSize, FocusInterruptIndicator.db.fontOutline)
+    self.text:SetText(FocusInterruptIndicator.db.displayText)
     self.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
+    self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font.fontFamily), FocusInterruptIndicator.db.font.fontSize, FocusInterruptIndicator.db.font.fontOutline)
+    self.text:SetShadowColor(FocusInterruptIndicator.db.font.fontShadowColor.r, FocusInterruptIndicator.db.font.fontShadowColor.g, FocusInterruptIndicator.db.font.fontShadowColor.b, FocusInterruptIndicator.db.font.fontShadowColor.a)
+    self.text:SetShadowOffset(FocusInterruptIndicator.db.font.fontShadowXOffset, FocusInterruptIndicator.db.font.fontShadowYOffset)
     self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
 end
 
@@ -157,12 +159,18 @@ local defaults = {
     enabled = true,
     point = { point = "CENTER", x = 0, y = 150 },
     color = {r = 1, g = 1, b = 1, a = 1},
-    font = "Expressway",
-    fontSize = 28,
-    fontOutline = "OUTLINE",
-    customText = "INTERRUPT",
+    displayText = "INTERRUPT",
     playSound = false,
-    sound = "Kick"
+    sound = "Kick",
+
+    font = {
+        fontFamily = "Expressway",
+        fontSize = 28,
+        fontOutline = "OUTLINE",
+        fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
+        fontShadowXOffset = 1,
+        fontShadowYOffset = -1,
+    }
 };
 
 function FocusInterruptIndicator:OnInitialize()
@@ -224,8 +232,14 @@ local options = {
     name = "Focus Interrupt",
     order = 3,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name = "Shows an alert when your focus casts an interruptable cast and you have your interrupt ready \n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -243,24 +257,22 @@ local options = {
             order = 4,
             guiInline = true,
             args = {
-                customText = {
+                displayText = {
                     order = 2,
                     type = "input",
                     name = "Display text",
-                    desc = "Text to display on the indicator",
                     get = function()
-                        return FocusInterruptIndicator.db.customText
+                        return FocusInterruptIndicator.db.displayText
                     end,
                     set = function(_, value)
-                        FocusInterruptIndicator.db.customText = value
+                        FocusInterruptIndicator.db.displayText = value
                         frame:UpdateStyles()
                     end,
                 },
                 color = {
                     order = 2,
                     type = "color",
-                    name = "Indicator Color",
-                    desc = "Set the color of the indicator",
+                    name = "Color",
                     hasAlpha = true, 
                     get = function()
                         local c = FocusInterruptIndicator.db.color
@@ -287,32 +299,31 @@ local options = {
                 font = {
                     order = 1,
                     type = "select",
-                    dialogControl = "LSM30_Font", 
+                    dialogControl = "LSM30_Font",
                     name = "Font",
-                    desc = "Select the font used by this module",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return FocusInterruptIndicator.db.font
+                        return FocusInterruptIndicator.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        FocusInterruptIndicator.db.font = value
+                        FocusInterruptIndicator.db.font.fontFamily = value
                         frame:UpdateStyles()
-                    end,
+                    end
                 },
                 fontSize = {
                     order = 2,
                     type = "range",
-                    name = "Font Size",
+                    name = "Size",
                     min = 1,
                     max = 68,
                     step = 1,
-                    get = function() 
-                        return FocusInterruptIndicator.db.fontSize
+                    get = function()
+                        return FocusInterruptIndicator.db.font.fontSize
                     end,
                     set = function(_, value)
-                        FocusInterruptIndicator.db.fontSize = value
+                        FocusInterruptIndicator.db.font.fontSize = value
                         frame:UpdateStyles()
-                    end,
+                    end
                 },
                 fontOutline = {
                     order = 3,
@@ -322,15 +333,64 @@ local options = {
                         NONE = "None",
                         OUTLINE = "Outline",
                         THICKOUTLINE = "Thick Outline",
-                        MONOCHROME = "Monochrome",
+                        MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return FocusInterruptIndicator.db.fontOutline
+                        return FocusInterruptIndicator.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        FocusInterruptIndicator.db.fontOutline = value ~= "NONE" and value or nil
+                        FocusInterruptIndicator.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
+                    end
+                },
+                fontShadowColor = {
+                    order = 4,
+                    type = "color",
+                    name = "Shadow Color",
+                    hasAlpha = true,
+                    get = function()
+                        local c = FocusInterruptIndicator.db.font.fontShadowColor
+                        return c.r, c.g, c.b, c.a
                     end,
+                    set = function(_, r, g, b, a)
+                        FocusInterruptIndicator.db.font.fontShadowColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a
+                        }
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowXOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow X Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return FocusInterruptIndicator.db.font.fontShadowXOffset
+                    end,
+                    set = function(_, value)
+                        FocusInterruptIndicator.db.font.fontShadowXOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowYOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow Y Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return FocusInterruptIndicator.db.font.fontShadowYOffset
+                    end,
+                    set = function(_, value)
+                        FocusInterruptIndicator.db.font.fontShadowYOffset = value
+                        frame:UpdateStyles()
+                    end
                 },
             }
         },
@@ -340,8 +400,14 @@ local options = {
             order = 6,
             guiInline = true,
             args = {
-                playSound = {
+                disclaimer = {
+                    type = "description",
+                    name = "Unfortunately due to API restrictions, this sound will play even when your interrupt is not available \n\n",
+                    width = "full",
                     order = 1,
+                },
+                playSound = {
+                    order = 2,
                     type = "toggle",
                     name = "Play sound",
                     get = function() 
@@ -352,11 +418,10 @@ local options = {
                     end,
                 },
                 sound = {
-                    order = 2,
+                    order = 3,
                     type = "select",
                     dialogControl = "LSM30_Sound", 
                     name = "Sound",
-                    desc = "Select the sound used by this module",
                     values = LSM:HashTable("sound"),
                     get = function()
                         return FocusInterruptIndicator.db.sound

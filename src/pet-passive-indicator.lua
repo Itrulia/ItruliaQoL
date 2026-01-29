@@ -43,9 +43,12 @@ function frame:UpdateStyles()
         self:SetPoint(PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)
     end
 
-    self.text:SetText(PetPassiveIndicator.db.customText)
-    self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font), PetPassiveIndicator.db.fontSize, PetPassiveIndicator.db.fontOutline)
+    self.text:SetText(PetPassiveIndicator.db.displayText)
     self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
+    self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font.fontFamily), PetPassiveIndicator.db.font.fontSize, PetPassiveIndicator.db.font.fontOutline)
+    self.text:SetShadowColor(PetPassiveIndicator.db.font.fontShadowColor.r, PetPassiveIndicator.db.font.fontShadowColor.g, PetPassiveIndicator.db.font.fontShadowColor.b, PetPassiveIndicator.db.font.fontShadowColor.a)
+    self.text:SetShadowOffset(PetPassiveIndicator.db.font.fontShadowXOffset, PetPassiveIndicator.db.font.fontShadowYOffset)
+    
     self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
 end
 
@@ -76,13 +79,19 @@ frame:RegisterEvent("UNIT_EXITED_VEHICLE")
 
 local defaults = {
     enabled = true,
-    customText = "**Pet passive!**",
+    displayText = "**Pet passive!**",
     color = {r = 1, g = 1, b = 1, a = 1},
-    font = "Expressway",
-    fontSize = 28,
-    fontOutline = "OUTLINE",
     updateInterval = 0.5,
-    point = {point = "CENTER", x = 0, y = 300}
+    point = {point = "CENTER", x = 0, y = 300},
+
+    font = {
+        fontFamily = "Expressway",
+        fontSize = 28,
+        fontOutline = "OUTLINE",
+        fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
+        fontShadowXOffset = 1,
+        fontShadowYOffset = -1,
+    }
 }
 
 function PetPassiveIndicator:OnInitialize()
@@ -132,8 +141,14 @@ local options = {
     name = "Passive Pet",
     order = 5,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name =  "Displays a text when you have a pet and it's set to passive\n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -151,24 +166,22 @@ local options = {
             order = 4,
             guiInline = true,
             args = {
-                customText = {
+                displayText = {
                     order = 2,
                     type = "input",
                     name = "Display text",
-                    desc = "Text to display on the indicator",
                     get = function()
-                        return PetPassiveIndicator.db.customText
+                        return PetPassiveIndicator.db.displayText
                     end,
                     set = function(_, value)
-                        PetPassiveIndicator.db.customText = value
+                        PetPassiveIndicator.db.displayText = value
                         frame:UpdateStyles()
                     end
                 },
                 color = {
                     order = 2,
                     type = "color",
-                    name = "Indicator Color",
-                    desc = "Set the color of the indicator",
+                    name = "Color",
                     hasAlpha = true,
                     get = function()
                         local c = PetPassiveIndicator.db.color
@@ -197,28 +210,27 @@ local options = {
                     type = "select",
                     dialogControl = "LSM30_Font",
                     name = "Font",
-                    desc = "Select the font used by this module",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return PetPassiveIndicator.db.font
+                        return PetPassiveIndicator.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        PetPassiveIndicator.db.font = value
+                        PetPassiveIndicator.db.font.fontFamily = value
                         frame:UpdateStyles()
                     end
                 },
                 fontSize = {
                     order = 2,
                     type = "range",
-                    name = "Font Size",
+                    name = "Size",
                     min = 1,
                     max = 68,
                     step = 1,
                     get = function()
-                        return PetPassiveIndicator.db.fontSize
+                        return PetPassiveIndicator.db.font.fontSize
                     end,
                     set = function(_, value)
-                        PetPassiveIndicator.db.fontSize = value
+                        PetPassiveIndicator.db.font.fontSize = value
                         frame:UpdateStyles()
                     end
                 },
@@ -233,13 +245,62 @@ local options = {
                         MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return PetPassiveIndicator.db.fontOutline
+                        return PetPassiveIndicator.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        PetPassiveIndicator.db.fontOutline = value ~= "NONE" and value or nil
+                        PetPassiveIndicator.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
-                }
+                },
+                fontShadowColor = {
+                    order = 4,
+                    type = "color",
+                    name = "Shadow Color",
+                    hasAlpha = true,
+                    get = function()
+                        local c = PetPassiveIndicator.db.font.fontShadowColor
+                        return c.r, c.g, c.b, c.a
+                    end,
+                    set = function(_, r, g, b, a)
+                        PetPassiveIndicator.db.font.fontShadowColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a
+                        }
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowXOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow X Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return PetPassiveIndicator.db.font.fontShadowXOffset
+                    end,
+                    set = function(_, value)
+                        PetPassiveIndicator.db.font.fontShadowXOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowYOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow Y Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return PetPassiveIndicator.db.font.fontShadowYOffset
+                    end,
+                    set = function(_, value)
+                        PetPassiveIndicator.db.font.fontShadowYOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
             }
         }
     }

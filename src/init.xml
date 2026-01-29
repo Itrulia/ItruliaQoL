@@ -13,5 +13,5 @@
 	<Script file="movement-alert.lua"/>
 
 	<Script file="dungeon-teleports.lua"/>
-	<Script file="cdm_slash.lua"/>
+	<Script file="cdm-slash.lua"/>
 </Ui>

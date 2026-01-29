@@ -112,13 +112,15 @@ end
 
 function frame:UpdateStyles()
     if not E then
-        frame:ClearAllPoints()
-        frame:SetPoint(MovementAlert.db.point.point, MovementAlert.db.point.x, MovementAlert.db.point.y)
+        self:ClearAllPoints()
+        self:SetPoint(MovementAlert.db.point.point, MovementAlert.db.point.x, MovementAlert.db.point.y)
     end
 
-    frame.text:SetFont(LSM:Fetch("font", MovementAlert.db.font), MovementAlert.db.fontSize, MovementAlert.db.fontOutline)
-    frame.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
-    frame:SetSize(math.max(frame.text:GetStringWidth(), 28), math.max(frame.text:GetStringHeight(), 28))
+    self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
+    self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
+    self.text:SetShadowColor(MovementAlert.db.font.fontShadowColor.r, MovementAlert.db.font.fontShadowColor.g, MovementAlert.db.font.fontShadowColor.b, MovementAlert.db.font.fontShadowColor.a)
+    self.text:SetShadowOffset(MovementAlert.db.font.fontShadowXOffset, MovementAlert.db.font.fontShadowYOffset)
+    self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
 end
 
 local function OnUpdate(self, elapsed, ...)
@@ -205,16 +207,22 @@ local defaults = {
     enabled = true,
     precision = 0,
     color = {r = 1, g = 1, b = 1, a = 1},
-    font = "Expressway",
-    fontSize = 14,
-    fontOutline = "OUTLINE",
     updateInterval = 0.1,
     point = {point = "CENTER", x = 0, y = 50},
     showTimeSpiral = true,
     timeSpiralText = "Free Movement",
     timeSpiralColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
     timeSpiralPlaySound = false,
-    timeSpiralSound = nil
+    timeSpiralSound = nil,
+
+    font = {
+        fontFamily = "Expressway",
+        fontSize = 14,
+        fontOutline = "OUTLINE",
+        fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
+        fontShadowXOffset = 1,
+        fontShadowYOffset = -1,
+    }
 }
 
 function MovementAlert:OnInitialize()
@@ -267,8 +275,14 @@ local options = {
     name = "Movement Alert",
     order = 2,
     args = {
-        enable = {
+        description = {
+            type = "description",
+            name =  "Displays a text when your most important movement ability is on cooldown or time spiral is active\n\n",
+            width = "full",
             order = 1,
+        },
+        enable = {
+            order = 2,
             type = "toggle",
             width = "full",
             name = "Enable",
@@ -289,8 +303,7 @@ local options = {
                 color = {
                     order = 2,
                     type = "color",
-                    name = "Text color",
-                    desc = "Set the color of the indicator",
+                    name = "Color",
                     hasAlpha = true,
                     get = function()
                         local c = MovementAlert.db.color
@@ -312,8 +325,7 @@ local options = {
                     min = 0,
                     max = 1,
                     step = 1,
-                    name = "Precision",
-                    desc = "How many decimals should be shown?",
+                    name = "Decimal precision",
                     get = function()
                         return MovementAlert.db.precision
                     end,
@@ -335,28 +347,27 @@ local options = {
                     type = "select",
                     dialogControl = "LSM30_Font",
                     name = "Font",
-                    desc = "Select the font used by this module",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return MovementAlert.db.font
+                        return MovementAlert.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        MovementAlert.db.font = value
+                        MovementAlert.db.font.fontFamily = value
                         frame:UpdateStyles()
                     end
                 },
                 fontSize = {
                     order = 2,
                     type = "range",
-                    name = "Font Size",
+                    name = "Size",
                     min = 1,
                     max = 68,
                     step = 1,
                     get = function()
-                        return MovementAlert.db.fontSize
+                        return MovementAlert.db.font.fontSize
                     end,
                     set = function(_, value)
-                        MovementAlert.db.fontSize = value
+                        MovementAlert.db.font.fontSize = value
                         frame:UpdateStyles()
                     end
                 },
@@ -371,13 +382,62 @@ local options = {
                         MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return MovementAlert.db.fontOutline
+                        return MovementAlert.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        MovementAlert.db.fontOutline = value ~= "NONE" and value or nil
+                        MovementAlert.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
-                }
+                },
+                fontShadowColor = {
+                    order = 4,
+                    type = "color",
+                    name = "Shadow Color",
+                    hasAlpha = true,
+                    get = function()
+                        local c = MovementAlert.db.font.fontShadowColor
+                        return c.r, c.g, c.b, c.a
+                    end,
+                    set = function(_, r, g, b, a)
+                        MovementAlert.db.font.fontShadowColor = {
+                            r = r,
+                            g = g,
+                            b = b,
+                            a = a
+                        }
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowXOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow X Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return MovementAlert.db.font.fontShadowXOffset
+                    end,
+                    set = function(_, value)
+                        MovementAlert.db.font.fontShadowXOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
+                fontShadowYOffset = {
+                    order = 5,
+                    type = "range",
+                    name = "Shadow Y Offset",
+                    min = -5,
+                    max = 5,
+                    step = 1,
+                    get = function()
+                        return MovementAlert.db.font.fontShadowYOffset
+                    end,
+                    set = function(_, value)
+                        MovementAlert.db.font.fontShadowYOffset = value
+                        frame:UpdateStyles()
+                    end
+                },
             }
         },
         spacer = {
@@ -408,7 +468,6 @@ local options = {
                     order = 2,
                     type = "input",
                     name = "Time spiral text",
-                    desc = "Text to display when time spiral is on",
                     get = function()
                         return MovementAlert.db.timeSpiralText
                     end,
@@ -422,8 +481,7 @@ local options = {
                 timeSpiralColor = {
                     order = 3,
                     type = "color",
-                    name = "Time spiral text color",
-                    desc = "Set the color of the indicator",
+                    name = "Time spiral color",
                     hasAlpha = true, 
                     get = function()
                         local c = MovementAlert.db.timeSpiralColor
