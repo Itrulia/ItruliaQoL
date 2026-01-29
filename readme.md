@@ -1,6 +1,6 @@
 # Itrulia QoL
 
-Collection of my past weakauras as a standalone 
+Collection of my past weakauras as a standalone addon
 
 ## Features
 
@@ -24,3 +24,8 @@ Combat related modules can be enabled and disabled at will.
 
 If ElvUI is enabled you can access the addon configuration in the ElvUI options, else it is accessible in the WoW options.  
 Alternative you can also use the slash command `/itrulia` and it will take you to the correct place.
+
+## AI Use
+
+The logo was AI generate due to the fact that nearly every new addon on curseforge has an AI generated icon. I wanted to honor this trend.
+If you are an artist that wants to make me one as a **paid** commission, hit me up.
