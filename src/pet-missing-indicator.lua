@@ -73,18 +73,20 @@ function frame:IsPetPassive()
     return false
 end
 
-function frame:UpdateStyles()
-    if not E then
-        self:ClearAllPoints()
-        self:SetPoint(PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
-    end
+function frame:UpdateStyles(forceUpdate)
+    if not InCombatLockdown() or forceUpdate then
+        if not E then
+            self:ClearAllPoints()
+            self:SetPoint(PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
+        end
 
-    self.text:SetText(PetMissingIndicator.db.displayText)
-    self.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
-    self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font.fontFamily), PetMissingIndicator.db.font.fontSize, PetMissingIndicator.db.font.fontOutline)
-    self.text:SetShadowColor(PetMissingIndicator.db.font.fontShadowColor.r, PetMissingIndicator.db.font.fontShadowColor.g, PetMissingIndicator.db.font.fontShadowColor.b, PetMissingIndicator.db.font.fontShadowColor.a)
-    self.text:SetShadowOffset(PetMissingIndicator.db.font.fontShadowXOffset, PetMissingIndicator.db.font.fontShadowYOffset)
-    self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+        self.text:SetText(PetMissingIndicator.db.displayText)
+        self.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
+        self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font.fontFamily), PetMissingIndicator.db.font.fontSize, PetMissingIndicator.db.font.fontOutline)
+        self.text:SetShadowColor(PetMissingIndicator.db.font.fontShadowColor.r, PetMissingIndicator.db.font.fontShadowColor.g, PetMissingIndicator.db.font.fontShadowColor.b, PetMissingIndicator.db.font.fontShadowColor.a)
+        self.text:SetShadowOffset(PetMissingIndicator.db.font.fontShadowXOffset, PetMissingIndicator.db.font.fontShadowYOffset)
+        self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+    end
 end
 
 local function OnEvent(self, event, ...)
@@ -179,7 +181,6 @@ function PetMissingIndicator:ToggleTestMode()
 
     OnEvent(frame)
 end
-
 
 local options = {
     type = "group",

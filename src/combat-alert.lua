@@ -28,17 +28,19 @@ frame.alpha:SetToAlpha(0)
 frame.alpha:SetDuration(1)
 frame.alpha:SetStartDelay(1.5)
 
-function frame:UpdateStyles()
-    if not E then
-        self:ClearAllPoints()
-        self:SetPoint(CombatAlert.db.point.point, CombatAlert.db.point.x, CombatAlert.db.point.y)
+function frame:UpdateStyles(forceUpdate)
+    if not InCombatLockdown() or forceUpdate then
+        if not E then
+            self:ClearAllPoints()
+            self:SetPoint(CombatAlert.db.point.point, CombatAlert.db.point.x, CombatAlert.db.point.y)
+        end
+
+        self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
+        self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
+        self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
+
+        self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
     end
-
-    self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
-    self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
-    self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
-
-    self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
 end
 
 local function OnEvent(self, event, ...)

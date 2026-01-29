@@ -28,18 +28,20 @@ frame.alpha:SetToAlpha(0)
 frame.alpha:SetDuration(1)
 frame.alpha:SetStartDelay(4)
 
-function frame:UpdateStyles()
-    if not E then
-        self:ClearAllPoints()
-        self:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
-    end
+function frame:UpdateStyles(forceUpdate)
+    if not InCombatLockdown() or forceUpdate then
+        if not E then
+            self:ClearAllPoints()
+            self:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
+        end
 
-    self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
-    self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
-    self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
-    self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
-    self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
-    self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
+        self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
+        self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
+        self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
+        self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
+        self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
+        self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
+    end
 end
 
 local function OnEvent(self, event, deadGUID, ...)
