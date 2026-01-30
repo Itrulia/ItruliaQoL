@@ -355,5 +355,8 @@ function CombatAlert:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Combat Alert", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Combat Alert", parentCategory)
+    end
 end

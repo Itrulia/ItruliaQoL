@@ -446,5 +446,8 @@ function FocusInterruptIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Focus Interrupt", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Focus Interrupt", parentCategory)
+    end
 end

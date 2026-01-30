@@ -69,5 +69,8 @@ function AutoAcceptRole:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Auto Role Accept", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Auto Role Accept", parentCategory)
+    end
 end

@@ -196,5 +196,8 @@ function FocusTargetMarker:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Focus Marker", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Focus Marker", parentCategory)
+    end
 end

@@ -552,5 +552,8 @@ function MovementAlert:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Movement Alert", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Movement Alert", parentCategory)
+    end
 end

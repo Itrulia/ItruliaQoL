@@ -314,5 +314,8 @@ function PetPassiveIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    CD:AddToBlizOptions(moduleName, "Passive Pet", parentCategory)
+
+    if not E then
+        CD:AddToBlizOptions(moduleName, "Passive Pet", parentCategory)
+    end
 end
