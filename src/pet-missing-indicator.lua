@@ -358,8 +358,5 @@ function PetMissingIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-    
-    if not E then
-        CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
-    end
+    CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
 end

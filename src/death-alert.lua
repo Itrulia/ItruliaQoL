@@ -396,8 +396,5 @@ function DeathAlert:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-
-    if not E then
-        CD:AddToBlizOptions(moduleName, "Death Alert", parentCategory)
-    end
+    CD:AddToBlizOptions(moduleName, "Death Alert", parentCategory)
 end

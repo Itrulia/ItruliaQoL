@@ -428,8 +428,5 @@ function MeleeIndicator:RegisterOptions(parentCategory)
     end
 
     C:RegisterOptionsTable(moduleName, options)
-
-    if not E then
-        CD:AddToBlizOptions(moduleName, "Melee Indicator", parentCategory)
-    end
+    CD:AddToBlizOptions(moduleName, "Melee Indicator", parentCategory)
 end
