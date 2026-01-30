@@ -44,12 +44,12 @@ function frame:UpdateFocusInterruptIndicator(active)
         return
     end
 
-    local name, _, texture, _, _, _, _, _ = UnitChannelInfo("focus")
+    local name = UnitChannelInfo("focus")
     local isChannel = false
     if name then 
         isChannel = true
     else 
-        name, _, texture, _, _, _, _, _ = UnitCastingInfo("focus")
+        name = UnitCastingInfo("focus")
     end
 
     if not name then 
@@ -82,7 +82,7 @@ end
 
 function frame:IsInteruptible()
     local focusBar = _G.FocusFrameSpellBar
-    
+
     if focusBar and focusBar.BorderShield then
         return not focusBar.BorderShield:IsShown()
     end
@@ -161,7 +161,7 @@ local defaults = {
     enabled = true,
     point = { point = "CENTER", x = 0, y = 150 },
     color = {r = 1, g = 1, b = 1, a = 1},
-    displayText = "INTERRUPT",
+    displayText = "Kick available",
     playSound = false,
     sound = "Kick",
 
@@ -440,7 +440,7 @@ local options = {
     }
 }
 
-function FocusInterruptIndicator:RegisterOptions(parentCategory, parentOptions)
+function FocusInterruptIndicator:RegisterOptions(parentCategory)
     if E then
         E.Options.args[addonName].args[moduleName] = options
         C:RegisterOptionsTable(moduleName, options)

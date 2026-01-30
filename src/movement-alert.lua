@@ -92,7 +92,7 @@ function frame:GetSpellToCheck()
 
     local spellId
     for _, s in ipairs(spellIds) do
-        if ItruliaQoL:IsSpellKnown(s) then
+        if s and ItruliaQoL:IsSpellKnown(s) then
             spellId = s
             break
         end
@@ -169,7 +169,7 @@ function frame:CacheMovementId()
 end
 
 local function OnEvent(self, event, ...)
-    if not self.timeSpiralOn then
+    if not InCombatLockdown() then
         self:UpdateStyles()
         self:CacheMovementId()
     end
@@ -546,7 +546,7 @@ local options = {
     }
 }
 
-function MovementAlert:RegisterOptions(parentCategory, parentOptions)
+function MovementAlert:RegisterOptions(parentCategory)
     if E then
         E.Options.args[addonName].args[moduleName] = options
         C:RegisterOptionsTable(moduleName, options)

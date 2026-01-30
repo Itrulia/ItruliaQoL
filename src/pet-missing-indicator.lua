@@ -47,7 +47,7 @@ function frame:IsPetSpec()
 
     local spellId = spells[specID]
 
-    if spellId == true or spellId == false then 
+    if spellId == true or not spellId then 
         return spellId 
     end
 

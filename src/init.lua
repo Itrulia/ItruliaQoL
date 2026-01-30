@@ -8,6 +8,7 @@ ItruliaQoL.LEM = LibStub("LibEQOLEditMode-1.0")
 ItruliaQoL.SettingsLib = LibStub("LibEQOLSettingsMode-1.0")
 ItruliaQoL.testMode = false
 ItruliaQoL.E = ElvUI and unpack(ElvUI)
+ItruliaQoL.Dump = DevTools_Dump
 
 function ItruliaQoL:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("ItruliaQoLDB", {}, true)

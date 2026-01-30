@@ -67,7 +67,7 @@ local function OnEvent(self, event, deadGUID, ...)
     if event == "UNIT_DIED" then
         local unitId = UnitTokenFromGUID(deadGUID)
 
-        if unitId and (UnitInParty(unitId) or UnitInRaid(unitId)) then
+        if unitId and (UnitInParty(unitId) or UnitInRaid(unitId) or unitId == "player") then
             local name = UnitName(unitId)
             local _, class = UnitClass(unitId)
             local classColor = C_ClassColor.GetClassColor(class);
@@ -390,7 +390,7 @@ local options = {
     }
 }
 
-function DeathAlert:RegisterOptions(parentCategory, parentOptions)
+function DeathAlert:RegisterOptions(parentCategory)
     if E then
         E.Options.args[addonName].args[moduleName] = options
         C:RegisterOptionsTable(moduleName, options)

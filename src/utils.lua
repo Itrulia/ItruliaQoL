@@ -1,7 +1,11 @@
 local addonName, ItruliaQoL = ...
 
 function ItruliaQoL:IsSpellKnown(spellId)
-    if (IsSpellKnown(spellId)) then
+    if not spellId then
+        return
+    end
+
+    if C_SpellBook.IsSpellInSpellBook(spellId) then
         return true
     end
     
