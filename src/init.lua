@@ -63,7 +63,6 @@ function ItruliaQoL:RegisterOptions()
         },
     }
     
-
     if (ItruliaQoL.E) then
         ItruliaQoL.E.Options.args[addonName] = {
             type = "group",
@@ -87,11 +86,14 @@ function ItruliaQoL:RegisterOptions()
 
     for name, module in self:IterateModules() do
         if module.RegisterOptions then
-            module:RegisterOptions("Itrulia QoL")
+            module:RegisterOptions("Itrulia QoL", parentOptions)
         end
     end
 
-    self.C:RegisterOptionsTable(addonName.."Profiles", AceDBOptions)
+    if not ItruliaQoL.E then
+        parentOptions.args['Profiles'] = AceDBOptions;
+    end
+
     self.CD:AddToBlizOptions(addonName.."Profiles", "Profiles", "Itrulia QoL")
 end
 

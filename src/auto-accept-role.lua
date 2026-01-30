@@ -63,14 +63,12 @@ local options = {
     }
 }
 
-function AutoAcceptRole:RegisterOptions(parentCategory)
+function AutoAcceptRole:RegisterOptions(parentCategory, parentOptions)
     if E then
         E.Options.args[addonName].args[moduleName] = options
-    end
-
-    C:RegisterOptionsTable(moduleName, options)
-
-    if not E then
+        C:RegisterOptionsTable(moduleName, options)
+    else
+        parentOptions.args[moduleName] = options;
         CD:AddToBlizOptions(moduleName, "Auto Role Accept", parentCategory)
     end
 end

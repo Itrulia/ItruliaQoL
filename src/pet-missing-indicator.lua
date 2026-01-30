@@ -352,14 +352,12 @@ local options = {
     }
 }
 
-function PetMissingIndicator:RegisterOptions(parentCategory)
+function PetMissingIndicator:RegisterOptions(parentCategory, parentOptions)
     if E then
         E.Options.args[addonName].args[moduleName] = options
-    end
-
-    C:RegisterOptionsTable(moduleName, options)
-    
-    if not E then
+        C:RegisterOptionsTable(moduleName, options)
+    else
+        parentOptions.args[moduleName] = options;
         CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
     end
 end

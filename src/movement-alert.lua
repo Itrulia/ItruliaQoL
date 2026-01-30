@@ -546,14 +546,12 @@ local options = {
     }
 }
 
-function MovementAlert:RegisterOptions(parentCategory)
+function MovementAlert:RegisterOptions(parentCategory, parentOptions)
     if E then
         E.Options.args[addonName].args[moduleName] = options
-    end
-
-    C:RegisterOptionsTable(moduleName, options)
-
-    if not E then
+        C:RegisterOptionsTable(moduleName, options)
+    else
+        parentOptions.args[moduleName] = options;
         CD:AddToBlizOptions(moduleName, "Movement Alert", parentCategory)
     end
 end
