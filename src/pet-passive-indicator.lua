@@ -76,8 +76,8 @@ frame:RegisterEvent("PLAYER_ALIVE")
 frame:RegisterEvent("PET_BAR_UPDATE")
 frame:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
 frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-frame:RegisterEvent("UNIT_ENTERED_VEHICLE")
-frame:RegisterEvent("UNIT_EXITED_VEHICLE")
+frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
+frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
 
 local defaults = {
     enabled = true,
