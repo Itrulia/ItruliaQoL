@@ -137,6 +137,7 @@ end
 
 local function OnUpdate(self, elapsed)  
     if ItruliaQoL.testMode then
+        self:SetAlpha(1)
         return
     end
 
