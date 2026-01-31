@@ -13,6 +13,7 @@ frame:SetPoint("CENTER", UIParent, 0, 150)
 frame:SetSize(28, 28)
 frame.active = false
 frame.interruptId = nil
+frame.notInterruptible = nil;
 
 frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
@@ -44,12 +45,12 @@ function frame:UpdateFocusInterruptIndicator(active)
         return
     end
 
-    local name = UnitChannelInfo("focus")
+    local name, _, _, _, _, _, _, notInterruptible = UnitChannelInfo("focus")
     local isChannel = false
     if name then 
         isChannel = true
     else 
-        name = UnitCastingInfo("focus")
+        name, _, _, _, _, _, _, notInterruptible = UnitCastingInfo("focus")
     end
 
     if not name then 
@@ -63,6 +64,8 @@ function frame:UpdateFocusInterruptIndicator(active)
     else
         duration = UnitCastingDuration("focus")
     end
+
+    self.notInterruptible = notInterruptible;
 
     if self:IsInteruptible() then
         self.text:Show()
@@ -144,9 +147,9 @@ local function OnUpdate(self, elapsed)
     end
 
     self.text:SetAlphaFromBoolean(C_Spell.GetSpellCooldownDuration(self.interruptId):IsZero())
+    self:SetAlphaFromBoolean(self.notInterruptible, 0, 1)
 end
 
-frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 frame:RegisterEvent("PLAYER_FOCUS_CHANGED")
@@ -161,7 +164,7 @@ local defaults = {
     enabled = true,
     point = { point = "CENTER", x = 0, y = 150 },
     color = {r = 1, g = 1, b = 1, a = 1},
-    displayText = "Kick available",
+    displayText = "INTERRUPT",
     playSound = false,
     sound = "Kick",
 

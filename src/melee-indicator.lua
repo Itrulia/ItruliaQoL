@@ -178,7 +178,7 @@ local function OnUpdate(self, elapsed)
     end
 end
 
-frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 
 local defaults = {
