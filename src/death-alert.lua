@@ -65,6 +65,10 @@ local function OnEvent(self, event, deadGUID, ...)
     end
 
     if event == "UNIT_DIED" then
+        if not canaccessvalue(deadGUID) or not canaccessvalue(UnitTokenFromGUID(deadGUID)) then
+            return;
+        end
+
         local unitId = UnitTokenFromGUID(deadGUID)
 
         if unitId and (UnitInParty(unitId) or UnitInRaid(unitId) or unitId == "player") then
@@ -390,7 +394,7 @@ local options = {
     }
 }
 
-function DeathAlert:RegisterOptions(parentCategory)
+function DeathAlert:RegisterOptions(parentCategory, parentOptions)
     if E then
         E.Options.args[addonName].args[moduleName] = options
         C:RegisterOptionsTable(moduleName, options)

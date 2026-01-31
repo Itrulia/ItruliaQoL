@@ -546,7 +546,7 @@ local options = {
     }
 }
 
-function MovementAlert:RegisterOptions(parentCategory)
+function MovementAlert:RegisterOptions(parentCategory, parentOptions)
     if E then
         E.Options.args[addonName].args[moduleName] = options
         C:RegisterOptionsTable(moduleName, options)
