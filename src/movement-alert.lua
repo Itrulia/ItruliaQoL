@@ -147,10 +147,10 @@ local function OnUpdate(self, elapsed, ...)
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
                 -- shift is on gcd but doesn't say it is, so checking if duration is smaller than 1
-                local isShiftBug = self.movementId == 1234796 and cdInfo.duration < 1
+                -- local isShiftBug = self.movementId == 1234796 and cdInfo.duration < 1
 
                 -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
-                if cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and cdInfo.isOnGCD ~= nil and not isShiftBug then
+                if cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and cdInfo.isOnGCD ~= nil then
                     self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
                     self.text:Show()
                 else
