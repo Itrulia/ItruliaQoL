@@ -32,6 +32,8 @@ function ItruliaQoL:OnEnable()
 	self:RegisterOptions()
 
     ItruliaQoL:GetModule('MeleeIndicator'):Enable()
+    ItruliaQoL:GetModule('CombatAlert'):Enable()
+    ItruliaQoL:GetModule('CombatTimer'):Enable()
 	ItruliaQoL:GetModule('FocusInterruptIndicator'):Enable()
     ItruliaQoL:GetModule('FocusTargetMarker'):Enable()
 	ItruliaQoL:GetModule('PetMissingIndicator'):Enable()

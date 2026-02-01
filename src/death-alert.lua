@@ -4,8 +4,6 @@ local moduleName = "DeathAlert"
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
-local C = ItruliaQoL.C
-local CD = ItruliaQoL.CD
 
 local DeathAlert = ItruliaQoL:NewModule(moduleName)
 
@@ -17,6 +15,7 @@ frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
 frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
 frame.text:SetTextColor(1, 1, 1)
+frame.text:SetJustifyH("CENTER")
 
 frame.text.anim = frame.text:CreateAnimationGroup()
 frame.text.anim:SetScript("OnFinished", function() 
@@ -108,7 +107,6 @@ local defaults = {
     enabled = true,
     displayText = "died",
     color = {r = 1, g = 1, b = 1, a = 1},
-    updateInterval = 0.5,
     messageDuration = 2,
     point = {point = "CENTER", x = 0, y = 200},
     playSound = false,
@@ -198,8 +196,8 @@ local options = {
                 DeathAlert.db.enabled = value
 
                 if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
+                    DeathAlert:RefreshConfig()
+                    OnEvent(frame)
                 else
                     frame:SetScript("OnEvent", nil)
                     frame:SetScript("OnUpdate", nil)

@@ -4,19 +4,18 @@ local moduleName = "CombatAlert"
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
-local C = ItruliaQoL.C
-local CD = ItruliaQoL.CD
 
 local CombatAlert = ItruliaQoL:NewModule(moduleName)
 
 local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
-frame:SetPoint("CENTER", 0, 300)
+frame:SetPoint("CENTER", 0, 0)
 frame:SetSize(28, 28)
 
 frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
 frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
 frame.text:SetTextColor(1, 1, 1)
+frame.text:SetJustifyH("CENTER")
 
 frame.text.anim = frame.text:CreateAnimationGroup()
 frame.text.anim:SetScript("OnFinished", function() 
@@ -73,6 +72,7 @@ end
 
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 local defaults = {
     enabled = true,

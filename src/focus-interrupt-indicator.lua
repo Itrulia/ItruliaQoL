@@ -3,8 +3,6 @@ local moduleName = "FocusInterruptIndicator"
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
-local C = ItruliaQoL.C
-local CD = ItruliaQoL.CD
 
 local FocusInterruptIndicator = ItruliaQoL:NewModule(moduleName)
 
@@ -19,6 +17,7 @@ frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
 frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
 frame.text:SetTextColor(1, 1, 1)
+frame.text:SetJustifyH("CENTER")
 frame.text:SetText("INTERRUPT")
 frame.text:Hide()
 
@@ -135,7 +134,7 @@ local function OnEvent(self, event, unit, ...)
     end
 end
 
-local function OnUpdate(self, elapsed)  
+local function OnUpdate(self)  
     if ItruliaQoL.testMode then
         self:SetAlpha(1)
         return

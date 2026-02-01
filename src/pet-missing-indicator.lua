@@ -4,8 +4,6 @@ local moduleName = "PetMissingIndicator"
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
-local C = ItruliaQoL.C
-local CD = ItruliaQoL.CD
 
 local PetMissingIndicator = ItruliaQoL:NewModule(moduleName)
 
@@ -18,6 +16,7 @@ frame.text:SetPoint("CENTER")
 frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
 frame.text:SetText("**Pet missing!**")
 frame.text:SetTextColor(1, 1, 1)
+frame.text:SetJustifyH("CENTER")
 frame.text:Hide()
 
 frame.petClasses = {

@@ -4,8 +4,6 @@ local moduleName = "MovementAlert"
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
-local C = ItruliaQoL.C
-local CD = ItruliaQoL.CD
 
 local MovementAlert = ItruliaQoL:NewModule(moduleName)
 
@@ -20,6 +18,7 @@ frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
 frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
 frame.text:SetTextColor(1, 1, 1, 1)
+frame.text:SetJustifyH("CENTER")
 frame.text:Hide();
 
 frame.timeSpiralActivationTime = nil

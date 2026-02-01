@@ -10,6 +10,7 @@
 
 	<Script file="death-alert.lua"/>
 	<Script file="combat-alert.lua"/>
+	<Script file="combat-timer.lua"/>
 	<Script file="movement-alert.lua"/>
 
 	<Script file="auto-accept-role.lua"/>

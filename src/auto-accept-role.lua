@@ -1,10 +1,5 @@
 local addonName, ItruliaQoL = ...
 local moduleName = "AutoAcceptRole"
-local LSM = ItruliaQoL.LSM
-local LEM = ItruliaQoL.LEM
-local E = ItruliaQoL.E
-local C = ItruliaQoL.C
-local CD = ItruliaQoL.CD
 
 local AutoAcceptRole = ItruliaQoL:NewModule(moduleName)
 

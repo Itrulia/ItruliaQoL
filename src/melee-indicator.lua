@@ -4,8 +4,6 @@ local moduleName = "MeleeIndicator"
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
-local C = ItruliaQoL.C
-local CD = ItruliaQoL.CD
 
 local MeleeIndicator = ItruliaQoL:NewModule(moduleName)
 
@@ -20,6 +18,7 @@ frame.text:SetPoint("CENTER")
 frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
 frame.text:SetText("+")
 frame.text:SetTextColor(1, 0, 0)
+frame.text:SetJustifyH("CENTER")
 frame.text:Hide()
 
 frame.meleeSpells = {
