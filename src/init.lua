@@ -78,105 +78,111 @@ local options =  {
             ItruliaQoL:ToggleTestMode(value)
         end
     },
-    fontSettings = {
+    all = {
         type = "group",
-        name = "Fonts",
-        order = 60,
-        guiInline = true,
+        name = "All",
+        order = 1,
         args = {
-            font = {
-                order = 1,
-                type = "select",
-                dialogControl = "LSM30_Font",
+            fontSettings = {
+                type = "group",
                 name = "Font",
-                values = ItruliaQoL.LSM:HashTable("font"),
-                get = function()
-                    return ItruliaQoL.db.profile.all.font.fontFamily
-                end,
-                set = function(_, value)
-                    ItruliaQoL.db.profile.all.font.fontFamily = value
-                end
-            },
-            fontOutline = {
-                order = 2,
-                type = "select",
-                name = "Outline",
-                values = {
-                    NONE = "None",
-                    OUTLINE = "Outline",
-                    THICKOUTLINE = "Thick Outline",
-                    MONOCHROME = "Monochrome"
-                },
-                get = function()
-                    return ItruliaQoL.db.profile.all.font.fontOutline
-                end,
-                set = function(_, value)
-                    ItruliaQoL.db.profile.all.font.fontOutline = value ~= "NONE" and value or nil
-                end
-            },
-            spacer = {
-                type = "description",
-                name =  "",
-                width = "full",
-                order = 3,
-            },
-            fontShadowColor = {
-                order = 4,
-                type = "color",
-                name = "Shadow Color",
-                hasAlpha = true,
-                get = function()
-                    local c = ItruliaQoL.db.profile.all.font.fontShadowColor
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(_, r, g, b, a)
-                    ItruliaQoL.db.profile.all.font.fontShadowColor = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a
-                    }
-                end
-            },
-            fontShadowXOffset = {
-                order = 5,
-                type = "range",
-                name = "Shadow X Offset",
-                min = -5,
-                max = 5,
-                step = 1,
-                get = function()
-                    return ItruliaQoL.db.profile.all.font.fontShadowXOffset
-                end,
-                set = function(_, value)
-                    ItruliaQoL.db.profile.all.font.fontShadowXOffset = value
-                end
-            },
-            fontShadowYOffset = {
-                order = 5,
-                type = "range",
-                name = "Shadow Y Offset",
-                min = -5,
-                max = 5,
-                step = 1,
-                get = function()
-                    return ItruliaQoL.db.profile.all.font.fontShadowYOffset
-                end,
-                set = function(_, value)
-                    ItruliaQoL.db.profile.all.font.fontShadowYOffset = value
-                end
-            },
-            spacer2 = {
-                type = "description",
-                name =  "",
-                width = "full",
-            },
-            applyAll = {
-                type = "execute",
-                name = "Apply to all",
-                func = function()
-                    ItruliaQoL:ApplyFontSettings()
-                end,
+                inline = true,
+                args = {
+                    font = {
+                        order = 1,
+                        type = "select",
+                        dialogControl = "LSM30_Font",
+                        name = "Font",
+                        values = ItruliaQoL.LSM:HashTable("font"),
+                        get = function()
+                            return ItruliaQoL.db.profile.all.font.fontFamily
+                        end,
+                        set = function(_, value)
+                            ItruliaQoL.db.profile.all.font.fontFamily = value
+                        end
+                    },
+                    fontOutline = {
+                        order = 2,
+                        type = "select",
+                        name = "Outline",
+                        values = {
+                            NONE = "None",
+                            OUTLINE = "Outline",
+                            THICKOUTLINE = "Thick Outline",
+                            MONOCHROME = "Monochrome"
+                        },
+                        get = function()
+                            return ItruliaQoL.db.profile.all.font.fontOutline
+                        end,
+                        set = function(_, value)
+                            ItruliaQoL.db.profile.all.font.fontOutline = value ~= "NONE" and value or nil
+                        end
+                    },
+                    spacer = {
+                        type = "description",
+                        name =  "",
+                        width = "full",
+                        order = 3,
+                    },
+                    fontShadowColor = {
+                        order = 4,
+                        type = "color",
+                        name = "Shadow Color",
+                        hasAlpha = true,
+                        get = function()
+                            local c = ItruliaQoL.db.profile.all.font.fontShadowColor
+                            return c.r, c.g, c.b, c.a
+                        end,
+                        set = function(_, r, g, b, a)
+                            ItruliaQoL.db.profile.all.font.fontShadowColor = {
+                                r = r,
+                                g = g,
+                                b = b,
+                                a = a
+                            }
+                        end
+                    },
+                    fontShadowXOffset = {
+                        order = 5,
+                        type = "range",
+                        name = "Shadow X Offset",
+                        min = -5,
+                        max = 5,
+                        step = 1,
+                        get = function()
+                            return ItruliaQoL.db.profile.all.font.fontShadowXOffset
+                        end,
+                        set = function(_, value)
+                            ItruliaQoL.db.profile.all.font.fontShadowXOffset = value
+                        end
+                    },
+                    fontShadowYOffset = {
+                        order = 5,
+                        type = "range",
+                        name = "Shadow Y Offset",
+                        min = -5,
+                        max = 5,
+                        step = 1,
+                        get = function()
+                            return ItruliaQoL.db.profile.all.font.fontShadowYOffset
+                        end,
+                        set = function(_, value)
+                            ItruliaQoL.db.profile.all.font.fontShadowYOffset = value
+                        end
+                    },
+                    spacer2 = {
+                        type = "description",
+                        name =  "",
+                        width = "full",
+                    },
+                    applyAll = {
+                        type = "execute",
+                        name = "Apply to all",
+                        func = function()
+                            ItruliaQoL:ApplyFontSettings()
+                        end,
+                    },
+                }
             },
         }
     },

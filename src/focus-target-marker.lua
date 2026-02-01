@@ -140,7 +140,6 @@ end
 local options = {
     type = "group",
     name = "Focus Marker",
-    order = 3,
     args = {
         description = {
             type = "description",

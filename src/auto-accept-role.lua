@@ -39,7 +39,6 @@ end
 local options = {
     type = "group",
     name = "Auto Role Accept",
-    order = 3,
     args = {
         description = {
             type = "description",
