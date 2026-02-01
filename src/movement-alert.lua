@@ -22,6 +22,9 @@ frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
 frame.text:SetTextColor(1, 1, 1, 1)
 frame.text:Hide();
 
+frame.timeSpiralActivationTime = nil
+
+
 frame.movementAbilities = {
     DEATHKNIGHT = {[250] = {48265}, [251] = {48265}, [252] = {48265}},
     DEMONHUNTER = {[577] = {195072}, [581] = {189110}, [1480] = {1234796}},
@@ -140,7 +143,9 @@ local function OnUpdate(self, elapsed, ...)
                     MovementAlert.db.timeSpiralColor.g, 
                     MovementAlert.db.timeSpiralColor.b, 
                     MovementAlert.db.timeSpiralColor.a
-                ):WrapTextInColorCode(MovementAlert.db.timeSpiralText)
+                ):WrapTextInColorCode(MovementAlert.db.timeSpiralText .. "\n" .. string.format(
+                    "%." .. MovementAlert.db.precision .. "f", 10 - (GetTime() - self.timeSpiralOn)
+                ))
                 self.text:SetText(timeSpiralText)
                 self.text:Show()
             elseif self.movementId then
@@ -185,7 +190,7 @@ local function OnEvent(self, event, ...)
         local spellId = ...
         if event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
             if self.timeSpiralAbilities[spellId] then
-                self.timeSpiralOn = true;
+                self.timeSpiralOn = GetTime();
 
                 if MovementAlert.db.showTimeSpiral and MovementAlert.db.timeSpiralPlaySound and MovementAlert.db.timeSpiralSound then
                     PlaySoundFile(LSM:Fetch("sound", MovementAlert.db.timeSpiralSound), "Master")
@@ -193,7 +198,7 @@ local function OnEvent(self, event, ...)
             end
         elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
             if self.timeSpiralAbilities[spellId] then
-                self.timeSpiralOn = false;
+                self.timeSpiralOn = nil;
             end
         else
             self.timeSpiralOn = false;
