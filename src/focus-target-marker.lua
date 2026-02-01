@@ -190,12 +190,6 @@ local options = {
     }
 }
 
-function FocusTargetMarker:RegisterOptions(parentCategory, parentOptions)
-    if E then
-        E.Options.args[addonName].args[moduleName] = options
-        C:RegisterOptionsTable(moduleName, options)
-    else
-        parentOptions.args[moduleName] = options;
-        CD:AddToBlizOptions(moduleName, "Focus Marker", parentCategory)
-    end
+function FocusTargetMarker:RegisterOptions(parentOptions)
+    parentOptions.args[moduleName] = options;
 end

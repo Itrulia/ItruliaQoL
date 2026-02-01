@@ -160,6 +160,15 @@ function PetMissingIndicator:RefreshConfig()
     end
 end
 
+function PetMissingIndicator:ApplyFontSettings(font)
+    self.db.font.fontFamily = font.fontFamily
+    self.db.font.fontOutline = font.fontOutline
+    self.db.font.fontShadowColor = font.fontShadowColor
+    self.db.font.fontShadowXOffset = font.fontShadowXOffset
+    self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    frame:UpdateStyles()
+end
+
 function PetMissingIndicator:OnEnable()
     if self.db.enabled then 
         frame:SetScript("OnEvent", OnEvent) 
@@ -352,12 +361,6 @@ local options = {
     }
 }
 
-function PetMissingIndicator:RegisterOptions(parentCategory, parentOptions)
-    if E then
-        E.Options.args[addonName].args[moduleName] = options
-        C:RegisterOptionsTable(moduleName, options)
-    else
-        parentOptions.args[moduleName] = options;
-        CD:AddToBlizOptions(moduleName, "Missing Pet", parentCategory)
-    end
+function PetMissingIndicator:RegisterOptions(parentOptions)
+    parentOptions.args[moduleName] = options;
 end

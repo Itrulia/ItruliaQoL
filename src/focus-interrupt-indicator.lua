@@ -201,6 +201,15 @@ function FocusInterruptIndicator:RefreshConfig()
     end
 end
 
+function FocusInterruptIndicator:ApplyFontSettings(font)
+    self.db.font.fontFamily = font.fontFamily
+    self.db.font.fontOutline = font.fontOutline
+    self.db.font.fontShadowColor = font.fontShadowColor
+    self.db.font.fontShadowXOffset = font.fontShadowXOffset
+    self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    frame:UpdateStyles()
+end
+
 function FocusInterruptIndicator:OnEnable()
     if self.db.enabled then
         frame:SetScript("OnEvent", OnEvent)
@@ -444,12 +453,6 @@ local options = {
     }
 }
 
-function FocusInterruptIndicator:RegisterOptions(parentCategory, parentOptions)
-    if E then
-        E.Options.args[addonName].args[moduleName] = options
-        C:RegisterOptionsTable(moduleName, options)
-    else
-        parentOptions.args[moduleName] = options;
-        CD:AddToBlizOptions(moduleName, "Focus Interrupt", parentCategory)
-    end
+function FocusInterruptIndicator:RegisterOptions(parentOptions)
+    parentOptions.args[moduleName] = options;
 end

@@ -144,6 +144,15 @@ function DeathAlert:RefreshConfig()
     end
 end
 
+function DeathAlert:ApplyFontSettings(font)
+    self.db.font.fontFamily = font.fontFamily
+    self.db.font.fontOutline = font.fontOutline
+    self.db.font.fontShadowColor = font.fontShadowColor
+    self.db.font.fontShadowXOffset = font.fontShadowXOffset
+    self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    frame:UpdateStyles()
+end
+
 function DeathAlert:OnEnable()
     if self.db.enabled then 
         frame:SetScript("OnEvent", OnEvent) 
@@ -394,12 +403,6 @@ local options = {
     }
 }
 
-function DeathAlert:RegisterOptions(parentCategory, parentOptions)
-    if E then
-        E.Options.args[addonName].args[moduleName] = options
-        C:RegisterOptionsTable(moduleName, options)
-    else
-        parentOptions.args[moduleName] = options;
-        CD:AddToBlizOptions(moduleName, "Death Alert", parentCategory)
-    end
+function DeathAlert:RegisterOptions(parentOptions)
+    parentOptions.args[moduleName] = options;
 end

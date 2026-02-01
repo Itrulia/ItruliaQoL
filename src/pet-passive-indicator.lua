@@ -116,6 +116,15 @@ function PetPassiveIndicator:RefreshConfig()
     end
 end
 
+function PetPassiveIndicator:ApplyFontSettings(font)
+    self.db.font.fontFamily = font.fontFamily
+    self.db.font.fontOutline = font.fontOutline
+    self.db.font.fontShadowColor = font.fontShadowColor
+    self.db.font.fontShadowXOffset = font.fontShadowXOffset
+    self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    frame:UpdateStyles()
+end
+
 function PetPassiveIndicator:OnEnable()
     if self.db.enabled then 
         frame:SetScript("OnEvent", OnEvent) 
@@ -308,12 +317,6 @@ local options = {
     }
 }
 
-function PetPassiveIndicator:RegisterOptions(parentCategory, parentOptions)
-    if E then
-        E.Options.args[addonName].args[moduleName] = options
-        C:RegisterOptionsTable(moduleName, options)
-    else
-        parentOptions.args[moduleName] = options;
-        CD:AddToBlizOptions(moduleName, "Passive Pet", parentCategory)
-    end
+function PetPassiveIndicator:RegisterOptions(parentOptions)
+    parentOptions.args[moduleName] = options;
 end

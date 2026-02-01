@@ -219,6 +219,15 @@ function MeleeIndicator:RefreshConfig()
     end
 end
 
+function MeleeIndicator:ApplyFontSettings(font)
+    self.db.font.fontFamily = font.fontFamily
+    self.db.font.fontOutline = font.fontOutline
+    self.db.font.fontShadowColor = font.fontShadowColor
+    self.db.font.fontShadowXOffset = font.fontShadowXOffset
+    self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    frame:UpdateStyles()
+end
+
 function MeleeIndicator:OnEnable()
     if self.db.enabled then
         frame:SetScript("OnEvent", OnEvent)
@@ -421,12 +430,6 @@ local options = {
     }
 }
 
-function MeleeIndicator:RegisterOptions(parentCategory, parentOptions)
-    if E then
-        E.Options.args[addonName].args[moduleName] = options
-        C:RegisterOptionsTable(moduleName, options)
-    else
-        parentOptions.args[moduleName] = options;
-        CD:AddToBlizOptions(moduleName, "Melee Indicator", parentCategory)
-    end
+function MeleeIndicator:RegisterOptions(parentOptions)
+    parentOptions.args[moduleName] = options;
 end

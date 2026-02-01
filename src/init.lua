@@ -12,6 +12,17 @@ ItruliaQoL.Dump = DevTools_Dump
 
 function ItruliaQoL:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("ItruliaQoLDB", {}, true)
+
+    self.db.profile.all = self.db.profile.all or {
+        font = {
+            fontFamily = "Expressway",
+            fontOutline = "OUTLINE",
+            fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
+            fontShadowXOffset = 1,
+            fontShadowYOffset = -1,
+        }
+    }
+
     self.db.RegisterCallback(self, "OnProfileChanged", "RefreshModules")
     self.db.RegisterCallback(self, "OnProfileCopied", "RefreshModules")
     self.db.RegisterCallback(self, "OnProfileReset", "RefreshModules")
@@ -33,75 +44,176 @@ function ItruliaQoL:OnEnable()
 end
 
 function ItruliaQoL:RefreshModules()
-    for name, module in self:IterateModules() do
+    for _, module in self:IterateModules() do
         if module.RefreshConfig then
             module:RefreshConfig()
         end
     end
 end
 
+function ItruliaQoL:ApplyFontSettings()
+    for _, module in self:IterateModules() do
+        if module.ApplyFontSettings then
+            module:ApplyFontSettings(self.db.profile.all.font)
+        end
+    end
+end
+
+local options =  {
+    description = {
+        type = "description",
+        name =  "You can move things around using the native Edit Mode. Test mode will automatically be turned on\n\n Note that it ignores the Edit Mode layouts \n\n",
+        width = "full",
+        order = 1,
+    },
+    enable = {
+        order = 2,
+        type = "toggle",
+        width = "full",
+        name = "Test mode",
+        get = function()
+            return ItruliaQoL.testMode
+        end,
+        set = function(_, value)
+            ItruliaQoL:ToggleTestMode(value)
+        end
+    },
+    fontSettings = {
+        type = "group",
+        name = "Fonts",
+        order = 60,
+        guiInline = true,
+        args = {
+            font = {
+                order = 1,
+                type = "select",
+                dialogControl = "LSM30_Font",
+                name = "Font",
+                values = ItruliaQoL.LSM:HashTable("font"),
+                get = function()
+                    return ItruliaQoL.db.profile.all.font.fontFamily
+                end,
+                set = function(_, value)
+                    ItruliaQoL.db.profile.all.font.fontFamily = value
+                end
+            },
+            fontOutline = {
+                order = 2,
+                type = "select",
+                name = "Outline",
+                values = {
+                    NONE = "None",
+                    OUTLINE = "Outline",
+                    THICKOUTLINE = "Thick Outline",
+                    MONOCHROME = "Monochrome"
+                },
+                get = function()
+                    return ItruliaQoL.db.profile.all.font.fontOutline
+                end,
+                set = function(_, value)
+                    ItruliaQoL.db.profile.all.font.fontOutline = value ~= "NONE" and value or nil
+                end
+            },
+            spacer = {
+                type = "description",
+                name =  "",
+                width = "full",
+                order = 3,
+            },
+            fontShadowColor = {
+                order = 4,
+                type = "color",
+                name = "Shadow Color",
+                hasAlpha = true,
+                get = function()
+                    local c = ItruliaQoL.db.profile.all.font.fontShadowColor
+                    return c.r, c.g, c.b, c.a
+                end,
+                set = function(_, r, g, b, a)
+                    ItruliaQoL.db.profile.all.font.fontShadowColor = {
+                        r = r,
+                        g = g,
+                        b = b,
+                        a = a
+                    }
+                end
+            },
+            fontShadowXOffset = {
+                order = 5,
+                type = "range",
+                name = "Shadow X Offset",
+                min = -5,
+                max = 5,
+                step = 1,
+                get = function()
+                    return ItruliaQoL.db.profile.all.font.fontShadowXOffset
+                end,
+                set = function(_, value)
+                    ItruliaQoL.db.profile.all.font.fontShadowXOffset = value
+                end
+            },
+            fontShadowYOffset = {
+                order = 5,
+                type = "range",
+                name = "Shadow Y Offset",
+                min = -5,
+                max = 5,
+                step = 1,
+                get = function()
+                    return ItruliaQoL.db.profile.all.font.fontShadowYOffset
+                end,
+                set = function(_, value)
+                    ItruliaQoL.db.profile.all.font.fontShadowYOffset = value
+                end
+            },
+            spacer2 = {
+                type = "description",
+                name =  "",
+                width = "full",
+            },
+            applyAll = {
+                type = "execute",
+                name = "Apply to all",
+                func = function()
+                    ItruliaQoL:ApplyFontSettings()
+                end,
+            },
+        }
+    },
+}
+
 function ItruliaQoL:RegisterOptions()
     local AceDBOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
-
-    local options =  {
-        description = {
-            type = "description",
-            name =  "You can move things around using the native Edit Mode. Test mode will automatically be turned on\n\n Note that it ignores the Edit Mode layouts \n\n",
-            width = "full",
-            order = 1,
-        },
-        enable = {
-            order = 2,
-            type = "toggle",
-            width = "full",
-            name = "Test mode",
-            get = function()
-                return self.testMode
-            end,
-            set = function(_, value)
-                self:ToggleTestMode(value)
-            end
-        },
-    }
-    
-    if (ItruliaQoL.E) then
-        ItruliaQoL.E.Options.args[addonName] = {
-            type = "group",
-            name = "Itrulia QoL",
-            order = 50, 
-            args = options
-        }
-        ItruliaQoL.E.Options.args[addonName].args.description.name = "You can move things around using the ElvUI movers. Test mode will automatically be turned on\n\n";
-        ItruliaQoL.E.Options.args[addonName].args.profiles = AceDBOptions
-    end
 
 	local parentOptions = {
         type = "group",
         name = "Itrulia QoL",
-        childGroups = "tab",
+        childGroups = "tree",
         args = options
     }
 
 	self.C:RegisterOptionsTable(addonName, parentOptions)
     self.CD:AddToBlizOptions(addonName, "Itrulia QoL")
 
-    for name, module in self:IterateModules() do
+    for _, module in self:IterateModules() do
         if module.RegisterOptions then
-            module:RegisterOptions("Itrulia QoL", parentOptions)
+            module:RegisterOptions(parentOptions)
         end
     end
 
-    if not ItruliaQoL.E then
-        parentOptions.args['Profiles'] = AceDBOptions;
-    end
+    parentOptions.args['Profiles'] = AceDBOptions;
 
-    self.CD:AddToBlizOptions(addonName.."Profiles", "Profiles", "Itrulia QoL")
+    if (ItruliaQoL.E) then
+        ItruliaQoL.E.Options.args[addonName] = parentOptions;
+        ItruliaQoL.E.Options.args[addonName].order = 50;
+        ItruliaQoL.E.Options.args[addonName].args.description.name = "You can move things around using the ElvUI movers. Test mode will automatically be turned on\n\n";
+    end
 end
 
 function ItruliaQoL:ToggleTestMode(enabled)
     self.testMode = enabled
 
-    for name, module in self:IterateModules() do
+    for _, module in self:IterateModules() do
         if module.ToggleTestMode then
             module:ToggleTestMode(enabled)
         end
