@@ -201,7 +201,7 @@ local function OnEvent(self, event, ...)
                 self.timeSpiralOn = nil;
             end
         else
-            self.timeSpiralOn = false;
+            self.timeSpiralOn = nil;
         end
     end
 end
