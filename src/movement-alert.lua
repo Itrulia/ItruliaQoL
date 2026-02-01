@@ -43,7 +43,7 @@ frame.timeSpiralAbilities = {
     -- DK
     [48265] = true, -- Death's Advance
     -- DH
-    [195072] = true, -- Fel Rush
+    [195072] = false, -- Fel Rush
     [189110] = true, -- Infernal Strike
     [1234796] = true, -- Shift
     -- Druid
@@ -62,7 +62,7 @@ frame.timeSpiralAbilities = {
     -- Paladin
     [190784] = true, -- Divine Steed
     -- Priest lmao
-    [73325] = true, -- Leap of Faith
+    [73325] = false, -- Leap of Faith
     -- Rogue
     [2983] = true, -- Sprint
     -- Shaman
