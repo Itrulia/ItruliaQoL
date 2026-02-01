@@ -28,8 +28,8 @@ frame.alpha:SetToAlpha(0)
 frame.alpha:SetDuration(1)
 frame.alpha:SetStartDelay(1.5)
 
-function frame:UpdateStyles(forceUpdate)
-    if not InCombatLockdown() or forceUpdate then
+function frame:UpdateStyles()
+    if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
             self:ClearAllPoints()
             self:SetPoint(CombatAlert.db.point.point, CombatAlert.db.point.x, CombatAlert.db.point.y)

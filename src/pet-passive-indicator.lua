@@ -37,8 +37,8 @@ function frame:IsPetPassive()
     return false
 end
 
-function frame:UpdateStyles(forceUpdate)
-    if not InCombatLockdown() or forceUpdate then
+function frame:UpdateStyles()
+    if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
             self:ClearAllPoints()
             self:SetPoint(PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)

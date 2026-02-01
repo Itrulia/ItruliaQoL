@@ -92,7 +92,6 @@ function frame:UpdateMeleeIndicator()
     local targetAttackable = UnitCanAttack("player", "target")
 
     local class = select(2, UnitClass("player"))
-    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
     local inCombat = UnitAffectingCombat("player")
 
     local spellUsable = true
@@ -128,8 +127,8 @@ function frame:UpdateMeleeIndicator()
     end
 end
 
-function frame:UpdateStyles(forceUpdate)
-    if not InCombatLockdown() or forceUpdate then
+function frame:UpdateStyles()
+    if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
             self:ClearAllPoints()
             self:SetPoint(MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)

@@ -93,8 +93,8 @@ function frame:IsInteruptible()
     return false
 end
 
-function frame:UpdateStyles(forceUpdate)
-    if not InCombatLockdown() or forceUpdate then
+function frame:UpdateStyles()
+    if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
             self:ClearAllPoints()
             self:SetPoint(FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
