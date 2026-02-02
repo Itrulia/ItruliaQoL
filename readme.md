@@ -18,6 +18,7 @@ Non combat related:
 - Turn your mythic+ season best dungeons into clickable teleport buttons
 - Make the cooldown manager accessible via `/cd`, `/cdm` or `/wa`
 - Automatically accept role calls when signing up to a group
+- Remind you what m+ group you joined
 
 
 Combat related modules can be enabled and disabled at will.
