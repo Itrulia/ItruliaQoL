@@ -148,7 +148,7 @@ end
 
 local options = {
     type = "group",
-    name = "Passive Pet",
+    name = "Pet Passive",
     args = {
         description = {
             type = "description",

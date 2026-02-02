@@ -192,7 +192,7 @@ end
 
 local options = {
     type = "group",
-    name = "Missing Pet",
+    name = "Pet Missing",
     args = {
         description = {
             type = "description",

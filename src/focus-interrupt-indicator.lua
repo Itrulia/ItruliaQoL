@@ -45,10 +45,7 @@ function frame:UpdateFocusInterruptIndicator(active)
     end
 
     local name, _, _, _, _, _, _, notInterruptible = UnitChannelInfo("focus")
-    local isChannel = false
-    if name then 
-        isChannel = true
-    else 
+    if not name then 
         name, _, _, _, _, _, _, notInterruptible = UnitCastingInfo("focus")
     end
 
@@ -57,21 +54,12 @@ function frame:UpdateFocusInterruptIndicator(active)
         return
     end
 
-    local duration
-    if isChannel then
-        duration = UnitChannelDuration("focus")
-    else
-        duration = UnitCastingDuration("focus")
-    end
-
     self.notInterruptible = notInterruptible;
-
-    if self:IsInteruptible() then
-        self.text:Show()
-        
-        if FocusInterruptIndicator.db.playSound and FocusInterruptIndicator.db.sound then
-            PlaySoundFile(LSM:Fetch("sound", FocusInterruptIndicator.db.sound), "Master")
-        end
+    
+    if FocusInterruptIndicator.db.playSound and FocusInterruptIndicator.db.sound then
+        PlaySoundFile(LSM:Fetch("sound", FocusInterruptIndicator.db.sound), "Master")
+    elseif FocusInterruptIndicator.db.playTTS and FocusInterruptIndicator.db.TTS then
+        C_VoiceChat.SpeakText(0, FocusInterruptIndicator.db.TTS, 1, FocusInterruptIndicator.db.TTSVolume, true)
     end
 end
 
@@ -80,16 +68,6 @@ function frame:GetSpellToCheck()
     local specId = select(1, GetSpecializationInfo(GetSpecialization()))
 
     return self.interruptSpells[class][specId]
-end
-
-function frame:IsInteruptible()
-    local focusBar = _G.FocusFrameSpellBar
-
-    if focusBar and focusBar.BorderShield then
-        return not focusBar.BorderShield:IsShown()
-    end
-
-    return false
 end
 
 function frame:UpdateStyles()
@@ -137,6 +115,7 @@ end
 local function OnUpdate(self)  
     if ItruliaQoL.testMode then
         self:SetAlpha(1)
+        self.text:Show()
         return
     end
 
@@ -146,6 +125,7 @@ local function OnUpdate(self)
         return
     end
 
+    self.text:Show()
     self.text:SetAlphaFromBoolean(C_Spell.GetSpellCooldownDuration(self.interruptId):IsZero())
     self:SetAlphaFromBoolean(self.notInterruptible, 0, 1)
 end
@@ -165,8 +145,12 @@ local defaults = {
     point = { point = "CENTER", x = 0, y = 150 },
     color = {r = 1, g = 1, b = 1, a = 1},
     displayText = "INTERRUPT",
+
     playSound = false,
     sound = "Kick",
+    playTTS = false,
+    TTS = "",
+    TTSVolume = 50,
 
     font = {
         fontFamily = "Expressway",
@@ -447,6 +431,59 @@ local options = {
                     end,
                 },
             }
+        },
+        ttsGroup = {
+            type = "group",
+            name = "",
+            order = 7,
+            inline = true,
+            args = {
+                playTTS = {
+                    order = 1,
+                    type = "toggle",
+                    name = "Play a TTS sound when time spiral becomes active",
+                    get = function() 
+                        return FocusInterruptIndicator.db.playTTS
+                    end,
+                    set = function(_, value)
+                        FocusInterruptIndicator.db.playTTS = value
+                    end,
+                },
+                TTS = {
+                    order = 2,
+                    type = "input",
+                    name = "TTS Message",
+                    get = function()
+                        return FocusInterruptIndicator.db.TTS
+                    end,
+                    set = function(_, value)
+                        FocusInterruptIndicator.db.TTS = value
+                    end,
+                    disabled = function()
+                        return not FocusInterruptIndicator.db.playTTS
+                    end,
+                },
+                TTSVolume = {
+                    order = 3,
+                    type = "range",
+                    min = 0,
+                    max = 100,
+                    step = 1,
+                    name = "TTS Volume",
+                    get = function()
+                        return FocusInterruptIndicator.db.TTSVolume
+                    end,
+                    set = function(_, value)
+                        FocusInterruptIndicator.db.TTSVolume = value
+                    end,
+                    disabled = function()
+                        return not FocusInterruptIndicator.db.playTTS
+                    end,
+                },
+            },
+            disabled = function()
+                return FocusInterruptIndicator.db.playSound
+            end,
         },
     }
 }

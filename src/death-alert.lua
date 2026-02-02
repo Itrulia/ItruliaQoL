@@ -91,6 +91,12 @@ local function OnEvent(self, event, deadGUID, ...)
             if DeathAlert.db.playSound and DeathAlert.db.sound then
                 PlaySoundFile(LSM:Fetch("sound", DeathAlert.db.sound), "Master")
             end
+
+            if DeathAlert.db.playSound and DeathAlert.db.sound then
+                PlaySoundFile(LSM:Fetch("sound", DeathAlert.db.sound), "Master")
+            elseif DeathAlert.db.playTTS and DeathAlert.db.TTS then
+                C_VoiceChat.SpeakText(0, DeathAlert.db.TTS, 1, DeathAlert.db.TTSVolume, true)
+            end
         else
             self.text:SetText("")
         end
@@ -109,8 +115,12 @@ local defaults = {
     color = {r = 1, g = 1, b = 1, a = 1},
     messageDuration = 2,
     point = {point = "CENTER", x = 0, y = 200},
+
     playSound = false,
     sound = "Exit",
+    playTTS = false,
+    TTS = "",
+    TTSVolume = 50,
 
     font = {
         fontFamily = "Expressway",
@@ -396,6 +406,59 @@ local options = {
                     end,
                 },
             }
+        },
+        ttsGroup = {
+            type = "group",
+            name = "",
+            order = 7,
+            inline = true,
+            args = {
+                playTTS = {
+                    order = 1,
+                    type = "toggle",
+                    name = "Play a TTS sound when time spiral becomes active",
+                    get = function() 
+                        return DeathAlert.db.playTTS
+                    end,
+                    set = function(_, value)
+                        DeathAlert.db.playTTS = value
+                    end,
+                },
+                TTS = {
+                    order = 2,
+                    type = "input",
+                    name = "TTS Message",
+                    get = function()
+                        return DeathAlert.db.TTS
+                    end,
+                    set = function(_, value)
+                        DeathAlert.db.TTS = value
+                    end,
+                    disabled = function()
+                        return not DeathAlert.db.playTTS
+                    end,
+                },
+                TTSVolume = {
+                    order = 3,
+                    type = "range",
+                    min = 0,
+                    max = 100,
+                    step = 1,
+                    name = "TTS Volume",
+                    get = function()
+                        return DeathAlert.db.TTSVolume
+                    end,
+                    set = function(_, value)
+                        DeathAlert.db.TTSVolume = value
+                    end,
+                    disabled = function()
+                        return not DeathAlert.db.playTTS
+                    end,
+                },
+            },
+            disabled = function()
+                return DeathAlert.db.playSound
+            end,
         },
     }
 }

@@ -191,8 +191,10 @@ local function OnEvent(self, event, ...)
             if self.timeSpiralAbilities[spellId] then
                 self.timeSpiralOn = GetTime();
 
-                if MovementAlert.db.showTimeSpiral and MovementAlert.db.timeSpiralPlaySound and MovementAlert.db.timeSpiralSound then
+                if MovementAlert.db.timeSpiralPlaySound and MovementAlert.db.timeSpiralSound then
                     PlaySoundFile(LSM:Fetch("sound", MovementAlert.db.timeSpiralSound), "Master")
+                elseif MovementAlert.db.timeSpiralPlayTTS and MovementAlert.db.timeSpiralTTS then
+                    C_VoiceChat.SpeakText(0, MovementAlert.db.timeSpiralTTS, 1, MovementAlert.db.timeSpiralTTSVolume, true)
                 end
             end
         elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
@@ -218,11 +220,15 @@ local defaults = {
     color = {r = 1, g = 1, b = 1, a = 1},
     updateInterval = 0.1,
     point = {point = "CENTER", x = 0, y = 50},
+    
     showTimeSpiral = true,
     timeSpiralText = "Free Movement",
     timeSpiralColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
     timeSpiralPlaySound = false,
     timeSpiralSound = nil,
+    timeSpiralPlayTTS = false,
+    timeSpiralTTS = "",
+    timeSpiralTTSVolume = 50,
 
     font = {
         fontFamily = "Expressway",
@@ -552,6 +558,59 @@ local options = {
                     },
                     disabled = function()
                         return not MovementAlert.db.showTimeSpiral
+                    end,
+                },
+                ttsGroup = {
+                    type = "group",
+                    name = "",
+                    order = 5,
+                    inline = true,
+                    args = {
+                        timeSpiralPlayTTS = {
+                            order = 1,
+                            type = "toggle",
+                            name = "Play a TTS sound when time spiral becomes active",
+                            get = function() 
+                                return MovementAlert.db.timeSpiralPlayTTS
+                            end,
+                            set = function(_, value)
+                                MovementAlert.db.timeSpiralPlayTTS = value
+                            end,
+                        },
+                        timeSpiralTTS = {
+                            order = 2,
+                            type = "input",
+                            name = "TTS Message",
+                            get = function()
+                                return MovementAlert.db.timeSpiralTTS
+                            end,
+                            set = function(_, value)
+                                MovementAlert.db.timeSpiralTTS = value
+                            end,
+                            disabled = function()
+                                return not MovementAlert.db.timeSpiralPlayTTS
+                            end,
+                        },
+                        timeSpiralTTSVolume = {
+                            order = 3,
+                            type = "range",
+                            min = 0,
+                            max = 100,
+                            step = 1,
+                            name = "TTS Volume",
+                            get = function()
+                                return MovementAlert.db.timeSpiralTTSVolume
+                            end,
+                            set = function(_, value)
+                                MovementAlert.db.timeSpiralTTSVolume = value
+                            end,
+                            disabled = function()
+                                return not MovementAlert.db.timeSpiralPlayTTS
+                            end,
+                        },
+                    },
+                    disabled = function()
+                        return not MovementAlert.db.showTimeSpiral or MovementAlert.db.timeSpiralPlaySound
                     end,
                 },
             }

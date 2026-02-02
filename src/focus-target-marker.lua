@@ -5,18 +5,6 @@ local LSM = ItruliaQoL.LSM
 local FocusTargetMarker = ItruliaQoL:NewModule(moduleName)
 
 local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
-frame:SetPoint("CENTER", UIParent, 0, 150)
-frame:SetSize(28, 28)
-frame.active = false
-frame.interruptId = nil
-
-frame.text = frame:CreateFontString(nil, "OVERLAY")
-frame.text:SetPoint("CENTER")
-frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
-frame.text:SetTextColor(1, 1, 1)
-frame.text:SetJustifyH("CENTER")
-frame.text:SetText("INTERRUPT")
-frame.text:Hide()
 
 local function RaidMarkerString(index)
     local table = {
