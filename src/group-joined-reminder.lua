@@ -8,12 +8,12 @@ frame.groupName = nil;
 
 local function OnEvent(self, event, ...)
     if event == "GROUP_LEFT" then
-        frame.groupName = nil;
+        self.groupName = nil;
     end
 
     if event == "LFG_LIST_JOINED_GROUP" then
         local _, groupName = ...
-        frame.groupName = groupName
+        self.groupName = groupName
     end
 
     if event == "LFG_LIST_JOINED_GROUP" or event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
@@ -42,7 +42,7 @@ local function OnEvent(self, event, ...)
             return
         end
 
-        local fullName = activityInfo.fullName .. " " .. frame.groupName
+        local fullName = activityInfo.fullName .. " " .. (self.groupName or "")
         local dkColor = C_ClassColor.GetClassColor("DEATHKNIGHT");
         print(dkColor:WrapTextInColorCode("["..addonName.."]") .. " Joined: " .. fullName)
     end
