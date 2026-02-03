@@ -71,7 +71,12 @@ local function OnEvent(self, event, deadGUID, ...)
 
         local unitId = UnitTokenFromGUID(deadGUID)
 
-        if unitId and (UnitInParty(unitId) or UnitInRaid(unitId) or unitId == "player") then
+        if not unitId or not UnitIsDead(unitId) then
+            -- well hunters in your party feign deathing is causing the event to fire without actually dying
+            return 
+        end
+
+        if (UnitInParty(unitId) or UnitInRaid(unitId) or unitId == "player") then
             local showText = true;
             local sound = DeathAlert.db.sound;
             local playSound = DeathAlert.db.playSound and sound;
