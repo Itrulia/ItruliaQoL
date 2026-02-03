@@ -32,6 +32,7 @@ function AutoAcceptRole:OnEnable()
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Auto Role Accept",
     args = {

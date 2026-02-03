@@ -42,3 +42,5 @@ function ItruliaQoL:IsSpellKnown(spellId)
 
     return false
 end
+
+ItruliaQoL.dump = DevTools_Dump

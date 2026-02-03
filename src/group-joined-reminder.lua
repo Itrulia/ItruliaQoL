@@ -82,6 +82,7 @@ function GroupJoinedReminder:OnEnable()
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Group Joined Reminder",
     args = {

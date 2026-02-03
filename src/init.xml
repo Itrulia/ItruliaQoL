@@ -7,6 +7,7 @@
 	<Script file="melee-indicator.lua"/>
 	<Script file="pet-missing-indicator.lua"/>
 	<Script file="pet-passive-indicator.lua"/>
+	<Script file="stealth-indicator.lua"/>
 
 	<Script file="death-alert.lua"/>
 	<Script file="combat-alert.lua"/>

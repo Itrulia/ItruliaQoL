@@ -8,7 +8,6 @@ ItruliaQoL.LEM = LibStub("LibEQOLEditMode-1.0")
 ItruliaQoL.SettingsLib = LibStub("LibEQOLSettingsMode-1.0")
 ItruliaQoL.testMode = false
 ItruliaQoL.E = ElvUI and unpack(ElvUI)
-ItruliaQoL.Dump = DevTools_Dump
 
 function ItruliaQoL:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("ItruliaQoLDB", {}, true)
@@ -41,6 +40,7 @@ function ItruliaQoL:OnEnable()
 	ItruliaQoL:GetModule('PetPassiveIndicator'):Enable()
     ItruliaQoL:GetModule('DeathAlert'):Enable()
     ItruliaQoL:GetModule('MovementAlert'):Enable()
+    ItruliaQoL:GetModule('StealthIndicator'):Enable()
     ItruliaQoL:GetModule('DungeonTeleports'):Enable()
 	ItruliaQoL:GetModule('CDMSlash'):Enable()
     ItruliaQoL:GetModule('AutoAcceptRole'):Enable()

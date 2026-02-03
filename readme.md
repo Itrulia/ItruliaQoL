@@ -13,6 +13,7 @@ Combat related:
 - Notify you when you enter & leave combat
 - Creates a mouseover/target focus macro & sets a raid marker
 - Displays a combat timer (disabled by default)
+- Display if you are currently stealthed (disabled by default)
 
 Non combat related:
 - Turn your mythic+ season best dungeons into clickable teleport buttons

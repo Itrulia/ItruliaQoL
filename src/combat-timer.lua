@@ -163,6 +163,7 @@ end
 
 
 local options = {
+    order = 2,
     type = "group",
     name = "Combat Timer",
     args = {
