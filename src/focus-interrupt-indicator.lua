@@ -441,7 +441,7 @@ local options = {
                 playTTS = {
                     order = 1,
                     type = "toggle",
-                    name = "Play a TTS sound when time spiral becomes active",
+                    name = "Play a TTS sound",
                     get = function() 
                         return FocusInterruptIndicator.db.playTTS
                     end,
