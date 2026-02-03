@@ -226,6 +226,7 @@ function FocusInterruptIndicator:ToggleTestMode()
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Focus Interrupt",
     args = {

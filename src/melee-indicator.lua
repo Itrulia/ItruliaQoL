@@ -260,6 +260,7 @@ function MeleeIndicator:ToggleTestMode()
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Melee Indicator",
     args = {

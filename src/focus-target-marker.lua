@@ -123,6 +123,7 @@ function FocusTargetMarker:OnEnable()
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Focus Marker",
     args = {

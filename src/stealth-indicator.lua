@@ -1,86 +1,62 @@
 local addonName, ItruliaQoL = ...
-local moduleName = "CombatAlert"
+local moduleName = "StealthIndicator"
 
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
 
-local CombatAlert = ItruliaQoL:NewModule(moduleName)
+local StealthIndicator = ItruliaQoL:NewModule(moduleName)
 
 local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
-frame:SetPoint("CENTER", 0, 0)
+frame:SetPoint("CENTER", 0, 50)
 frame:SetSize(28, 28)
 
 frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
-frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
+frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
 frame.text:SetTextColor(1, 1, 1)
 frame.text:SetJustifyH("CENTER")
-
-frame.text.anim = frame.text:CreateAnimationGroup()
-frame.text.anim:SetScript("OnFinished", function() 
-    frame.text:SetText("") 
-end)
-frame.alpha = frame.text.anim:CreateAnimation("Alpha")
-frame.alpha:SetFromAlpha(1)
-frame.alpha:SetToAlpha(0)
-frame.alpha:SetDuration(1)
-frame.alpha:SetStartDelay(1.5)
 
 function frame:UpdateStyles()
     if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
             self:ClearAllPoints()
-            self:SetPoint(CombatAlert.db.point.point, CombatAlert.db.point.x, CombatAlert.db.point.y)
+            self:SetPoint(StealthIndicator.db.point.point, StealthIndicator.db.point.x, StealthIndicator.db.point.y)
         end
 
-        self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
-        self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
-        self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
+        self.text:SetText(StealthIndicator.db.displayText)
+        self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
+        self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
+        self.text:SetShadowColor(StealthIndicator.db.font.fontShadowColor.r, StealthIndicator.db.font.fontShadowColor.g, StealthIndicator.db.font.fontShadowColor.b, StealthIndicator.db.font.fontShadowColor.a)
+        self.text:SetShadowOffset(StealthIndicator.db.font.fontShadowXOffset, StealthIndicator.db.font.fontShadowYOffset)
 
         self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
     end
 end
 
-local function OnEvent(self, event, ...)
-    if ItruliaQoL.testMode then
-        self.text:SetText(CombatAlert.db.combatStartsText)
-        self.text:SetTextColor(CombatAlert.db.combatEndsColor.r, CombatAlert.db.combatEndsColor.g, CombatAlert.db.combatEndsColor.b, CombatAlert.db.combatEndsColor.a)
-        self.text:SetAlpha(1)
-
-        return self:UpdateStyles()
-    else 
-        self.text:SetText("")
-    end
-
-    if event == "PLAYER_REGEN_ENABLED" then
-        self.text:SetText(CombatAlert.db.combatEndsText)
-        self.text:SetTextColor(CombatAlert.db.combatEndsColor.r, CombatAlert.db.combatEndsColor.g, CombatAlert.db.combatEndsColor.b, CombatAlert.db.combatEndsColor.a)
-        self.text:SetAlpha(1)
-        self.text.anim:Stop()
-        self.text.anim:Play()
-    elseif event == "PLAYER_REGEN_DISABLED" then
-        self.text:SetText(CombatAlert.db.combatStartsText)
-        self.text:SetTextColor(CombatAlert.db.combatStartsColor.r, CombatAlert.db.combatStartsColor.g, CombatAlert.db.combatStartsColor.b, CombatAlert.db.combatStartsColor.a)
-        self.text:SetAlpha(1)
-        self.text.anim:Stop()
-        self.text.anim:Play()
-    end
-
+local function OnEvent(self, ...)
     self:UpdateStyles()
+
+    if ItruliaQoL.testMode then
+        self.text:Show()
+        return
+    end
+
+    if IsStealthed() then
+        self.text:Show()
+    else
+        self.text:Hide()
+    end
 end
 
-frame:RegisterEvent("PLAYER_REGEN_DISABLED")
-frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+frame:RegisterEvent("UPDATE_STEALTH")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 local defaults = {
     enabled = true,
-    combatStartsText = "+Combat",
-    combatStartsColor = {r = 0.9803922176361084, g = 1, b = 0, a = 1},
-    combatEndsText = "-Combat",
-    combatEndsColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
-    point = {point = "CENTER", x = 0, y = 0},
+    displayText = "+Stealth",
+    color = {r = 1, g = 1, b = 1, a = 1},
+    point = {point = "CENTER", x = 0, y = 50},
 
     font = {
         fontFamily = "Expressway",
@@ -92,16 +68,16 @@ local defaults = {
     }
 };
 
-function CombatAlert:OnInitialize()
+function StealthIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.CombatAlert = profile.CombatAlert or defaults
-    self.db = profile.CombatAlert
+    profile.StealthIndicator = profile.StealthIndicator or defaults
+    self.db = profile.StealthIndicator
 end
 
-function CombatAlert:RefreshConfig()
+function StealthIndicator:RefreshConfig()
     local profile = ItruliaQoL.db.profile
-    profile.CombatAlert = profile.CombatAlert or defaults
-    self.db = profile.CombatAlert
+    profile.StealthIndicator = profile.StealthIndicator or defaults
+    self.db = profile.StealthIndicator
 
     if self.db.enabled then
         frame:UpdateStyles()
@@ -112,7 +88,7 @@ function CombatAlert:RefreshConfig()
     end
 end
 
-function CombatAlert:ApplyFontSettings(font)
+function StealthIndicator:ApplyFontSettings(font)
     self.db.font.fontFamily = font.fontFamily
     self.db.font.fontOutline = font.fontOutline
     self.db.font.fontShadowColor = font.fontShadowColor
@@ -121,7 +97,7 @@ function CombatAlert:ApplyFontSettings(font)
     frame:UpdateStyles()
 end
 
-function CombatAlert:OnEnable()
+function StealthIndicator:OnEnable()
     if self.db.enabled then 
         frame:SetScript("OnEvent", OnEvent) 
     end
@@ -131,11 +107,11 @@ function CombatAlert:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 0})
+        end, {point = "CENTER", x = 0, y = 50})
     end
 end
 
-function CombatAlert:ToggleTestMode()
+function StealthIndicator:ToggleTestMode()
     if not self.db.enabled then 
         return
     end
@@ -147,11 +123,11 @@ end
 local options = {
     order = 2,
     type = "group",
-    name = "Combat Alert",
+    name = "Stealth Indicator",
     args = {
         description = {
             type = "description",
-            name = "Shows an alert when entering or leaving combat \n\n",
+            name = "Shows an indicator text when stealthed (not invisible) \n\n",
             width = "full",
             order = 1,
         },
@@ -160,11 +136,11 @@ local options = {
             type = "toggle",
             width = "full",
             name = "Enable",
-            get = function(info)
-                return CombatAlert.db.enabled
+            get = function()
+                return StealthIndicator.db.enabled
             end,
-            set = function(info, value)
-                CombatAlert.db.enabled = value
+            set = function(_, value)
+                StealthIndicator.db.enabled = value
 
                 if value then
                     frame:SetScript("OnEvent", OnEvent)
@@ -181,66 +157,29 @@ local options = {
             order = 4,
             inline = true,
             args = {
-                combatStartsText = {
+                displayText = {
                     order = 1,
                     type = "input",
-                    name = "Combat starts text",
+                    name = "Display text",
                     get = function()
-                        return CombatAlert.db.combatStartsText
+                        return StealthIndicator.db.displayText
                     end,
                     set = function(_, value)
-                        CombatAlert.db.combatStartsText = value
+                        StealthIndicator.db.displayText = value
                         frame:UpdateStyles()
                     end
                 },
-                combatStartsColor = {
+                color = {
                     order = 2,
                     type = "color",
-                    name = "Combat starts color",
+                    name = "Color",
                     hasAlpha = true,
                     get = function()
-                        local c = CombatAlert.db.combatStartsColor
+                        local c = StealthIndicator.db.color
                         return c.r, c.g, c.b, c.a
                     end,
                     set = function(_, r, g, b, a)
-                        CombatAlert.db.combatStartsColor = {
-                            r = r,
-                            g = g,
-                            b = b,
-                            a = a
-                        }
-                        frame:UpdateStyles()
-                    end
-                },
-                spacer = {
-                    type = "description",
-                    name = "",
-                    width = "full",
-                    order = 3,
-                },
-                combatEndsText = {
-                    order = 3,
-                    type = "input",
-                    name = "Combat ends text",
-                    get = function()
-                        return CombatAlert.db.combatEndsText
-                    end,
-                    set = function(_, value)
-                        CombatAlert.db.combatEndsText = value
-                        frame:UpdateStyles()
-                    end
-                },
-                combatEndsColor = {
-                    order = 4,
-                    type = "color",
-                    name = "Combat ends color",
-                    hasAlpha = true,
-                    get = function()
-                        local c = CombatAlert.db.combatEndsColor
-                        return c.r, c.g, c.b, c.a
-                    end,
-                    set = function(_, r, g, b, a)
-                        CombatAlert.db.combatEndsColor = {
+                        StealthIndicator.db.color = {
                             r = r,
                             g = g,
                             b = b,
@@ -264,10 +203,10 @@ local options = {
                     name = "Font",
                     values = LSM:HashTable("font"),
                     get = function()
-                        return CombatAlert.db.font.fontFamily
+                        return StealthIndicator.db.font.fontFamily
                     end,
                     set = function(_, value)
-                        CombatAlert.db.font.fontFamily = value
+                        StealthIndicator.db.font.fontFamily = value
                         frame:UpdateStyles()
                     end
                 },
@@ -279,10 +218,10 @@ local options = {
                     max = 68,
                     step = 1,
                     get = function()
-                        return CombatAlert.db.font.fontSize
+                        return StealthIndicator.db.font.fontSize
                     end,
                     set = function(_, value)
-                        CombatAlert.db.font.fontSize = value
+                        StealthIndicator.db.font.fontSize = value
                         frame:UpdateStyles()
                     end
                 },
@@ -297,10 +236,10 @@ local options = {
                         MONOCHROME = "Monochrome"
                     },
                     get = function()
-                        return CombatAlert.db.font.fontOutline
+                        return StealthIndicator.db.font.fontOutline
                     end,
                     set = function(_, value)
-                        CombatAlert.db.font.fontOutline = value ~= "NONE" and value or nil
+                        StealthIndicator.db.font.fontOutline = value ~= "NONE" and value or nil
                         frame:UpdateStyles()
                     end
                 },
@@ -310,11 +249,11 @@ local options = {
                     name = "Shadow Color",
                     hasAlpha = true,
                     get = function()
-                        local c = CombatAlert.db.font.fontShadowColor
+                        local c = StealthIndicator.db.font.fontShadowColor
                         return c.r, c.g, c.b, c.a
                     end,
                     set = function(_, r, g, b, a)
-                        CombatAlert.db.font.fontShadowColor = {
+                        StealthIndicator.db.font.fontShadowColor = {
                             r = r,
                             g = g,
                             b = b,
@@ -331,10 +270,10 @@ local options = {
                     max = 5,
                     step = 1,
                     get = function()
-                        return CombatAlert.db.font.fontShadowXOffset
+                        return StealthIndicator.db.font.fontShadowXOffset
                     end,
                     set = function(_, value)
-                        CombatAlert.db.font.fontShadowXOffset = value
+                        StealthIndicator.db.font.fontShadowXOffset = value
                         frame:UpdateStyles()
                     end
                 },
@@ -346,10 +285,10 @@ local options = {
                     max = 5,
                     step = 1,
                     get = function()
-                        return CombatAlert.db.font.fontShadowYOffset
+                        return StealthIndicator.db.font.fontShadowYOffset
                     end,
                     set = function(_, value)
-                        CombatAlert.db.font.fontShadowYOffset = value
+                        StealthIndicator.db.font.fontShadowYOffset = value
                         frame:UpdateStyles()
                     end
                 },
@@ -358,6 +297,6 @@ local options = {
     }
 }
 
-function CombatAlert:RegisterOptions(parentOptions)
+function StealthIndicator:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = options;
 end

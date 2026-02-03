@@ -295,6 +295,7 @@ function MovementAlert:ToggleTestMode()
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Movement Alert",
     args = {

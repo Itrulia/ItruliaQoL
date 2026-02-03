@@ -147,6 +147,7 @@ function PetPassiveIndicator:ToggleTestMode()
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Pet Passive",
     args = {

@@ -365,6 +365,7 @@ local function optionsForRole(role)
 end
 
 local options = {
+    order = 2,
     type = "group",
     name = "Death Alert",
     args = {
