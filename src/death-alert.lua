@@ -76,12 +76,46 @@ local function OnEvent(self, event, deadGUID, ...)
             return 
         end
 
-        if (UnitInParty(unitId) or UnitInRaid(unitId) or unitId == "player") then
+        if UnitInParty(unitId) or UnitInRaid(unitId) or unitId == "player" then
             local showText = true;
             local sound = DeathAlert.db.sound;
             local playSound = DeathAlert.db.playSound and sound;
             local tts = DeathAlert.db.TTS;
             local playTTS = DeathAlert.db.playTTS and tts;
+
+            local name = UnitName(unitId)
+
+            if canaccessvalue(name) then
+                if DeathAlert.db.whitelist and DeathAlert.db.whitelist ~= "" then
+                    local allowedNames = ItruliaQoL:SplitAndTrim(DeathAlert.db.whitelist)
+                    local found = false
+
+                    for _, v in ipairs(allowedNames) do
+                        if v == name then
+                            found = true
+                            break
+                        end
+                    end
+
+                    if not found then
+                        return
+                    end
+                elseif DeathAlert.db.blacklist and DeathAlert.db.blacklist ~= "" then
+                    local blockedNames = ItruliaQoL:SplitAndTrim(DeathAlert.db.blacklist)
+                    local found = false
+
+                    for _, v in ipairs(blockedNames) do
+                        if v == name then
+                            found = true
+                            break
+                        end
+                    end
+
+                    if found then
+                        return
+                    end
+                end
+            end
 
             -- Only do role based configuration inside a raid
             if UnitInRaid(unitId) then
@@ -140,6 +174,8 @@ frame:RegisterEvent("UNIT_DIED")
 
 local defaults = {
     enabled = true,
+    whitelist = nil,
+    blacklist = nil,
     displayText = "died",
     color = {r = 1, g = 1, b = 1, a = 1},
     messageDuration = 2,
@@ -402,7 +438,7 @@ local options = {
             inline = true,
             args = {
                 displayText = {
-                    order = 2,
+                    order = 1,
                     type = "input",
                     name = "Suffix",
                     get = function()
@@ -641,10 +677,51 @@ local options = {
                 return DeathAlert.db.playSound
             end,
         },
+        boosterSettings = {
+            type = "group",
+            name = "",
+            order = 8,
+            inline = true,
+            args = {
+                whitelist = {
+                    order = 1,
+                    type = "input",
+                    name = "Whitelist names",
+                    desc = "Comma seperated list of names",
+                    get = function()
+                        return DeathAlert.db.whitelist
+                    end,
+                    set = function(_, value)
+                        DeathAlert.db.whitelist = value
+                    end
+                },
+                spacer = {
+                    type = "description",
+                    name = " ",
+                    width = 0.1,
+                    order = 2,
+                },
+                blacklist = {
+                    order = 3,
+                    type = "input",
+                    name = "Blacklist names",
+                    desc = "Comma seperated list of names",
+                    get = function()
+                        return DeathAlert.db.blacklist
+                    end,
+                    set = function(_, value)
+                        DeathAlert.db.blacklist = value
+                    end,
+                    disabled = function()
+                        return DeathAlert.db.whitelist and DeathAlert.db.whitelist ~= ""
+                    end
+                },
+            }
+        },
         byRole = {
             type = "group",
             name = "Settings based on dead player's role",
-            order = 8,
+            order = 9,
             inline = true,
             args = {
                 description = {

@@ -43,4 +43,15 @@ function ItruliaQoL:IsSpellKnown(spellId)
     return false
 end
 
+function ItruliaQoL:SplitAndTrim(str)
+    local t = {}
+
+    for part in string.gmatch(str, "([^,]+)") do
+        part = part:match("^%s*(.-)%s*$") -- trim whitespace
+        table.insert(t, part)
+    end
+
+    return t
+end
+
 ItruliaQoL.dump = DevTools_Dump
