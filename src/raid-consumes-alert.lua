@@ -96,6 +96,10 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
     end
 
     if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_START" then
+        if not canaccessvalue(spellId) then
+            return
+        end
+
         local type = self.spells[spellId]
 
         if not type then
