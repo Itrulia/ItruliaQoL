@@ -20,6 +20,7 @@ Non combat related:
 - Make the cooldown manager accessible via `/cd`, `/cdm` or `/wa`
 - Automatically accept role calls when signing up to a group
 - Remind you what m+ group you joined
+- Displays an alert when a raid consume has been popped (or summoning stone) (disabled by default)
 
 
 Combat related modules can be enabled and disabled at will.

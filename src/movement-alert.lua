@@ -147,7 +147,7 @@ local function OnUpdate(self, elapsed, ...)
                 ))
                 self.text:SetText(timeSpiralText)
                 self.text:Show()
-            elseif self.movementId then
+            elseif self.movementId and self.movementName then
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
                 -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
@@ -180,7 +180,7 @@ local function OnEvent(self, event, ...)
     end
 
     if ItruliaQoL.testMode then
-        self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", 15.3))
+        self.text:SetText("No " .. (self.movementName or "movement ability") .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", 15.3))
         self.text:Show()
         return
     end

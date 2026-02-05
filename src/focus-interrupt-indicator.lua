@@ -400,7 +400,7 @@ local options = {
             args = {
                 disclaimer = {
                     type = "description",
-                    name = "Unfortunately due to API restrictions, this sound will play even when your interrupt is not available \n\n",
+                    name = "Unfortunately due to API restrictions, this sound will play even when your interrupt is not available or the cast is not interruptible \n\n",
                     width = "full",
                     order = 1,
                 },

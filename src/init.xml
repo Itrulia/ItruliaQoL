@@ -13,6 +13,7 @@
 	<Script file="combat-alert.lua"/>
 	<Script file="combat-timer.lua"/>
 	<Script file="movement-alert.lua"/>
+	<Script file="raid-consumes-alert.lua"/>
 
 	<Script file="auto-accept-role.lua"/>
 	<Script file="group-joined-reminder.lua"/>

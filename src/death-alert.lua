@@ -118,7 +118,7 @@ local function OnEvent(self, event, deadGUID, ...)
             end
 
             -- Only do role based configuration inside a raid
-            if UnitInRaid(unitId) then
+            if ItruliaQoL:InRaid() then
                 local role = UnitGroupRolesAssigned(unitId)
 
                 if role == "NONE" then

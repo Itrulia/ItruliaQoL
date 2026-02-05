@@ -1,5 +1,27 @@
 local addonName, ItruliaQoL = ...
 
+function ItruliaQoL:InDungeon()
+    local inInstance, instanceType = IsInInstance()
+
+    return inInstance and instanceType == "party"
+end
+
+function ItruliaQoL:InMythicDungeon()
+    if not self:InDungeon() then
+        return false
+    end
+
+    local name = GetDifficultyInfo(GetDungeonDifficultyID())
+
+    return name == "Mythic";
+end
+
+function ItruliaQoL:InRaid()
+    local inInstance, instanceType = IsInInstance()
+
+    return inInstance and instanceType == "raid"
+end
+
 function ItruliaQoL:IsSpellKnown(spellId)
     if not spellId then
         return
