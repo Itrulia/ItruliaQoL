@@ -21,7 +21,8 @@ frame.text:SetText(" ")
 
 frame.text.anim = frame.text:CreateAnimationGroup()
 frame.text.anim:SetScript("OnFinished", function() 
-    frame.text:SetText("") 
+    frame.text:SetText(" ") 
+    frame.text:SetAlpha(0) 
 end)
 frame.alpha = frame.text.anim:CreateAnimation("Alpha")
 frame.alpha:SetFromAlpha(1)
@@ -87,7 +88,9 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
 
     -- disabling of testMode
     if not event then 
-        return self.text:SetAlpha(0)
+        self.text:SetAlpha(0)
+        frame.text:SetText(" ") 
+        return 
     end
 
     if InCombatLockdown() then
@@ -95,7 +98,7 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
         return
     end
 
-    if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_START" then
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
         if not canaccessvalue(spellId) then
             return
         end
@@ -142,7 +145,6 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
     end
 end
 
-frame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
