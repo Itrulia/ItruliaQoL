@@ -33,8 +33,8 @@ frame.meleeSpells = {
     }, 
     DRUID = { 
         [103] = 5221, 
-        [104] = 5221, 
-        [105] = 5221,
+        [104] = 33917, 
+        [105] = 22568,
     }, 
     HUNTER = { 
         [255] = 186270,
@@ -102,7 +102,8 @@ function frame:UpdateMeleeIndicator()
 
     -- Only show when druid in cat or bear form
     if class == "DRUID" and self.meleeSpellId then
-        spellUsable, _ = C_Spell.IsSpellUsable(self.meleeSpellId)
+        local usable, missingResources = C_Spell.IsSpellUsable(self.meleeSpellId)
+        spellUsable = usable or missingResources
     end
 
     if targetExists and targetAttackable and self.meleeSpellName then
