@@ -86,7 +86,6 @@ function frame:GetSpellToCheck()
         return nil
     end
 
-
     local spellIds = spells[specId]
     if not spellIds then
         return nil

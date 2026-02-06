@@ -27,7 +27,7 @@ function ItruliaQoL:IsSpellKnown(spellId)
         return
     end
 
-    if C_SpellBook.IsSpellInSpellBook(spellId) then
+    if C_SpellBook.IsSpellInSpellBook(spellId, Enum.SpellBookSpellBank.Player, false) then
         return true
     end
     

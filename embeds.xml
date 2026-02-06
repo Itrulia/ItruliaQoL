@@ -10,5 +10,5 @@
 	<Include file="Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml" />
 	<Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml" />
 
-	<Include file="libs\LibEQOL\LibEQOL.xml"/>
+	<Include file="libs\LibEditMode\embed.xml"/>
 </Ui>

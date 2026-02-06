@@ -44,7 +44,7 @@ local function OnEvent(self, event, ...)
 
         local fullName = activityInfo.fullName .. " " .. (self.groupName or "")
         local dkColor = C_ClassColor.GetClassColor("DEATHKNIGHT");
-        print(dkColor:WrapTextInColorCode("["..addonName.."]") .. " Joined: " .. fullName)
+        ItruliaQoL:Print("Joined: " .. fullName)
     end
 end
     

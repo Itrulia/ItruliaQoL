@@ -19,12 +19,12 @@ frame.text:SetJustifyH("CENTER")
 -- needs a non empty text to restore frame position
 frame.text:SetText(" ")
 
-frame.text.anim = frame.text:CreateAnimationGroup()
-frame.text.anim:SetScript("OnFinished", function() 
+frame.anim = frame.text:CreateAnimationGroup()
+frame.anim:SetScript("OnFinished", function() 
     frame.text:SetText(" ") 
     frame.text:SetAlpha(0) 
 end)
-frame.alpha = frame.text.anim:CreateAnimation("Alpha")
+frame.alpha = frame.anim:CreateAnimation("Alpha")
 frame.alpha:SetFromAlpha(1)
 frame.alpha:SetToAlpha(0)
 frame.alpha:SetDuration(1)
@@ -78,27 +78,16 @@ function frame:UpdateStyles()
 end
 
 local function OnEvent(self, event, unitTarget, castGUID, spellId)
-    self:UpdateStyles()
-
     if ItruliaQoL.testMode then
         self.text:SetText(RaidConsumesAlert.db.feast.displayText)
         self.text:SetAlpha(1)
-        return
-    end
-
-    -- disabling of testMode
-    if not event then 
+    elseif not event then 
+        -- disabling of testMode
         self.text:SetAlpha(0)
         frame.text:SetText(" ") 
-        return 
-    end
-
-    if InCombatLockdown() then
+    elseif InCombatLockdown() then
         self.text:SetAlpha(0)
-        return
-    end
-
-    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+    elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
         if not canaccessvalue(spellId) then
             return
         end
@@ -134,8 +123,8 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
 
         self.text:SetText(settings.displayText)
         self.text:SetAlpha(1)
-        self.text.anim:Stop()
-        self.text.anim:Play()
+        self.anim:Stop()
+        self.anim:Play()
 
         if settings.playSound and settings.sound then
             PlaySoundFile(LSM:Fetch("sound", settings.sound), "Master")
@@ -143,6 +132,8 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
             C_VoiceChat.SpeakText(0, settings.tts, 1, settings.ttsVolume, true)
         end
     end
+
+    self:UpdateStyles()
 end
 
 frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")

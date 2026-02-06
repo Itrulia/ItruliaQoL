@@ -4,8 +4,7 @@ ItruliaQoL = LibStub("AceAddon-3.0"):NewAddon(namespace, addonName, "AceConsole-
 ItruliaQoL.C = LibStub("AceConfig-3.0")
 ItruliaQoL.CD = LibStub("AceConfigDialog-3.0")
 ItruliaQoL.LSM = LibStub("LibSharedMedia-3.0")
-ItruliaQoL.LEM = LibStub("LibEQOLEditMode-1.0")
-ItruliaQoL.SettingsLib = LibStub("LibEQOLSettingsMode-1.0")
+ItruliaQoL.LEM = LibStub("LibEditMode")
 ItruliaQoL.testMode = false
 ItruliaQoL.E = ElvUI and unpack(ElvUI)
 
@@ -232,21 +231,21 @@ end
 
 ItruliaQoL:RegisterChatCommand("itrulia", "MySlashProcessorFunc")
 function ItruliaQoL:MySlashProcessorFunc(input)
-    if not input or input == "" or input == "config" then
+    if not input or input == "" or input == "config" or input == "c" then
         if self.E then
             self.E:ToggleOptions(addonName)
         else
             self.CD:Open(addonName)
         end
+    elseif input == "test" or input == "t" then
+        self:ToggleTestMode(not ItruliaQoL.testMode)
+    else
+        self:Print("AddOn commands:")
+        self:Print("/itrulia")
+        self:Print("/itrulia config")
+        self:Print("/itrulia help")
+        self:Print("/itrulia test")
     end
-
-  if input == "test" then
-    self:ToggleTestMode(not ItruliaQoL.testMode)
-  end
-
-  if input == "help" then
-
-  end
 end
 
 if ItruliaQoL.E then
@@ -254,11 +253,11 @@ if ItruliaQoL.E then
       ItruliaQoL:ToggleTestMode(enabled)
   end)
 else 
-    EditModeManagerFrame:HookScript("OnShow", function()
-        ItruliaQoL:ToggleTestMode(true)
+    ItruliaQoL.LEM:RegisterCallback('enter', function()
+	    ItruliaQoL:ToggleTestMode(true)
     end)
 
-    EditModeManagerFrame:HookScript("OnHide", function()
+    ItruliaQoL.LEM:RegisterCallback('exit', function()
         ItruliaQoL:ToggleTestMode(false)
     end)
 end
