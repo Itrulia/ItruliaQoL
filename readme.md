@@ -14,6 +14,7 @@ Combat related:
 - Creates a mouseover/target focus macro & sets a raid marker
 - Displays a combat timer (disabled by default)
 - Display if you are currently stealthed (disabled by default)
+- Display healer mana (disabled by default)
 
 Non combat related:
 - Turn your mythic+ season best dungeons into clickable teleport buttons
