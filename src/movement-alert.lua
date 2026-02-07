@@ -12,7 +12,9 @@ frame:SetPoint("CENTER", 0, 300)
 frame:SetSize(28, 28)
 frame.movementId = nil;
 frame.movementName = nil;
+frame.spellsToIgnoreGlowsFrom = {}
 frame.timeSpiralOn = false;
+frame.ignoreGlow = false
 
 frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
@@ -20,9 +22,6 @@ frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
 frame.text:SetTextColor(1, 1, 1, 1)
 frame.text:SetJustifyH("CENTER")
 frame.text:Hide();
-
-frame.timeSpiralActivationTime = nil
-
 
 frame.movementAbilities = {
     DEATHKNIGHT = {[250] = {48265}, [251] = {48265}, [252] = {48265}},
@@ -45,7 +44,7 @@ frame.timeSpiralAbilities = {
     -- DK
     [48265] = true, -- Death's Advance
     -- DH
-    [195072] = false, -- Fel Rush
+    [195072] = true, -- Fel Rush
     [189110] = true, -- Infernal Strike
     [1234796] = true, -- Shift
     -- Druid
@@ -77,10 +76,25 @@ frame.timeSpiralAbilities = {
     [6544] = true, -- Heroic Leap
 }
 
+frame.spellsThatTriggerGlows = {
+	DEMONHUNTER = {
+        [577] = {
+            { talent = 427640, spellId = 370965, delay = 1 }, -- Inertia / The hunt
+            { talent = 427640, spellId = 198793 }, -- Inertia / Vengeful retreat
+            { talent = 427794, spellId = 195072 }, -- Dash of Chaos / Fel Rush
+        },
+	},
+    WARLOCK = {
+        [265] = { talent = 385899, spellId = 385899 }, -- Soulburn 
+        [266] = { talent = 385899, spellId = 385899 }, -- Soulburn
+        [267] = { talent = 385899, spellId = 385899 }, -- Soulburn
+    },
+}
+
 function frame:GetSpellToCheck()
     local class = select(2, UnitClass("player"))
     local specId = select(1, GetSpecializationInfo(GetSpecialization()))
-    local spells = frame.movementAbilities[class]
+    local spells = self.movementAbilities[class]
 
     if not spells or not specId then 
         return nil
@@ -109,6 +123,30 @@ function frame:GetSpellToCheck()
     end
 
     return spellId
+end
+
+function frame:GetSpellsToIgnoreGlowsFrom()
+    local class = select(2, UnitClass("player"))
+    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
+    local specs = self.spellsThatTriggerGlows[class]
+
+    if not specs or not specId then 
+        return nil
+    end
+
+    local ignoreList = specs[specId]
+    if not ignoreList then
+        return nil
+    end
+
+    local ignoredList = {}
+    for _, s in ipairs(specs[specId]) do
+        if ItruliaQoL:IsSpellKnown(s.talent) then
+            ignoredList[s.spellId] = 0.05 + (s.delay or 0)
+        end
+    end
+
+    return ignoredList
 end
 
 function frame:UpdateStyles()
@@ -169,6 +207,7 @@ function frame:CacheMovementId()
     self.movementId = self:GetSpellToCheck()
     local spellInfo = self.movementId and C_Spell.GetSpellInfo(self.movementId)
     self.movementName = spellInfo and spellInfo.name
+    self.spellsToIgnoreGlowsFrom = self:GetSpellsToIgnoreGlowsFrom()
 end
 
 local function OnEvent(self, event, ...)
@@ -186,7 +225,7 @@ local function OnEvent(self, event, ...)
 
     if MovementAlert.db.showTimeSpiral then
         local spellId = ...
-        if event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
+        if event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" and not self.ignoreGlow then
             if self.timeSpiralAbilities[spellId] then
                 self.timeSpiralOn = GetTime();
 
@@ -200,6 +239,16 @@ local function OnEvent(self, event, ...)
             if self.timeSpiralAbilities[spellId] then
                 self.timeSpiralOn = nil;
             end
+        elseif event == "UNIT_SPELLCAST_SENT" then
+            local spellId = select(4, ...)
+
+            if self.spellsToIgnoreGlowsFrom and self.spellsToIgnoreGlowsFrom[spellId] then
+                self.ignoreGlow = true
+
+                C_Timer.After(self.spellsToIgnoreGlowsFrom[spellId], function() 
+                    self.ignoreGlow = false;
+                end)
+            end
         else
             self.timeSpiralOn = nil;
         end
@@ -210,8 +259,9 @@ frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 frame:RegisterEvent("PLAYER_TALENT_UPDATE")
 frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
-frame:RegisterUnitEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
-frame:RegisterUnitEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
+frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
+frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
+frame:RegisterUnitEvent("UNIT_SPELLCAST_SENT", "player")
 
 local defaults = {
     enabled = true,
