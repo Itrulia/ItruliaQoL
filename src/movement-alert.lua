@@ -12,6 +12,7 @@ frame:SetPoint("CENTER", 0, 300)
 frame:SetSize(28, 28)
 frame.movementId = nil;
 frame.movementName = nil;
+frame.ignoreMovementCd = false
 frame.spellsToIgnoreGlowsFrom = {}
 frame.timeSpiralOn = false;
 frame.ignoreGlow = false
@@ -89,6 +90,10 @@ frame.spellsThatTriggerGlows = {
         [266] = { talent = 385899, spellId = 385899 }, -- Soulburn
         [267] = { talent = 385899, spellId = 385899 }, -- Soulburn
     },
+}
+
+frame.spellsThatHaveTheirOwnGCD = {
+	[1234796] = 0.8
 }
 
 function frame:GetSpellToCheck()
@@ -188,7 +193,7 @@ local function OnUpdate(self, elapsed, ...)
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
                 -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
-                if cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and cdInfo.isOnGCD ~= nil then
+                if not self.ignoreMovementCd and cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and cdInfo.isOnGCD ~= nil then
                     self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
                     self.text:Show()
                 else
@@ -247,6 +252,14 @@ local function OnEvent(self, event, ...)
 
                 C_Timer.After(self.spellsToIgnoreGlowsFrom[spellId], function() 
                     self.ignoreGlow = false;
+                end)
+            end
+
+            if self.spellsThatHaveTheirOwnGCD[spellId] then
+                self.ignoreMovementCd = true
+
+                C_Timer.After(self.spellsThatHaveTheirOwnGCD[spellId], function() 
+                    self.ignoreMovementCd = false;
                 end)
             end
         else
