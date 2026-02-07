@@ -135,7 +135,7 @@ local function OnEvent(self, event, deadGUID, ...)
             if showText then
                 local name = UnitName(unitId)
                 local _, class = UnitClass(unitId)
-                local classColor = C_ClassColor.GetClassColor(class);
+                local classColor = C_ClassColor.GetClassColor(class)
 
                 local displayText = CreateColor(
                     DeathAlert.db.color.r,
@@ -281,7 +281,7 @@ function DeathAlert:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 200})
+        end, defaults.point)
     end
 end
 
@@ -422,12 +422,9 @@ local options = {
             set = function(_, value)
                 DeathAlert.db.enabled = value
 
+                DeathAlert:RefreshConfig()
                 if value then
-                    DeathAlert:RefreshConfig()
                     OnEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
                 end
             end
         },
@@ -686,6 +683,7 @@ local options = {
                 whitelist = {
                     order = 1,
                     type = "input",
+                    multiline = true,
                     name = "Whitelist names",
                     desc = "Comma seperated list of names",
                     get = function()
@@ -704,6 +702,7 @@ local options = {
                 blacklist = {
                     order = 3,
                     type = "input",
+                    multiline = true,
                     name = "Blacklist names",
                     desc = "Comma seperated list of names",
                     get = function()

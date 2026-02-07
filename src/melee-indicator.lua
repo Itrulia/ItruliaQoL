@@ -282,6 +282,9 @@ local options = {
             set = function(info, value)
                 MeleeIndicator.db.enabled = value
                 MeleeIndicator:RefreshConfig()
+                if value then
+                    OnEvent(frame)
+                end
             end,
         },
         displaySettings = {

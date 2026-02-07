@@ -281,7 +281,7 @@ function MovementAlert:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 50})
+        end, defaults.point)
     end
 end
 
@@ -315,6 +315,9 @@ local options = {
             set = function(info, value)
                 MovementAlert.db.enabled = value
                 MovementAlert:RefreshConfig()
+                if value then
+                    OnEvent(frame)
+                end
             end
         },
         displaySettings = {

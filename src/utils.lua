@@ -76,4 +76,23 @@ function ItruliaQoL:SplitAndTrim(str)
     return t
 end
 
+function ItruliaQoL:GetGroupUnits()
+    local units = {}
+
+    if IsInRaid() then
+        for i = 1, GetNumGroupMembers() do
+            table.insert(units, "raid" .. i)
+        end
+    elseif IsInGroup() then
+        table.insert(units, "player")
+        for i = 1, GetNumSubgroupMembers() do
+            table.insert(units, "party" .. i)
+        end
+    else
+        table.insert(units, "player")
+    end
+
+    return units
+end
+
 ItruliaQoL.dump = DevTools_Dump

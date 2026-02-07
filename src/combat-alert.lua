@@ -131,7 +131,7 @@ function CombatAlert:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 0})
+        end, defaults.point)
     end
 end
 
@@ -160,18 +160,15 @@ local options = {
             type = "toggle",
             width = "full",
             name = "Enable",
-            get = function(info)
+            get = function()
                 return CombatAlert.db.enabled
             end,
-            set = function(info, value)
+            set = function(_, value)
                 CombatAlert.db.enabled = value
 
+                CombatAlert:RefreshConfig()
                 if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
+                    OnEvent(frame)
                 end
             end
         },

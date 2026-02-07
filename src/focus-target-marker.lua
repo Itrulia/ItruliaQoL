@@ -144,6 +144,9 @@ local options = {
             set = function(_, value)
                 FocusTargetMarker.db.enabled = value
                 FocusTargetMarker:RefreshConfig()
+                if value then
+                    OnEvent(frame)
+                end
             end,
         },
         announce = {

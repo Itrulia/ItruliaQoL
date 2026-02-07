@@ -149,7 +149,7 @@ function CombatTimer:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 0})
+        end, defaults.point)
     end
 end
 
@@ -184,12 +184,9 @@ local options = {
             set = function(_, value)
                 CombatTimer.db.enabled = value
 
+                CombatTimer:RefreshConfig()
                 if value then
-                    CombatTimer:RefreshConfig()
                     OnEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
                 end
             end
         },

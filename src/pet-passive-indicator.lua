@@ -134,7 +134,7 @@ function PetPassiveIndicator:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 300})
+        end, defaults.point)
     end
 end
 
@@ -168,6 +168,9 @@ local options = {
             set = function(info, value)
                 PetPassiveIndicator.db.enabled = value
                 PetPassiveIndicator:RefreshConfig()
+                if value then
+                    OnEvent(frame)
+                end
             end
         },
         displaySettings = {

@@ -247,6 +247,9 @@ local options = {
             set = function(_, value)
                 FocusInterruptIndicator.db.enabled = value
                 FocusInterruptIndicator:RefreshConfig()
+                if value then
+                    OnEvent(frame)
+                end
             end,
         },
         displaySettings = {

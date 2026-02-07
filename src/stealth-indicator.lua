@@ -107,7 +107,7 @@ function StealthIndicator:OnEnable()
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, {point = "CENTER", x = 0, y = 50})
+        end, defaults.point)
     end
 end
 
@@ -142,12 +142,9 @@ local options = {
             set = function(_, value)
                 StealthIndicator.db.enabled = value
 
+                StealthIndicator:RefreshConfig()
                 if value then
-                    frame:SetScript("OnEvent", OnEvent)
-                    onEvent(frame)
-                else
-                    frame:SetScript("OnEvent", nil)
-                    frame:SetScript("OnUpdate", nil)
+                    OnEvent(frame)
                 end
             end
         },
