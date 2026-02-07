@@ -34,6 +34,9 @@ frame.spells = {
     [698] = "SUMMONING_STONE",
     [29893] = "SOULWELL",
 
+    [199109] = "REPAIR_BOT", -- Auto-Hammer
+    [67826] = "REPAIR_BOT", -- Jeeves
+
     -- TWW
     [457285] = "FEAST", -- Midnight Masquerade
     [462213] = "HEARTY_FEAST", -- Hearty Midnight Masquerade
@@ -109,6 +112,8 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
             settings = RaidConsumesAlert.db.summonStone
         elseif type == "CAULDRON" then
             settings = RaidConsumesAlert.db.cauldron
+        elseif type == "REPAIR_BOT" then
+            settings = RaidConsumesAlert.db.repairBot
         elseif type == "HEARTY_FEAST" then
             settings = RaidConsumesAlert.db.heartyFeast
         elseif type == "FEAST" then
@@ -171,6 +176,15 @@ local defaults = {
         tts = nil,
         ttsVolume = 50,
     },
+    repairBot = {
+        enabled = true,
+        displayText = "Repair gear",
+        playSound = false,
+        sound = nil,
+        playTTS = false,
+        tts = nil,
+        ttsVolume = 50,
+    },
     soulwell = {
         enabled = true,
         displayText = "Grab healthstone",
@@ -204,6 +218,9 @@ function RaidConsumesAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
     profile.RaidConsumesAlert = profile.RaidConsumesAlert or defaults
     self.db = profile.RaidConsumesAlert
+
+    -- Migrate new consume types
+    self.db.repairBot = self.db.repairBot or defaults.repairBot;
 end
 
 function RaidConsumesAlert:RefreshConfig()
@@ -564,17 +581,24 @@ local options = {
                     inline = true,
                     args = createConsumeTypeOptions("cauldron"),
                 },
+                repairBot = {
+                    type = "group",
+                    name = "Repair Bot",
+                    order = 4,
+                    inline = true,
+                    args = createConsumeTypeOptions("repairBot"),
+                },
                 soulwell = {
                     type = "group",
                     name = "Soulwell",
-                    order = 4,
+                    order = 5,
                     inline = true,
                     args = createConsumeTypeOptions("soulwell"),
                 },
                 summonStone = {
                     type = "group",
                     name = "Summon stone",
-                    order = 5,
+                    order = 6,
                     inline = true,
                     args = createConsumeTypeOptions("summonStone"),
                 },
