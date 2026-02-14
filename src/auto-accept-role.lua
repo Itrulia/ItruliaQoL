@@ -23,12 +23,6 @@ function AutoAcceptRole:OnEnable()
             LFDRoleCheckPopupAcceptButton:Click()
         end;
     end)
-
-    LFGListApplicationDialog.SignUpButton:SetScript("OnShow", function()
-        if self.db.enabled then
-            LFGListApplicationDialog.SignUpButton:Click()
-        end;
-    end)
 end
 
 local options = {
