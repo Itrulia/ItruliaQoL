@@ -44,7 +44,7 @@ local function OnEvent(self, ...)
         return
     end
 
-    if UnitAffectingCombat("player") and not UnitExists("target") then
+    if UnitAffectingCombat("player") and not UnitExists("target") and not UnitIsDead("target") then
         self.text:Show()
     else
         self.text:Hide()
@@ -55,6 +55,7 @@ frame:RegisterEvent("PLAYER_TARGET_CHANGED")
 frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("UNIT_DIED")
 
 function NoTargetIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
