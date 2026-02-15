@@ -10,7 +10,6 @@ externals:
   libs/AceGUI-3.0-SharedMediaWidgets: https://repos.curseforge.com/wow/ace-gui-3-0-shared-media-widgets/trunk/AceGUI-3.0-SharedMediaWidgets
   libs/AceSerializer-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceSerializer-3.0
   libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
-  libs/LibDeflate: https://github.com/SafeteeWoW/LibDeflate
   libs/LibEditMode:
     url: https://github.com/p3lim-wow/LibEditMode
     tag: latest
