@@ -1,23 +1,25 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">	
 	<Script file="init.lua"/>
 	<Script file="utils.lua"/>
+	<Script file="ace-helpers.lua"/>
 
-	<Script file="focus-interrupt-indicator.lua"/>
-	<Script file="focus-target-marker.lua"/>
-	<Script file="melee-indicator.lua"/>
-	<Script file="pet-missing-indicator.lua"/>
-	<Script file="pet-passive-indicator.lua"/>
-	<Script file="stealth-indicator.lua"/>
+	<Include file="focus-interrupt-indicator\init.xml"/>
+	<Include file="focus-target-marker\init.xml"/>
+	<Include file="melee-indicator\init.xml"/>
+	<Include file="pet-missing-indicator\init.xml"/>
+	<Include file="pet-passive-indicator\init.xml"/>
+	<Include file="stealth-indicator\init.xml"/>
 
-	<Script file="death-alert.lua"/>
-	<Script file="combat-alert.lua"/>
-	<Script file="combat-timer.lua"/>
-	<Script file="movement-alert.lua"/>
-	<Script file="raid-consumes-alert.lua"/>
-	<Script file="healer-mana-indicator.lua"/>
+	<Include file="death-alert\init.xml"/>
+	<Include file="combat-alert\init.xml"/>
+	<Include file="combat-timer\init.xml"/>
+	<Include file="movement-alert\init.xml"/>
+	<Include file="raid-consumes-alert\init.xml"/>
+	<Include file="healer-mana-indicator\init.xml"/>
 
-	<Script file="auto-accept-role.lua"/>
-	<Script file="group-joined-reminder.lua"/>
-	<Script file="dungeon-teleports.lua"/>
+	<Include file="auto-accept-role\init.xml"/>
+	<Include file="group-joined-reminder\init.xml"/>
+	<Include file="dungeon-teleports\init.xml"/>
+
 	<Script file="cdm-slash.lua"/>
 </Ui>

@@ -49,136 +49,51 @@ function ItruliaQoL:ApplyFontSettings()
     end
 end
 
-local options =  {
-    description = {
-        type = "description",
-        name =  "You can move things around using the native Edit Mode. Test mode will automatically be turned on\n\n Note that it ignores the Edit Mode layouts \n\n",
-        width = "full",
-        order = 1,
-    },
-    enable = {
-        order = 2,
-        type = "toggle",
-        width = "full",
-        name = "Test mode",
-        get = function()
-            return ItruliaQoL.testMode
-        end,
-        set = function(_, value)
-            ItruliaQoL:ToggleTestMode(value)
-        end
-    },
-    all = {
-        type = "group",
-        name = "All",
-        order = 1,
-        args = {
-            fontSettings = {
-                type = "group",
-                name = "Font",
-                inline = true,
-                args = {
-                    font = {
-                        order = 1,
-                        type = "select",
-                        dialogControl = "LSM30_Font",
-                        name = "Font",
-                        values = ItruliaQoL.LSM:HashTable("font"),
-                        get = function()
-                            return ItruliaQoL.db.profile.all.font.fontFamily
-                        end,
-                        set = function(_, value)
-                            ItruliaQoL.db.profile.all.font.fontFamily = value
-                        end
-                    },
-                    fontOutline = {
-                        order = 2,
-                        type = "select",
-                        name = "Outline",
-                        values = {
-                            NONE = "None",
-                            OUTLINE = "Outline",
-                            THICKOUTLINE = "Thick Outline",
-                            MONOCHROME = "Monochrome"
-                        },
-                        get = function()
-                            return ItruliaQoL.db.profile.all.font.fontOutline
-                        end,
-                        set = function(_, value)
-                            ItruliaQoL.db.profile.all.font.fontOutline = value ~= "NONE" and value or nil
-                        end
-                    },
-                    spacer = {
-                        type = "description",
-                        name =  "",
-                        width = "full",
-                        order = 3,
-                    },
-                    fontShadowColor = {
-                        order = 4,
-                        type = "color",
-                        name = "Shadow Color",
-                        hasAlpha = true,
-                        get = function()
-                            local c = ItruliaQoL.db.profile.all.font.fontShadowColor
-                            return c.r, c.g, c.b, c.a
-                        end,
-                        set = function(_, r, g, b, a)
-                            ItruliaQoL.db.profile.all.font.fontShadowColor = {
-                                r = r,
-                                g = g,
-                                b = b,
-                                a = a
-                            }
-                        end
-                    },
-                    fontShadowXOffset = {
-                        order = 5,
-                        type = "range",
-                        name = "Shadow X Offset",
-                        min = -5,
-                        max = 5,
-                        step = 1,
-                        get = function()
-                            return ItruliaQoL.db.profile.all.font.fontShadowXOffset
-                        end,
-                        set = function(_, value)
-                            ItruliaQoL.db.profile.all.font.fontShadowXOffset = value
-                        end
-                    },
-                    fontShadowYOffset = {
-                        order = 5,
-                        type = "range",
-                        name = "Shadow Y Offset",
-                        min = -5,
-                        max = 5,
-                        step = 1,
-                        get = function()
-                            return ItruliaQoL.db.profile.all.font.fontShadowYOffset
-                        end,
-                        set = function(_, value)
-                            ItruliaQoL.db.profile.all.font.fontShadowYOffset = value
-                        end
-                    },
-                    spacer2 = {
-                        type = "description",
-                        name =  "",
-                        width = "full",
-                    },
-                    applyAll = {
-                        type = "execute",
-                        name = "Apply to all",
-                        func = function()
-                            ItruliaQoL:ApplyFontSettings()
-                        end,
-                    },
-                }
-            },
-        }
-    },
-}
-
 function ItruliaQoL:RegisterOptions()
+    local options =  {
+        description = {
+            type = "description",
+            name =  "You can move things around using the native Edit Mode. Test mode will automatically be turned on\n\n Note that it ignores the Edit Mode layouts \n\n",
+            width = "full",
+            order = 1,
+        },
+        enable = {
+            order = 2,
+            type = "toggle",
+            width = "full",
+            name = "Test mode",
+            get = function()
+                return ItruliaQoL.testMode
+            end,
+            set = function(_, value)
+                ItruliaQoL:ToggleTestMode(value)
+            end
+        },
+        all = {
+            type = "group",
+            name = "All",
+            order = 1,
+            args = {
+                fontSettings = {
+                    type = "group",
+                    name = "Font",
+                    inline = true,
+                    args = ItruliaQoL:createFontOptions(ItruliaQoL.db.profile.all.font, function() end, {
+                        frameStrata = ItruliaQoL.MergeDeep_Delete_Key,
+                        frameLevel = ItruliaQoL.MergeDeep_Delete_Key,
+                        applyAll = {
+                            type = "execute",
+                            name = "Apply to all",
+                            func = function()
+                                ItruliaQoL:ApplyFontSettings()
+                            end,
+                        },
+                    })
+                },
+            }
+        },
+    }
+
     local AceDBOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 
 	local parentOptions = {

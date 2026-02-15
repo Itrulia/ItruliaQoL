@@ -1,0 +1,5 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">	
+	<Script file="healer-mana-indicator.lua"/>
+	<Script file="defaults.lua"/>
+	<Script file="options.lua"/>
+</Ui>
