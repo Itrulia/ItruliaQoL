@@ -37,8 +37,8 @@ function frame:UpdateStyles()
             self:SetPoint(HealerManaIndicator.db.point.point, HealerManaIndicator.db.point.x, HealerManaIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(HealerManaIndicator.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(HealerManaIndicator.db.frameLevel or 1)
+        self:SetFrameStrata(HealerManaIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(HealerManaIndicator.db.font.frameLevel or 1)
 
         for index, text in ipairs(self.texts) do
             self:UpdateTextStyle(text)

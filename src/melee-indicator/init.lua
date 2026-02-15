@@ -134,8 +134,8 @@ function frame:UpdateStyles()
             self:SetPoint(MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(MeleeIndicator.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(MeleeIndicator.db.frameLevel or 1)
+        self:SetFrameStrata(MeleeIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(MeleeIndicator.db.font.frameLevel or 1)
         self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
         self.text:SetText(MeleeIndicator.db.displayText)
         self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font.fontFamily), MeleeIndicator.db.font.fontSize, MeleeIndicator.db.font.fontOutline)

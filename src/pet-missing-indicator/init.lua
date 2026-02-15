@@ -78,8 +78,8 @@ function frame:UpdateStyles()
             self:SetPoint(PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(PetMissingIndicator.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(PetMissingIndicator.db.frameLevel or 1)
+        self:SetFrameStrata(PetMissingIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(PetMissingIndicator.db.font.frameLevel or 1)
         self.text:SetText(PetMissingIndicator.db.displayText)
         self.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font.fontFamily), PetMissingIndicator.db.font.fontSize, PetMissingIndicator.db.font.fontOutline)

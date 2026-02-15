@@ -24,8 +24,8 @@ function frame:UpdateStyles()
             self:SetPoint(StealthIndicator.db.point.point, StealthIndicator.db.point.x, StealthIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(StealthIndicator.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(StealthIndicator.db.frameLevel or 1)
+        self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
         self.text:SetText(StealthIndicator.db.displayText)
         self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)

@@ -77,8 +77,8 @@ function frame:UpdateStyles()
             self:SetPoint(FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(FocusInterruptIndicator.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(FocusInterruptIndicator.db.frameLevel or 1)
+        self:SetFrameStrata(FocusInterruptIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(FocusInterruptIndicator.db.font.frameLevel or 1)
         self.text:SetText(FocusInterruptIndicator.db.displayText)
         self.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font.fontFamily), FocusInterruptIndicator.db.font.fontSize, FocusInterruptIndicator.db.font.fontOutline)

@@ -71,8 +71,8 @@ function frame:UpdateStyles()
             self:SetPoint(RaidConsumesAlert.db.point.point, RaidConsumesAlert.db.point.x, RaidConsumesAlert.db.point.y)
         end
 
-        self:SetFrameStrata(RaidConsumesAlert.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(RaidConsumesAlert.db.frameLevel or 1)
+        self:SetFrameStrata(RaidConsumesAlert.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(RaidConsumesAlert.db.font.frameLevel or 1)
         self.text:SetTextColor(RaidConsumesAlert.db.color.r, RaidConsumesAlert.db.color.g, RaidConsumesAlert.db.color.b, RaidConsumesAlert.db.color.a)
         self.text:SetFont(LSM:Fetch("font", RaidConsumesAlert.db.font.fontFamily), RaidConsumesAlert.db.font.fontSize, RaidConsumesAlert.db.font.fontOutline)
         self.text:SetShadowColor(RaidConsumesAlert.db.font.fontShadowColor.r, RaidConsumesAlert.db.font.fontShadowColor.g, RaidConsumesAlert.db.font.fontShadowColor.b, RaidConsumesAlert.db.font.fontShadowColor.a)

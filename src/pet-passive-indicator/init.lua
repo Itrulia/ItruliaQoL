@@ -43,8 +43,8 @@ function frame:UpdateStyles()
             self:SetPoint(PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(PetPassiveIndicator.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(PetPassiveIndicator.db.frameLevel or 1)
+        self:SetFrameStrata(PetPassiveIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(PetPassiveIndicator.db.font.frameLevel or 1)
         self.text:SetText(PetPassiveIndicator.db.displayText)
         self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font.fontFamily), PetPassiveIndicator.db.font.fontSize, PetPassiveIndicator.db.font.fontOutline)

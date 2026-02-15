@@ -161,8 +161,8 @@ function frame:UpdateStyles()
             self:SetPoint(MovementAlert.db.point.point, MovementAlert.db.point.x, MovementAlert.db.point.y)
         end
 
-        self:SetFrameStrata(MovementAlert.db.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(MovementAlert.db.frameLevel or 1)
+        self:SetFrameStrata(MovementAlert.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(MovementAlert.db.font.frameLevel or 1)
         self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
         self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
         self.text:SetShadowColor(MovementAlert.db.font.fontShadowColor.r, MovementAlert.db.font.fontShadowColor.g, MovementAlert.db.font.fontShadowColor.b, MovementAlert.db.font.fontShadowColor.a)
