@@ -20,6 +20,7 @@
 	<Include file="auto-accept-role\init.xml"/>
 	<Include file="group-joined-reminder\init.xml"/>
 	<Include file="dungeon-teleports\init.xml"/>
+	<Include file="cursor-circle\init.xml"/>
 
 	<Script file="cdm-slash.lua"/>
 </Ui>

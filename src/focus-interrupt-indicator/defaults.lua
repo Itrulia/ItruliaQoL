@@ -24,6 +24,8 @@ function FocusInterruptIndicator:GetDefaults()
             fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
             fontShadowXOffset = 1,
             fontShadowYOffset = -1,
+            frameStrata = ItruliaQoL.FrameStrataSettings.BACKGROUND,
+            frameLevel = 1,
         }
     }
 end

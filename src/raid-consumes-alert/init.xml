@@ -1,5 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">	
-	<Script file="raid-consumes-alert.lua"/>
+	<Script file="init.lua"/>
 	<Script file="defaults.lua"/>
 	<Script file="options.lua"/>
 </Ui>
