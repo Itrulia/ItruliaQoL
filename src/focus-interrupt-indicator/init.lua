@@ -180,20 +180,19 @@ function FocusInterruptIndicator:OnEnable()
     end
 
     if E then
-        E:CreateMover(
-            frame,               
-            frame:GetName() .. "Mover",   
-            frame:GetName(),
-            nil, 
-            nil, 
-            nil, 
-            nil, 
-            nil
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
+            nil,
+            nil,
+            "ALL,ITRULIA",
+            function()
+                return self.db.enable
+            end,
+            addonName .. "," .. moduleName
         )
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
-        end, { point = "CENTER", x = 0, y = 150 })
+        end, self:GetDefaults().point)
     end
 end
 

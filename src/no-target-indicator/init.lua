@@ -1,11 +1,11 @@
 local addonName, ItruliaQoL = ...
-local moduleName = "StealthIndicator"
+local moduleName = "NoTargetIndicator"
 
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
 
-local StealthIndicator = ItruliaQoL:NewModule(moduleName)
+local NoTargetIndicator = ItruliaQoL:NewModule(moduleName)
 
 local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
 frame:SetPoint("CENTER", 0, 50)
@@ -21,16 +21,16 @@ function frame:UpdateStyles()
     if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
             self:ClearAllPoints()
-            self:SetPoint(StealthIndicator.db.point.point, StealthIndicator.db.point.x, StealthIndicator.db.point.y)
+            self:SetPoint(NoTargetIndicator.db.point.point, NoTargetIndicator.db.point.x, NoTargetIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
-        self.text:SetText(StealthIndicator.db.displayText)
-        self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
-        self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
-        self.text:SetShadowColor(StealthIndicator.db.font.fontShadowColor.r, StealthIndicator.db.font.fontShadowColor.g, StealthIndicator.db.font.fontShadowColor.b, StealthIndicator.db.font.fontShadowColor.a)
-        self.text:SetShadowOffset(StealthIndicator.db.font.fontShadowXOffset, StealthIndicator.db.font.fontShadowYOffset)
+        self:SetFrameStrata(NoTargetIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(NoTargetIndicator.db.font.frameLevel or 1)
+        self.text:SetText(NoTargetIndicator.db.displayText)
+        self.text:SetTextColor(NoTargetIndicator.db.color.r, NoTargetIndicator.db.color.g, NoTargetIndicator.db.color.b, NoTargetIndicator.db.color.a)
+        self.text:SetFont(LSM:Fetch("font", NoTargetIndicator.db.font.fontFamily), NoTargetIndicator.db.font.fontSize, NoTargetIndicator.db.font.fontOutline)
+        self.text:SetShadowColor(NoTargetIndicator.db.font.fontShadowColor.r, NoTargetIndicator.db.font.fontShadowColor.g, NoTargetIndicator.db.font.fontShadowColor.b, NoTargetIndicator.db.font.fontShadowColor.a)
+        self.text:SetShadowOffset(NoTargetIndicator.db.font.fontShadowXOffset, NoTargetIndicator.db.font.fontShadowYOffset)
 
         self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
     end
@@ -44,26 +44,28 @@ local function OnEvent(self, ...)
         return
     end
 
-    if IsStealthed() then
+    if UnitAffectingCombat("player") and not UnitExists("target") then
         self.text:Show()
     else
         self.text:Hide()
     end
 end
 
-frame:RegisterEvent("UPDATE_STEALTH")
+frame:RegisterEvent("PLAYER_TARGET_CHANGED")
+frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-function StealthIndicator:OnInitialize()
+function NoTargetIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.StealthIndicator = profile.StealthIndicator or self:GetDefaults()
-    self.db = profile.StealthIndicator
+    profile.NoTargetIndicator = profile.NoTargetIndicator or self:GetDefaults()
+    self.db = profile.NoTargetIndicator
 end
 
-function StealthIndicator:RefreshConfig()
+function NoTargetIndicator:RefreshConfig()
     local profile = ItruliaQoL.db.profile
-    profile.StealthIndicator = profile.StealthIndicator or self:GetDefaults()
-    self.db = profile.StealthIndicator
+    profile.NoTargetIndicator = profile.NoTargetIndicator or self:GetDefaults()
+    self.db = profile.NoTargetIndicator
 
     if self.db.enabled then
         frame:UpdateStyles()
@@ -74,7 +76,7 @@ function StealthIndicator:RefreshConfig()
     end
 end
 
-function StealthIndicator:ApplyFontSettings(font)
+function NoTargetIndicator:ApplyFontSettings(font)
     self.db.font.fontFamily = font.fontFamily
     self.db.font.fontOutline = font.fontOutline
     self.db.font.fontShadowColor = font.fontShadowColor
@@ -83,7 +85,7 @@ function StealthIndicator:ApplyFontSettings(font)
     frame:UpdateStyles()
 end
 
-function StealthIndicator:OnEnable()
+function NoTargetIndicator:OnEnable()
     if self.db.enabled then 
         frame:SetScript("OnEvent", OnEvent) 
     end
@@ -105,7 +107,7 @@ function StealthIndicator:OnEnable()
     end
 end
 
-function StealthIndicator:ToggleTestMode()
+function NoTargetIndicator:ToggleTestMode()
     if not self.db.enabled then 
         return
     end
@@ -113,7 +115,7 @@ function StealthIndicator:ToggleTestMode()
     OnEvent(frame)
 end
 
-function StealthIndicator:RegisterOptions(parentOptions)
+function NoTargetIndicator:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
         frame:UpdateStyles()
     end)

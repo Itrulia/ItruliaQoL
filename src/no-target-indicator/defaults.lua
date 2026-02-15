@@ -1,14 +1,14 @@
 local addonName, ItruliaQoL = ...
 local LSM = ItruliaQoL.LSM
 
-local moduleName = "StealthIndicator"
-local StealthIndicator = ItruliaQoL:GetModule(moduleName)
+local moduleName = "NoTargetIndicator"
+local NoTargetIndicator = ItruliaQoL:GetModule(moduleName)
 
-function StealthIndicator:GetDefaults()
+function NoTargetIndicator:GetDefaults()
     return {
         enabled = false,
-        displayText = "+Stealth",
-        color = {r = 1, g = 1, b = 1, a = 1},
+        displayText = "No target",
+        color = {r = 0.769, g = 0.118, b = 0.227, a = 1},
         point = {point = "CENTER", x = 0, y = 25},
 
         font = {

@@ -171,6 +171,9 @@ function ItruliaQoL:RegisterOptions()
         ItruliaQoL.E.Options.args[addonName] = parentOptions;
         ItruliaQoL.E.Options.args[addonName].order = 50;
         ItruliaQoL.E.Options.args[addonName].args.description.name = "You can move things around using the ElvUI movers. Test mode will automatically be turned on\n\n";
+
+        tinsert(ItruliaQoL.E.ConfigModeLayouts, "Itrulia")
+        ItruliaQoL.E.ConfigModeLocalizedStrings["Itrulia"] = "Itrulia"
     end
 end
 

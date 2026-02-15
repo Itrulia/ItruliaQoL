@@ -16,6 +16,7 @@
 	<Include file="movement-alert\init.xml"/>
 	<Include file="raid-consumes-alert\init.xml"/>
 	<Include file="healer-mana-indicator\init.xml"/>
+	<Include file="no-target-indicator\init.xml"/>
 
 	<Include file="auto-accept-role\init.xml"/>
 	<Include file="group-joined-reminder\init.xml"/>
