@@ -91,11 +91,13 @@ local function OnEvent(self, event, unitTarget, castGUID, spellId)
     elseif InCombatLockdown() then
         self.text:SetAlpha(0)
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-        if not canaccessvalue(spellId) then
+        local laundredSpellId = ItruliaQoL:LaunderSecretValue(spellId)
+
+        if not canaccessvalue(laundredSpellId) then
             return
         end
 
-        local type = self.spells[spellId]
+        local type = self.spells[laundredSpellId]
 
         if not type then
             return

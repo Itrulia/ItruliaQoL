@@ -63,4 +63,19 @@ function ItruliaQoL:GetGroupUnits()
     return units
 end
 
-ItruliaQoL.dump = DevTools_Dump
+-- Credits to KinderLine
+-- Only using it for out of combat things that blizzard decided to make secret (cauldrons, etc)
+local launderBar = CreateFrame("StatusBar")
+launderBar:SetMinMaxValues(0, 9999999)
+local onValueChangedResult = nil
+launderBar:SetScript("OnValueChanged", function(self, value)
+    onValueChangedResult = value
+end)
+
+function ItruliaQoL:LaunderSecretValue(value)
+    onValueChangedResult = nil
+    launderBar:SetValue(0)
+    pcall(launderBar.SetValue, launderBar, value)
+
+    return onValueChangedResult
+end
