@@ -26,6 +26,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
+        self.text:SetJustifyH(StealthIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(StealthIndicator.db.displayText)
         self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
@@ -80,6 +81,7 @@ function StealthIndicator:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

@@ -26,6 +26,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(NoTargetIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(NoTargetIndicator.db.font.frameLevel or 1)
+        self.text:SetJustifyH(NoTargetIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(NoTargetIndicator.db.displayText)
         self.text:SetTextColor(NoTargetIndicator.db.color.r, NoTargetIndicator.db.color.g, NoTargetIndicator.db.color.b, NoTargetIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", NoTargetIndicator.db.font.fontFamily), NoTargetIndicator.db.font.fontSize, NoTargetIndicator.db.font.fontOutline)
@@ -83,6 +84,7 @@ function NoTargetIndicator:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

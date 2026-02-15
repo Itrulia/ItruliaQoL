@@ -45,6 +45,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(PetPassiveIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(PetPassiveIndicator.db.font.frameLevel or 1)
+        self.text:SetJustifyH(PetPassiveIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(PetPassiveIndicator.db.displayText)
         self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font.fontFamily), PetPassiveIndicator.db.font.fontSize, PetPassiveIndicator.db.font.fontOutline)
@@ -106,6 +107,7 @@ function PetPassiveIndicator:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

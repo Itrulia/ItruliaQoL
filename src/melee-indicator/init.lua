@@ -136,6 +136,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(MeleeIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(MeleeIndicator.db.font.frameLevel or 1)
+        self.text:SetJustifyH(MeleeIndicator.db.font.justifyH or "CENTER")
         self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
         self.text:SetText(MeleeIndicator.db.displayText)
         self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font.fontFamily), MeleeIndicator.db.font.fontSize, MeleeIndicator.db.font.fontOutline)
@@ -210,6 +211,7 @@ function MeleeIndicator:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

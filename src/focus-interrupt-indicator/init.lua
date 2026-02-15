@@ -79,6 +79,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(FocusInterruptIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(FocusInterruptIndicator.db.font.frameLevel or 1)
+        self.text:SetJustifyH(FocusInterruptIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(FocusInterruptIndicator.db.displayText)
         self.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font.fontFamily), FocusInterruptIndicator.db.font.fontSize, FocusInterruptIndicator.db.font.fontOutline)
@@ -170,6 +171,7 @@ function FocusInterruptIndicator:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

@@ -36,6 +36,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(CombatAlert.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(CombatAlert.db.font.frameLevel or 1)
+        self.text:SetJustifyH(CombatAlert.db.font.justifyH or "CENTER")
         self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
         self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
         self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
@@ -76,26 +77,6 @@ frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-local defaults = {
-    enabled = true,
-    combatStartsText = "+Combat",
-    combatStartsColor = {r = 0.9803922176361084, g = 1, b = 0, a = 1},
-    combatEndsText = "-Combat",
-    combatEndsColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
-    point = {point = "CENTER", x = 0, y = 0},
-
-    font = {
-        fontFamily = "Expressway",
-        fontSize = 14,
-        fontOutline = "OUTLINE",
-        fontShadowColor = {r = 0, g = 0, b = 0, a = 1},
-        fontShadowXOffset = 1,
-        fontShadowYOffset = -1,
-        frameStrata = ItruliaQoL.FrameStrataSettings.BACKGROUND,
-        frameLevel = 1,
-    }
-};
-
 function CombatAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
     profile.CombatAlert = profile.CombatAlert or self:GetDefaults()
@@ -122,6 +103,7 @@ function CombatAlert:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

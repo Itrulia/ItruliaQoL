@@ -22,6 +22,7 @@ function CombatAlert:GetDefaults()
             fontShadowYOffset = -1,
             frameStrata = ItruliaQoL.FrameStrataSettings.BACKGROUND,
             frameLevel = 1,
+            justifyH = ItruliaQoL.JustifyHSettings.CENTER,
         }
     }
 end

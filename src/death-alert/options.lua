@@ -158,6 +158,7 @@ function DeathAlert:GetOptions(onChange)
                         order = 2,
                         type = "color",
                         name = "Color",
+                        width = 0.4,
                         hasAlpha = true,
                         get = function()
                             local c = DeathAlert.db.color
@@ -176,6 +177,7 @@ function DeathAlert:GetOptions(onChange)
                     messageDuration = {
                         order = 3,
                         type = "range",
+                        width = 0.75,
                         min = 1,
                         max = 10,
                         step = 1,
@@ -268,6 +270,7 @@ function DeathAlert:GetOptions(onChange)
                     TTSVolume = {
                         order = 3,
                         type = "range",
+                        width = 0.75,
                         min = 0,
                         max = 100,
                         step = 1,

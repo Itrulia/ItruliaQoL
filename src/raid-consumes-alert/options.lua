@@ -111,6 +111,7 @@ local createConsumeTypeOptions = function (consumeType)
                 ttsVolume = {
                     order = 3,
                     type = "range",
+                    width = 0.75,
                     min = 0,
                     max = 100,
                     step = 1,
@@ -162,6 +163,7 @@ function RaidConsumesAlert:GetOptions(onChange)
                 order = 3,
                 type = "color",
                 name = "Color",
+                width = 0.4,
                 hasAlpha = true,
                 get = function()
                     local c = RaidConsumesAlert.db.color
@@ -200,6 +202,7 @@ function RaidConsumesAlert:GetOptions(onChange)
                     fontSize = {
                         order = 2,
                         type = "range",
+                        width = 0.75,
                         name = "Size",
                         min = 1,
                         max = 68,
@@ -258,6 +261,7 @@ function RaidConsumesAlert:GetOptions(onChange)
                     fontShadowXOffset = {
                         order = 6,
                         type = "range",
+                        width = 0.75,
                         name = "Shadow X Offset",
                         min = -5,
                         max = 5,
@@ -273,6 +277,7 @@ function RaidConsumesAlert:GetOptions(onChange)
                     fontShadowYOffset = {
                         order = 57,
                         type = "range",
+                        width = 0.75,
                         name = "Shadow Y Offset",
                         min = -5,
                         max = 5,

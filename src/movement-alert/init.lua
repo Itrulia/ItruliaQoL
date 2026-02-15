@@ -163,6 +163,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(MovementAlert.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(MovementAlert.db.font.frameLevel or 1)
+        self.text:SetJustifyH(MovementAlert.db.font.justifyH or "CENTER")
         self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
         self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
         self.text:SetShadowColor(MovementAlert.db.font.fontShadowColor.r, MovementAlert.db.font.fontShadowColor.g, MovementAlert.db.font.fontShadowColor.b, MovementAlert.db.font.fontShadowColor.a)
@@ -306,6 +307,7 @@ function MovementAlert:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

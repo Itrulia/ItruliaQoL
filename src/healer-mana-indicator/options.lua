@@ -71,6 +71,7 @@ function HealerManaIndicator:GetOptions(onChange)
                         order = 1,
                         type = "color",
                         name = "Color",
+                        width = 0.4,
                         hasAlpha = true,
                         get = function()
                             local c = HealerManaIndicator.db.color

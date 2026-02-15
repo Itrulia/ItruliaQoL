@@ -51,6 +51,7 @@ function MeleeIndicator:GetOptions(onChange)
                         order = 2,
                         type = "color",
                         name = "Color",
+                        width = 0.4,
                         hasAlpha = true, 
                         get = function()
                             local c = MeleeIndicator.db.color

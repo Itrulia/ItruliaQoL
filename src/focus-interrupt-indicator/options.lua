@@ -51,6 +51,7 @@ function FocusInterruptIndicator:GetOptions(onChange)
                         order = 2,
                         type = "color",
                         name = "Color",
+                        width = 0.4,
                         hasAlpha = true, 
                         get = function()
                             local c = FocusInterruptIndicator.db.color
@@ -152,6 +153,7 @@ function FocusInterruptIndicator:GetOptions(onChange)
                     TTSVolume = {
                         order = 3,
                         type = "range",
+                        width = 0.75,
                         min = 0,
                         max = 100,
                         step = 1,

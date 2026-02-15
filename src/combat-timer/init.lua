@@ -29,6 +29,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(CombatTimer.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(CombatTimer.db.font.frameLevel or 1)
+        self.text:SetJustifyH(CombatTimer.db.font.justifyH or "CENTER")
         self.text:SetTextColor(CombatTimer.db.color.r, CombatTimer.db.color.g, CombatTimer.db.color.b, CombatTimer.db.color.a)
         self.text:SetFont(LSM:Fetch("font", CombatTimer.db.font.fontFamily), CombatTimer.db.font.fontSize, CombatTimer.db.font.fontOutline)
         self.text:SetShadowColor(CombatTimer.db.font.fontShadowColor.r, CombatTimer.db.font.fontShadowColor.g, CombatTimer.db.font.fontShadowColor.b, CombatTimer.db.font.fontShadowColor.a)
@@ -121,6 +122,7 @@ function CombatTimer:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

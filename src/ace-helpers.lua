@@ -45,11 +45,37 @@ ItruliaQoL.OutlineSettings = {
     MONOCHROME = "Monochrome"
 }
 
+ItruliaQoL.JustifyHSettings = {
+    CENTER = "CENTER",
+    LEFT = "LEFT",
+    RIGHT = "RIGHT",
+}
+
 function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
     return ItruliaQoL:MergeDeep({
-        font = {
+        fontSize = {
             order = 10,
+            type = "range",
+            name = "Size",
+            min = 1,
+            max = 68,
+            step = 1,
+            width = 0.75,
+            get = function()
+                return fontObject.fontSize
+            end,
+            set = function(_, value)
+                fontObject.fontSize = value
+                
+                if onChange then
+                    onChange()
+                end
+            end
+        },
+        font = {
+            order = 20,
             type = "select",
+            width = 0.75,
             dialogControl = "LSM30_Font",
             name = "Font",
             values = LSM:HashTable("font"),
@@ -64,27 +90,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                 end
             end
         },
-        fontSize = {
-            order = 20,
-            type = "range",
-            name = "Size",
-            min = 1,
-            max = 68,
-            step = 1,
-            get = function()
-                return fontObject.fontSize
-            end,
-            set = function(_, value)
-                fontObject.fontSize = value
-                
-                if onChange then
-                    onChange()
-                end
-            end
-        },
         fontOutline = {
             order = 30,
             type = "select",
+            width = 0.75,
             name = "Outline",
             values = ItruliaQoL.OutlineSettings,
             get = function()
@@ -98,15 +107,71 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                 end
             end
         },
+        justifyH = {
+            order = 40,
+            type = "select",
+            name = "Justify",
+            width = 0.75,
+            values = ItruliaQoL.JustifyHSettings,
+            get = function()
+                return fontObject.justifyH or ItruliaQoL.JustifyHSettings.CENTER
+            end,
+            set = function(_, value)
+                fontObject.justifyH = value
+                
+                if onChange then
+                    onChange()
+                end
+            end,
+        },
         spacer = {
             type = "description",
             name =  "",
             width = "full",
-            order = 39,
+            order = 49,
+        },
+        fontShadowXOffset = {
+            order = 50,
+            type = "range",
+            width = 0.75,
+            name = "Shadow X Offset",
+            min = -5,
+            max = 5,
+            step = 1,
+            get = function()
+                return fontObject.fontShadowXOffset
+            end,
+            set = function(_, value)
+                fontObject.fontShadowXOffset = value
+                
+                if onChange then
+                    onChange()
+                end
+            end
+        },
+        fontShadowYOffset = {
+            order = 60,
+            type = "range",
+            width = 0.75,
+            name = "Shadow Y Offset",
+            min = -5,
+            max = 5,
+            step = 1,
+            get = function()
+                return fontObject.fontShadowYOffset
+            end,
+            set = function(_, value)
+                fontObject.fontShadowYOffset = value
+                
+                if onChange then
+                    onChange()
+                end
+            end
         },
         fontShadowColor = {
-            order = 40,
+            order = 70,
             type = "color",
+            width = 0.7,
             name = "Shadow Color",
             hasAlpha = true,
             get = function()
@@ -126,51 +191,16 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                 end
             end
         },
-        fontShadowXOffset = {
-            order = 50,
-            type = "range",
-            name = "Shadow X Offset",
-            min = -5,
-            max = 5,
-            step = 1,
-            get = function()
-                return fontObject.fontShadowXOffset
-            end,
-            set = function(_, value)
-                fontObject.fontShadowXOffset = value
-                
-                if onChange then
-                    onChange()
-                end
-            end
-        },
-        fontShadowYOffset = {
-            order = 60,
-            type = "range",
-            name = "Shadow Y Offset",
-            min = -5,
-            max = 5,
-            step = 1,
-            get = function()
-                return fontObject.fontShadowYOffset
-            end,
-            set = function(_, value)
-                fontObject.fontShadowYOffset = value
-                
-                if onChange then
-                    onChange()
-                end
-            end
-        },
         spacer2 = {
             type = "description",
             name =  "",
             width = "full",
-            order = 69,
+            order = 79,
         },
         frameStrata = {
-            order = 70,
+            order = 80,
             type = "select",
+            width = 0.75,
             name = "Frame strata",
             values = ItruliaQoL.FrameStrataSettings,
             get = function()
@@ -185,8 +215,9 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             end,
         },
         frameLevel = {
-            order = 80,
+            order = 90,
             type = "range",
+            width = 0.75,
             name = "Frame level",
             min = 1,
             max = 10,

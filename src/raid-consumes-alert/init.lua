@@ -73,6 +73,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(RaidConsumesAlert.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(RaidConsumesAlert.db.font.frameLevel or 1)
+        self.text:SetJustifyH(RaidConsumesAlert.db.font.justifyH or "CENTER")
         self.text:SetTextColor(RaidConsumesAlert.db.color.r, RaidConsumesAlert.db.color.g, RaidConsumesAlert.db.color.b, RaidConsumesAlert.db.color.a)
         self.text:SetFont(LSM:Fetch("font", RaidConsumesAlert.db.font.fontFamily), RaidConsumesAlert.db.font.fontSize, RaidConsumesAlert.db.font.fontOutline)
         self.text:SetShadowColor(RaidConsumesAlert.db.font.fontShadowColor.r, RaidConsumesAlert.db.font.fontShadowColor.g, RaidConsumesAlert.db.font.fontShadowColor.b, RaidConsumesAlert.db.font.fontShadowColor.a)
@@ -177,6 +178,7 @@ function RaidConsumesAlert:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

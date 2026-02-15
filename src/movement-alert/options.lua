@@ -39,6 +39,7 @@ function MovementAlert:GetOptions(onChange)
                         order = 2,
                         type = "color",
                         name = "Color",
+                        width = 0.4,
                         hasAlpha = true,
                         get = function()
                             local c = MovementAlert.db.color
@@ -57,6 +58,7 @@ function MovementAlert:GetOptions(onChange)
                     decimals = {
                         order = 3,
                         type = "range",
+                        width = 0.75,
                         min = 0,
                         max = 1,
                         step = 1,
@@ -211,6 +213,7 @@ function MovementAlert:GetOptions(onChange)
                             timeSpiralTTSVolume = {
                                 order = 3,
                                 type = "range",
+                                width = 0.75,
                                 min = 0,
                                 max = 100,
                                 step = 1,

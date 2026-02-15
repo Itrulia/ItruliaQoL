@@ -80,6 +80,7 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(PetMissingIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(PetMissingIndicator.db.font.frameLevel or 1)
+        self.text:SetJustifyH(PetMissingIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(PetMissingIndicator.db.displayText)
         self.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
         self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font.fontFamily), PetMissingIndicator.db.font.fontSize, PetMissingIndicator.db.font.fontOutline)
@@ -149,6 +150,7 @@ function PetMissingIndicator:ApplyFontSettings(font)
     self.db.font.fontShadowColor = font.fontShadowColor
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
+    self.db.font.justifyH = font.justifyH
     frame:UpdateStyles()
 end
 

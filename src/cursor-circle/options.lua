@@ -71,6 +71,7 @@ function CursorCircle:GetOptions(onChange)
                     size = {
                         order = 3,
                         type = "range",
+                        width = 0.75,
                         name = "Size",
                         min = 10,
                         max = 100,
