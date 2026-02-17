@@ -24,6 +24,7 @@ Non combat related:
 - Remind you what m+ group you joined
 - Displays an alert when a raid consume has been popped (or summoning stone) (disabled by default)
 - Display a circle around your cursor (disabled by default)
+- Dragonriding bar (disabled by default)
 
 
 Combat related modules can be enabled and disabled at will.
