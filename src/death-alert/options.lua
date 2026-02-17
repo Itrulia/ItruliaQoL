@@ -77,7 +77,7 @@ local function optionsForRole(role)
                 playTTS = {
                     order = 1,
                     type = "toggle",
-                    name = "Play a TTS sound",
+                    name = "Play TTS",
                     get = function() 
                         return DeathAlert.db.byRole.tts[role].enabled
                     end,
@@ -245,7 +245,7 @@ function DeathAlert:GetOptions(onChange)
                     playTTS = {
                         order = 1,
                         type = "toggle",
-                        name = "Play a TTS sound",
+                        name = "Play TTS",
                         get = function() 
                             return DeathAlert.db.playTTS
                         end,

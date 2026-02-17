@@ -1,33 +1,54 @@
 local addonName, ItruliaQoL = ...
 local LSM = ItruliaQoL.LSM
 
-local moduleName = "FocusInterruptIndicator"
-local FocusInterruptIndicator = ItruliaQoL:GetModule(moduleName)
+local moduleName = "RebuffReminder"
+local RebuffReminder = ItruliaQoL:GetModule(moduleName)
 
-function FocusInterruptIndicator:GetOptions(onChange)
+function RebuffReminder:GetOptions(onChange)
     return {
         order = 2,
         type = "group",
-        name = "Focus Interrupt",
+        name = "Rebuff Reminder",
         args = {
             description = {
                 type = "description",
-                name = "Shows an alert when your focus casts an interruptable cast and you have your interrupt ready \n\n",
+                name =  "Displays a text and/or plays a sound/tts when it's rebuff time (during combat/ready check) \n\n",
                 width = "full",
                 order = 1,
             },
-            enable = {
+            enableSettings = {
+                type = "group",
+                name = "",
                 order = 2,
-                type = "toggle",
-                width = "full",
-                name = "Enable",
-                get = function() 
-                    return FocusInterruptIndicator.db.enabled
-                end,
-                set = function(_, value)
-                    FocusInterruptIndicator.db.enabled = value
-                    FocusInterruptIndicator:RefreshConfig()
-                end,
+                inline = true,
+                args = {
+                    enable = {
+                        order = 1,
+                        type = "toggle",
+                        width = 0.4,
+                        name = "Enable",
+                        get = function()
+                            return RebuffReminder.db.enabled
+                        end,
+                        set = function(_, value)
+                            RebuffReminder.db.enabled = value
+                            RebuffReminder:RefreshConfig()
+                        end
+                    },
+                    alertWhenIdle = {
+                        order = 2,
+                        type = "toggle",
+                        width = 1,
+                        name = "Alert out of combat",
+                        get = function()
+                            return RebuffReminder.db.alertWhenIdle
+                        end,
+                        set = function(_, value)
+                            RebuffReminder.db.alertWhenIdle = value
+                            onChange()
+                        end
+                    },
+                }
             },
             displaySettings = {
                 type = "group",
@@ -36,14 +57,14 @@ function FocusInterruptIndicator:GetOptions(onChange)
                 inline = true,
                 args = {
                     displayText = {
-                        order = 2,
+                        order = 1,
                         type = "input",
                         name = "Display text",
                         get = function()
-                            return FocusInterruptIndicator.db.displayText
+                            return RebuffReminder.db.displayText
                         end,
                         set = function(_, value)
-                            FocusInterruptIndicator.db.displayText = value
+                            RebuffReminder.db.displayText = value
                             onChange()
                         end,
                     },
@@ -52,20 +73,20 @@ function FocusInterruptIndicator:GetOptions(onChange)
                         type = "color",
                         name = "Color",
                         width = 0.4,
-                        hasAlpha = true, 
+                        hasAlpha = true,
                         get = function()
-                            local c = FocusInterruptIndicator.db.color
+                            local c = RebuffReminder.db.color
                             return c.r, c.g, c.b, c.a
                         end,
                         set = function(_, r, g, b, a)
-                            FocusInterruptIndicator.db.color = {
+                            RebuffReminder.db.color = {
                                 r = r,
                                 g = g,
                                 b = b,
-                                a = a,
+                                a = a
                             }
                             onChange()
-                        end,
+                        end
                     },
                 }
             },
@@ -74,55 +95,55 @@ function FocusInterruptIndicator:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(FocusInterruptIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(RebuffReminder.db.font, function() 
                     onChange()
                 end)
+            },
+            spacer = {
+                type = "description",
+                name = " ",
+                width = "full",
+                order = 6,
             },
             soundGroup = {
                 type = "group",
                 name = "",
-                order = 6,
+                order = 7,
                 inline = true,
                 args = {
-                    disclaimer = {
-                        type = "description",
-                        name = "Unfortunately due to API restrictions, this sound will play even when your interrupt is not available or the cast is not interruptible \n\n",
-                        width = "full",
-                        order = 1,
-                    },
                     playSound = {
-                        order = 2,
+                        order = 1,
                         type = "toggle",
                         name = "Play sound",
                         get = function() 
-                            return FocusInterruptIndicator.db.playSound
+                            return RebuffReminder.db.playSound
                         end,
                         set = function(_, value)
-                            FocusInterruptIndicator.db.playSound = value
+                            RebuffReminder.db.playSound = value
                         end,
                     },
                     sound = {
-                        order = 3,
+                        order = 2,
                         type = "select",
                         dialogControl = "LSM30_Sound", 
                         name = "Sound",
                         values = LSM:HashTable("sound"),
                         get = function()
-                            return FocusInterruptIndicator.db.sound
+                            return RebuffReminder.db.sound
                         end,
                         set = function(_, value)
-                            FocusInterruptIndicator.db.sound = value
+                            RebuffReminder.db.sound = value
                         end,
                         disabled = function()
-                            return not FocusInterruptIndicator.db.playSound
+                            return not RebuffReminder.db.playSound
                         end,
                     },
-                }
+                },
             },
             ttsGroup = {
                 type = "group",
                 name = "",
-                order = 7,
+                order = 8,
                 inline = true,
                 args = {
                     playTTS = {
@@ -130,27 +151,27 @@ function FocusInterruptIndicator:GetOptions(onChange)
                         type = "toggle",
                         name = "Play TTS",
                         get = function() 
-                            return FocusInterruptIndicator.db.playTTS
+                            return RebuffReminder.db.playTTS
                         end,
                         set = function(_, value)
-                            FocusInterruptIndicator.db.playTTS = value
+                            RebuffReminder.db.playTTS = value
                         end,
                     },
-                    TTS = {
+                    tts = {
                         order = 2,
                         type = "input",
                         name = "TTS Message",
                         get = function()
-                            return FocusInterruptIndicator.db.TTS
+                            return RebuffReminder.db.tts
                         end,
                         set = function(_, value)
-                            FocusInterruptIndicator.db.TTS = value
+                            RebuffReminder.db.tts = value
                         end,
                         disabled = function()
-                            return not FocusInterruptIndicator.db.playTTS
+                            return not RebuffReminder.db.playTTS
                         end,
                     },
-                    TTSVolume = {
+                    ttsVolume = {
                         order = 3,
                         type = "range",
                         width = 0.75,
@@ -159,18 +180,18 @@ function FocusInterruptIndicator:GetOptions(onChange)
                         step = 1,
                         name = "TTS Volume",
                         get = function()
-                            return FocusInterruptIndicator.db.TTSVolume
+                            return RebuffReminder.db.ttsVolume
                         end,
                         set = function(_, value)
-                            FocusInterruptIndicator.db.TTSVolume = value
+                            RebuffReminder.db.ttsVolume = value
                         end,
                         disabled = function()
-                            return not FocusInterruptIndicator.db.playTTS
+                            return not RebuffReminder.db.playTTS
                         end,
                     },
                 },
                 disabled = function()
-                    return FocusInterruptIndicator.db.playSound
+                    return RebuffReminder.db.playSound
                 end,
             },
         }

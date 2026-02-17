@@ -16,6 +16,7 @@ Combat related:
 - Display if you are currently stealthed (disabled by default)
 - Display healer mana (disabled by default)
 - Display if you are missing a target (disabled by default)
+- Display a reminder if you have to rebuff (disabled by default)
 
 Non combat related:
 - Turn your mythic+ season best dungeons into clickable teleport buttons

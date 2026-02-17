@@ -86,7 +86,7 @@ local createConsumeTypeOptions = function (consumeType)
                 playTTS = {
                     order = 1,
                     type = "toggle",
-                    name = "Play a TTS sound",
+                    name = "Play TTS",
                     get = function() 
                         return RaidConsumesAlert.db[consumeType].playTTS
                     end,

@@ -23,6 +23,7 @@
 	<Include file="dungeon-teleports\init.xml"/>
 	<Include file="cursor-circle\init.xml"/>
 	<Include file="flying-bar\init.xml"/>
+	<Include file="rebuff-reminder\init.xml"/>
 
 	<Script file="cdm-slash.lua"/>
 </Ui>

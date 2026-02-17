@@ -101,7 +101,7 @@ function FlyingBar:GetOptions(onChange)
                         end,
                         set = function(_, value)
                             FlyingBar.db.showGrounded = value
-                            FlyingBar:RefreshConfig()
+                            onChange()
                         end
                     },
                 }

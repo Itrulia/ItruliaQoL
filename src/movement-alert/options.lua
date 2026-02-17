@@ -104,6 +104,7 @@ function MovementAlert:GetOptions(onChange)
                         end,
                         set = function(info, value)
                             MovementAlert.db.showTimeSpiral = value
+                            onChange()
                         end
                     },
                     timeSpiralText = {
@@ -115,6 +116,7 @@ function MovementAlert:GetOptions(onChange)
                         end,
                         set = function(_, value)
                             MovementAlert.db.timeSpiralText = value
+                            onChange()
                         end,
                         disabled = function()
                             return not MovementAlert.db.showTimeSpiral
@@ -136,6 +138,7 @@ function MovementAlert:GetOptions(onChange)
                                 b = b,
                                 a = a,
                             }
+                            onChange()
                         end,
                         disabled = function()
                             return not MovementAlert.db.showTimeSpiral
@@ -156,6 +159,7 @@ function MovementAlert:GetOptions(onChange)
                                 end,
                                 set = function(_, value)
                                     MovementAlert.db.timeSpiralPlaySound = value
+                                    onChange()
                                 end,
                             },
                             timeSpiralSound = {
@@ -169,6 +173,7 @@ function MovementAlert:GetOptions(onChange)
                                 end,
                                 set = function(_, value)
                                     MovementAlert.db.timeSpiralSound = value
+                                    onChange()
                                 end,
                                 disabled = function()
                                     return not MovementAlert.db.timeSpiralPlaySound
@@ -188,12 +193,13 @@ function MovementAlert:GetOptions(onChange)
                             timeSpiralPlayTTS = {
                                 order = 1,
                                 type = "toggle",
-                                name = "Play a TTS sound when time spiral becomes active",
+                                name = "Play TTS when time spiral becomes active",
                                 get = function() 
                                     return MovementAlert.db.timeSpiralPlayTTS
                                 end,
                                 set = function(_, value)
                                     MovementAlert.db.timeSpiralPlayTTS = value
+                                    onChange()
                                 end,
                             },
                             timeSpiralTTS = {
@@ -205,6 +211,7 @@ function MovementAlert:GetOptions(onChange)
                                 end,
                                 set = function(_, value)
                                     MovementAlert.db.timeSpiralTTS = value
+                                    onChange()
                                 end,
                                 disabled = function()
                                     return not MovementAlert.db.timeSpiralPlayTTS
