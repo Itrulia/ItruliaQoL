@@ -14,8 +14,8 @@ function FlyingBar:CreateBorder(f)
     border:SetPoint("TOPLEFT", f, 0, 0)
     border:SetPoint("BOTTOMRIGHT", f, 0, 0)
     border:SetBackdrop({
-        edgeFile = E.media.blankTex,
-        bgFile = E.media.blankTex,
+        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
+        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
         edgeSize = 1,
     })
     border:SetBackdropBorderColor(0,0,0,1)
@@ -32,8 +32,8 @@ function FlyingBar:CreateBackground(f)
     background:SetFrameStrata(f:GetFrameStrata())
     background:SetFrameLevel(f:GetFrameLevel() - 1)
     background:SetBackdrop({
-        edgeFile = E.media.blankTex,
-        bgFile = E.media.blankTex,
+        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
+        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
         edgeSize = 1,
     })
     background:SetBackdropColor(0, 0, 0, 0.35)
