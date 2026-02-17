@@ -167,6 +167,10 @@ function ItruliaQoL:RegisterOptions()
         },
     }
 
+    local LibDualSpec = LibStub('LibDualSpec-1.0')
+    LibDualSpec:EnhanceDatabase(self.db, addonName)
+    LibDualSpec:EnhanceOptions(parentOptions.args['profiles'], self.db)
+
     if (ItruliaQoL.E) then
         ItruliaQoL.E.Options.args[addonName] = parentOptions;
         ItruliaQoL.E.Options.args[addonName].order = 50;

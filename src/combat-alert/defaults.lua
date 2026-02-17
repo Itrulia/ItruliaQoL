@@ -10,7 +10,7 @@ function CombatAlert:GetDefaults()
         combatStartsText = "+Combat",
         combatStartsColor = {r = 0.9803922176361084, g = 1, b = 0, a = 1},
         combatEndsText = "-Combat",
-        combatEndsColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
+        combatEndsColor = {r = 0.451, g = 0.741, b = 0.522, a = 1},
         point = {point = "CENTER", x = 0, y = 0},
 
         font = {

@@ -14,7 +14,7 @@ function MovementAlert:GetDefaults()
         
         showTimeSpiral = true,
         timeSpiralText = "Free Movement",
-        timeSpiralColor = {r = 0.5333333611488342, g = 1, b = 0, a = 1},
+        timeSpiralColor = {r = 0.451, g = 0.741, b = 0.522, a = 1},
         timeSpiralPlaySound = false,
         timeSpiralSound = nil,
         timeSpiralPlayTTS = false,
