@@ -7,7 +7,6 @@ local FlyingBar = ItruliaQoL:GetModule(moduleName)
 function FlyingBar:GetDefaults()
     return {
         enabled = false,
-        showGrounded = true,
         width = 350,
         updateInterval = 0.1,
         speed = {

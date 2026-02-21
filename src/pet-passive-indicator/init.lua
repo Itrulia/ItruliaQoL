@@ -122,7 +122,7 @@ function PetPassiveIndicator:OnEnable()
             nil,
             "ALL,ITRULIA",
             function()
-                return self.db.enable
+                return self.db.enabled
             end,
             addonName .. "," .. moduleName
         )

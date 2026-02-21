@@ -6,6 +6,8 @@
 ## Category: Itrulia
 ## SavedVariables: ItruliaQoLDB
 ## OptionalDeps: ElvUI
+## X-Wago-ID: rN4kQAGD
+## X-Curse-Project-ID: 1447820
 
 embeds.xml
 

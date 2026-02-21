@@ -146,11 +146,8 @@ for index = 1, C_Spell.GetSpellCharges(FlyingBar.vigorSpellId).maxCharges do
     frame.vigor[index] = bar
 end
 
-local function OnUpdate(self, elapsed)
-    local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
-    local shouldShow = isGliding or (not isGliding and FlyingBar.db.showGrounded and canGlide);
-
-    self:SetAlphaFromBoolean(not not shouldShow, 1, 0)
+local function OnUpdate(self)
+    local isGliding, _, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
 
     if isGliding then
         self.speed:SetValue(forwardSpeed / BASE_MOVEMENT_SPEED * 100 + 0.5)
@@ -159,12 +156,14 @@ local function OnUpdate(self, elapsed)
     end
 end
 
-local function OnEvent(self, event)
-    if IsMounted() then
+local function OnEvent(self)
+    local canGlide = select(2, C_PlayerInfo.GetGlidingInfo())
+    self:SetAlphaFromBoolean(canGlide, 1, 0)
+
+    if canGlide then
         frame:SetScript("OnUpdate", OnUpdate)
     else
         frame:SetScript("OnUpdate", nil)
-        frame:SetAlpha(0)
         return
     end
 
@@ -208,7 +207,7 @@ end
 frame:RegisterEvent('SPELL_UPDATE_COOLDOWN')
 frame:RegisterEvent('SPELL_UPDATE_CHARGES')
 frame:RegisterEvent('PLAYER_ENTERING_WORLD')
-frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
+frame:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
 frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
 frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
 
@@ -282,7 +281,7 @@ function FlyingBar:OnEnable()
             nil,
             "ALL,ITRULIA",
             function()
-                return self.db.enable
+                return self.db.enabled
             end,
             addonName .. "," .. moduleName
         )

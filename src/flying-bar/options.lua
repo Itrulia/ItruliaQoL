@@ -72,39 +72,18 @@ function FlyingBar:GetOptions(onChange)
                 width = "full",
                 order = 1,
             },
-            enableSettings = {
-                type = "group",
-                name = "",
+            enable = {
                 order = 2,
-                inline = true,
-                args = {
-                    enable = {
-                        order = 1,
-                        type = "toggle",
-                        width = 0.4,
-                        name = "Enable",
-                        get = function()
-                            return FlyingBar.db.enabled
-                        end,
-                        set = function(_, value)
-                            FlyingBar.db.enabled = value
-                            FlyingBar:RefreshConfig()
-                        end
-                    },
-                    showOnGround = {
-                        order = 2,
-                        type = "toggle",
-                        width = 1,
-                        name = "Show when grounded",
-                        get = function()
-                            return FlyingBar.db.showGrounded
-                        end,
-                        set = function(_, value)
-                            FlyingBar.db.showGrounded = value
-                            onChange()
-                        end
-                    },
-                }
+                type = "toggle",
+                width = "full",
+                name = "Enable",
+                get = function()
+                    return FlyingBar.db.enabled
+                end,
+                set = function(_, value)
+                    FlyingBar.db.enabled = value
+                    FlyingBar:RefreshConfig()
+                end
             },
             displaySettings = {
                 type = "group",

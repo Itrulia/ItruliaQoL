@@ -79,3 +79,15 @@ function ItruliaQoL:LaunderSecretValue(value)
 
     return onValueChangedResult
 end
+
+
+function ItruliaQoL:OnDragonRidingChange(onEvent)
+    local mountFrame = CreateFrame("frame", nil, UIParent)
+    mountFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    mountFrame:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
+    mountFrame:SetScript("OnEvent", function() 
+        onEvent(select(2, C_PlayerInfo.GetGlidingInfo()))
+    end)
+
+    return mountFrame
+end

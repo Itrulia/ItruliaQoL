@@ -48,7 +48,6 @@ end
 
 local function OnEvent(self, event, ...)
     if ItruliaQoL.testMode then
-        print("LMAO")
         self.text:Show()
         return
     elseif not event then
@@ -141,7 +140,7 @@ function RebuffReminder:OnEnable()
             nil,
             "ALL,ITRULIA",
             function()
-                return self.db.enable
+                return self.db.enabled
             end,
             addonName .. "," .. moduleName
         )
