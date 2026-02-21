@@ -150,9 +150,9 @@ local function OnUpdate(self)
     local isGliding, _, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
 
     if isGliding then
-        self.speed:SetValue(forwardSpeed / BASE_MOVEMENT_SPEED * 100 + 0.5)
+        self.speed:SetValue(forwardSpeed / BASE_MOVEMENT_SPEED * 100 + 0.5, Enum.StatusBarInterpolation.ExponentialEaseOut)
     else
-        self.speed:SetValue(0)
+        self.speed:SetValue(0, Enum.StatusBarInterpolation.ExponentialEaseOut)
     end
 end
 
@@ -184,7 +184,7 @@ local function OnEvent(self)
             bar:SetMinMaxValues(0, 1)
             bar:SetValue(1)
         elseif vigorDuration and i == vigorCharges.currentCharges + 1 then
-            bar:SetTimerDuration(vigorDuration)
+            bar:SetTimerDuration(vigorDuration, Enum.StatusBarInterpolation.ExponentialEaseOut)
         else
             bar:SetMinMaxValues(0, 1)
             bar:SetValue(0)

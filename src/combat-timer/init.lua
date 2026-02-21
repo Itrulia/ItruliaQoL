@@ -74,10 +74,10 @@ end
 local function OnUpdate(self)
     if self.combatStart then
         local elapsed = math.max(GetTime() - self.combatStart, 0)
-        frame.text:SetText(self:FormatTime(elapsed))
-        frame.text:Show()
+        self.text:SetText(self:FormatTime(elapsed))
+        self.text:Show()
     else
-        frame.text:Hide()
+        self.text:Hide()
     end
 end
 
@@ -107,7 +107,6 @@ function CombatTimer:RefreshConfig()
     self.db = profile.CombatTimer
 
     if self.db.enabled then
-        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent)
         frame:SetScript("OnUpdate", OnUpdate)
     else
@@ -128,6 +127,7 @@ end
 
 function CombatTimer:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
         frame:SetScript("OnUpdate", OnUpdate)
     end
