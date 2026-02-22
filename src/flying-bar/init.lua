@@ -212,6 +212,11 @@ frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
 frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
 
 function frame:UpdateStyles()
+    if not E then
+        self:ClearAllPoints()
+        self:SetPoint(FlyingBar.db.point.point, FlyingBar.db.point.x, FlyingBar.db.point.y)
+    end
+
     self:SetSize(
         FlyingBar.db.width, 
         FlyingBar.db.vigor.height + FlyingBar.db.speed.height + FlyingBar.db.secondWind.height + 2
@@ -250,6 +255,10 @@ function FlyingBar:OnInitialize()
     local profile = ItruliaQoL.db.profile
     profile[moduleName] = profile[moduleName] or self:GetDefaults()
     self.db = profile[moduleName]
+
+    if not self.db.point then
+        self.db.point = self:GetDefaults().point
+    end
 end
 
 function FlyingBar:RefreshConfig()

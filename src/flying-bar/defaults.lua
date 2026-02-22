@@ -8,6 +8,7 @@ function FlyingBar:GetDefaults()
     return {
         enabled = false,
         width = 350,
+        point = {point = "CENTER", x = 0, y = 0},
         updateInterval = 0.1,
         speed = {
             height = 12,
