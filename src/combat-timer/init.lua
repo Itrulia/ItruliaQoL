@@ -29,6 +29,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(CombatTimer.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(CombatTimer.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(CombatTimer.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(CombatTimer.db.font.justifyH or "CENTER")
         self.text:SetTextColor(CombatTimer.db.color.r, CombatTimer.db.color.g, CombatTimer.db.color.b, CombatTimer.db.color.a)
         self.text:SetFont(LSM:Fetch("font", CombatTimer.db.font.fontFamily), CombatTimer.db.font.fontSize, CombatTimer.db.font.fontOutline)

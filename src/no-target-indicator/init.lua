@@ -26,6 +26,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(NoTargetIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(NoTargetIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(NoTargetIndicator.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(NoTargetIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(NoTargetIndicator.db.displayText)
         self.text:SetTextColor(NoTargetIndicator.db.color.r, NoTargetIndicator.db.color.g, NoTargetIndicator.db.color.b, NoTargetIndicator.db.color.a)

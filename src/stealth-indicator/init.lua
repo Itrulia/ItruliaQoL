@@ -26,6 +26,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(StealthIndicator.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(StealthIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(StealthIndicator.db.displayText)
         self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)

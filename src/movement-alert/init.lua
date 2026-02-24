@@ -86,9 +86,15 @@ frame.spellsThatTriggerGlows = {
         },
 	},
     WARLOCK = {
-        [265] = { talent = 385899, spellId = 385899 }, -- Soulburn 
-        [266] = { talent = 385899, spellId = 385899 }, -- Soulburn
-        [267] = { talent = 385899, spellId = 385899 }, -- Soulburn
+        [265] = {
+            { talent = 385899, spellId = 385899 } -- Soulburn 
+        }, 
+        [266] = {
+            { talent = 385899, spellId = 385899 } -- Soulburn 
+        },
+        [267] = {
+            { talent = 385899, spellId = 385899 } -- Soulburn 
+        },
     },
 }
 
@@ -97,7 +103,7 @@ frame.spellsThatHaveTheirOwnGCD = {
 }
 
 function frame:GetSpellToCheck()
-    local class = select(2, UnitClass("player"))
+    local class = ItruliaQoL.PlayerClass
     local specId = select(1, GetSpecializationInfo(GetSpecialization()))
     local spells = self.movementAbilities[class]
 
@@ -131,7 +137,7 @@ function frame:GetSpellToCheck()
 end
 
 function frame:GetSpellsToIgnoreGlowsFrom()
-    local class = select(2, UnitClass("player"))
+    local class = ItruliaQoL.PlayerClass
     local specId = select(1, GetSpecializationInfo(GetSpecialization()))
     local specs = self.spellsThatTriggerGlows[class]
 
@@ -139,8 +145,7 @@ function frame:GetSpellsToIgnoreGlowsFrom()
         return nil
     end
 
-    local ignoreList = specs[specId]
-    if not ignoreList then
+    if not specs[specId] then
         return nil
     end
 
@@ -163,6 +168,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(MovementAlert.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(MovementAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(MovementAlert.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(MovementAlert.db.font.justifyH or "CENTER")
         self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
         self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
@@ -196,7 +203,9 @@ local function OnUpdate(self, elapsed, ...)
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
                 -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
-                if not self.ignoreMovementCd and cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and cdInfo.isOnGCD ~= nil then
+                local isDoubleJump = (ItruliaQoL.PlayerClass == "EVOKER" or ItruliaQoL.PlayerClass == "DH") and cdInfo.isOnGCD == nil
+
+                if not self.ignoreMovementCd and cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and not isDoubleJump then
                     self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
                     self.text:Show()
                 else

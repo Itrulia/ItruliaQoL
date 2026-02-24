@@ -36,6 +36,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(CombatAlert.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(CombatAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(CombatAlert.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(CombatAlert.db.font.justifyH or "CENTER")
         self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
         self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)

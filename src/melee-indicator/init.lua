@@ -136,6 +136,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(MeleeIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(MeleeIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(MeleeIndicator.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(MeleeIndicator.db.font.justifyH or "CENTER")
         self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
         self.text:SetText(MeleeIndicator.db.displayText)
@@ -217,6 +219,7 @@ end
 
 function MeleeIndicator:OnEnable()
     if self.db.enabled then
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent)
         frame:SetScript("OnUpdate", OnUpdate)
     end

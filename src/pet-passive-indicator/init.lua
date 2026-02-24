@@ -45,6 +45,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(PetPassiveIndicator.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(PetPassiveIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(PetPassiveIndicator.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(PetPassiveIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(PetPassiveIndicator.db.displayText)
         self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)

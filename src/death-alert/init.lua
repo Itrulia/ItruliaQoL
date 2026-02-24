@@ -37,6 +37,8 @@ function frame:UpdateStyles()
 
         self:SetFrameStrata(DeathAlert.db.font.frameStrata or "BACKGROUND")
         self:SetFrameLevel(DeathAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(DeathAlert.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(DeathAlert.db.font.justifyH or "CENTER")
         self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
         self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)

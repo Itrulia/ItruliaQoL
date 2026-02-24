@@ -45,13 +45,20 @@ function frame:UpdateStyles()
             self:UpdateTextStyle(text)
 
             text:ClearAllPoints()
+            local point = "LEFT"
+            if HealerManaIndicator.db.font.justifyH == "CENTER" then
+                point = ""
+            elseif HealerManaIndicator.db.font.justifyH == "RIGHT" then
+                point = "RIGHT"
+            end
+
             if index == 1 then
-                text:SetPoint("TOPLEFT", self, 0, 0)
+                text:SetPoint("TOP" .. point, self, 0, 0)
             else
                 if HealerManaIndicator.db.growUpwards then
-                    text:SetPoint("BOTTOMLEFT", self.texts[index - 1], "TOPLEFT", 0, 4)
+                    text:SetPoint("BOTTOM" .. point, self.texts[index - 1], "TOP" .. point, 0, 4)
                 else
-                    text:SetPoint("TOPLEFT", self.texts[index - 1], "BOTTOMLEFT", 0, -4)
+                    text:SetPoint("TOP" .. point, self.texts[index - 1], "BOTTOM" .. point, 0, -4)
                 end
             end
         end

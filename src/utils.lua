@@ -1,5 +1,7 @@
 local addonName, ItruliaQoL = ...
 
+ItruliaQoL.PlayerClass = select(2, UnitClass("player"));
+
 function ItruliaQoL:InDungeon()
     local inInstance, instanceType = IsInInstance()
 
