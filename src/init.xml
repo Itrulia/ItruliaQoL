@@ -12,6 +12,7 @@
 
 	<Include file="death-alert\init.xml"/>
 	<Include file="combat-alert\init.xml"/>
+	<Include file="potion-alert\init.xml"/>
 	<Include file="combat-timer\init.xml"/>
 	<Include file="movement-alert\init.xml"/>
 	<Include file="raid-consumes-alert\init.xml"/>

@@ -64,7 +64,7 @@ function FlyingBar:GetOptions(onChange)
     return {
         order = 2,
         type = "group",
-        name = "Flying bar",
+        name = "Flying Bar",
         args = {
             description = {
                 type = "description",
