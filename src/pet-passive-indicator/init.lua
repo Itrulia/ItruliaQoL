@@ -59,8 +59,6 @@ function frame:UpdateStyles()
 end
 
 local function OnEvent(self, event, ...)
-    self:UpdateStyles()
-
     if ItruliaQoL.testMode then 
         self.text:Show()
         return
@@ -115,6 +113,7 @@ end
 
 function PetPassiveIndicator:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
     end
 

@@ -212,6 +212,7 @@ end
 
 function DeathAlert:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
     end
 

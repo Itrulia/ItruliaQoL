@@ -186,6 +186,7 @@ end
 
 function RaidConsumesAlert:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
     end
 

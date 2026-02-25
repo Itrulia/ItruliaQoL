@@ -97,7 +97,6 @@ end
 
 local function OnEvent(self, event, unit, ...)
     self.active = false
-    self:UpdateStyles()
 
     if ItruliaQoL.testMode then
         self.text:Show()
@@ -179,6 +178,7 @@ end
 
 function FocusInterruptIndicator:OnEnable()
     if self.db.enabled then
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent)
         frame:SetScript("OnUpdate", OnUpdate)
     end

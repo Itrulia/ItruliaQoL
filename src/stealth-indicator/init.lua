@@ -40,8 +40,6 @@ function frame:UpdateStyles()
 end
 
 local function OnEvent(self, ...)
-    self:UpdateStyles()
-
     if ItruliaQoL.testMode then
         self.text:Show()
         return
@@ -89,6 +87,7 @@ end
 
 function StealthIndicator:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
     end
 

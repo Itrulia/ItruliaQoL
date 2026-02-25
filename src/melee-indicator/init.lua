@@ -155,7 +155,6 @@ function frame:CacheMeleeSpellId()
 end
 
 local function OnEvent(self, ...)
-    self:UpdateStyles()
     self:CacheMeleeSpellId()
 
     if ItruliaQoL.testMode then

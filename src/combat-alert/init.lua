@@ -52,7 +52,6 @@ local function OnEvent(self, event, ...)
         self.text:SetText(CombatAlert.db.combatStartsText)
         self.text:SetTextColor(CombatAlert.db.combatEndsColor.r, CombatAlert.db.combatEndsColor.g, CombatAlert.db.combatEndsColor.b, CombatAlert.db.combatEndsColor.a)
         self.text:SetAlpha(1)
-
         return self:UpdateStyles()
     else 
         self.text:SetText("")
@@ -111,6 +110,7 @@ end
 
 function CombatAlert:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
     end
 

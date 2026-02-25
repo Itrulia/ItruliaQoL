@@ -203,9 +203,15 @@ local function OnUpdate(self, elapsed, ...)
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
                 -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
-                local isDoubleJump = (ItruliaQoL.PlayerClass == "EVOKER" or ItruliaQoL.PlayerClass == "DH") and cdInfo.isOnGCD == nil
+                local isDoubleJump = (ItruliaQoL.PlayerClass == "EVOKER" or ItruliaQoL.PlayerClass == "DEMONHUNTER") and cdInfo.isOnGCD == nil
 
-                if not self.ignoreMovementCd and cdInfo and cdInfo.timeUntilEndOfStartRecovery and not cdInfo.isOnGCD and not isDoubleJump then
+                if 
+                    not self.ignoreMovementCd 
+                    and cdInfo 
+                    and cdInfo.timeUntilEndOfStartRecovery 
+                    and not cdInfo.isOnGCD 
+                    and not isDoubleJump
+                then
                     self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
                     self.text:Show()
                 else
@@ -228,8 +234,6 @@ function frame:CacheMovementId()
 end
 
 local function OnEvent(self, event, ...)
-    self:UpdateStyles()
-
     if not InCombatLockdown() then
         self:CacheMovementId()
     end
@@ -322,6 +326,7 @@ end
 
 function MovementAlert:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
         frame:SetScript("OnUpdate", OnUpdate) 
     end

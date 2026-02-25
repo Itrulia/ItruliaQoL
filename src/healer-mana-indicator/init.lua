@@ -185,6 +185,7 @@ end
 
 function HealerManaIndicator:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
     end
 

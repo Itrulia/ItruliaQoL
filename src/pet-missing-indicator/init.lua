@@ -93,7 +93,6 @@ function frame:UpdateStyles()
 end
 
 local function OnEvent(self, event, ...)
-    self:UpdateStyles()
     local petSpec = self:IsPetSpec()
     local conditionsWherePetIsntShown = IsMounted() or UnitInVehicle("player") or UnitIsDeadOrGhost("player")
 
@@ -158,6 +157,7 @@ end
 
 function PetMissingIndicator:OnEnable()
     if self.db.enabled then 
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
     end
 
