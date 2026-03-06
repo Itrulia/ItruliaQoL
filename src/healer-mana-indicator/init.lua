@@ -14,7 +14,12 @@ frame:SetSize(150, 28)
 frame.texts = {}
 
 function frame:IsHealer(unit)
-    return UnitExists(unit) and UnitIsConnected(unit) and (UnitGroupRolesAssigned(unit) == "HEALER" or UnitName(unit) == "Shambun")
+    return UnitExists(unit) 
+        and UnitIsConnected(unit) 
+        and (
+            UnitGroupRolesAssigned(unit) == "HEALER" 
+            or UnitName(unit) == "Shambun"
+        )
 end
 
 function frame:UpdateTextStyle(text)

@@ -202,15 +202,14 @@ local function OnUpdate(self, elapsed, ...)
             elseif self.movementId and self.movementName then
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
-                -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
-                local isDoubleJump = (ItruliaQoL.PlayerClass == "EVOKER" or ItruliaQoL.PlayerClass == "DEMONHUNTER") and cdInfo.isOnGCD == nil
-
                 if 
                     not self.ignoreMovementCd 
                     and cdInfo 
                     and cdInfo.timeUntilEndOfStartRecovery 
                     and not cdInfo.isOnGCD 
-                    and not isDoubleJump
+                    -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
+                    -- WL teleport isOnGCD exists while on gcd and then is nil
+                    and (cdInfo.isOnGCD ~= nil or ItruliaQoL.PlayerClass == "WARLOCK")
                 then
                     self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
                     self.text:Show()
