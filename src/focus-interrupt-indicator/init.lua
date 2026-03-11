@@ -129,9 +129,11 @@ local function OnUpdate(self)
         return
     end
 
-    self.text:Show()
-    self.text:SetAlphaFromBoolean(C_Spell.GetSpellCooldownDuration(self.interruptId):IsZero())
-    self:SetAlphaFromBoolean(self.notInterruptible, 0, 1)
+    if self.interruptId then
+        self.text:Show()
+        self.text:SetAlphaFromBoolean(C_Spell.GetSpellCooldownDuration(self.interruptId):IsZero())
+        self:SetAlphaFromBoolean(self.notInterruptible, 0, 1)
+    end
 end
 
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
