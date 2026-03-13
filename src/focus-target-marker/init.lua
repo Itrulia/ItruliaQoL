@@ -74,6 +74,7 @@ function FocusTargetMarker:RefreshConfig()
 
     if self.db.enabled then
         frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     else
         frame:SetScript("OnEvent", nil)
     end

@@ -16,18 +16,39 @@ function CursorCircle:GetOptions(onChange)
                 width = "full",
                 order = 1,
             },
-            enable = {
+            enableGroup = {
                 order = 2,
-                type = "toggle",
-                width = "full",
-                name = "Enable",
-                get = function()
-                    return CursorCircle.db.enabled
-                end,
-                set = function(_, value)
-                    CursorCircle.db.enabled = value
-                    CursorCircle:RefreshConfig()
-                end
+                type = "group",
+                name = "",
+                inline = true,
+                args = {
+                    enable = {
+                        order = 1,
+                        type = "toggle",
+                        width = 0.4,
+                        name = "Enable",
+                        get = function()
+                            return CursorCircle.db.enabled
+                        end,
+                        set = function(_, value)
+                            CursorCircle.db.enabled = value
+                            CursorCircle:RefreshConfig()
+                        end
+                    },
+                    onlyDuringCombat = {
+                        order = 2,
+                        type = "toggle",
+                        width = 1,
+                        name = "Only during combat",
+                        get = function()
+                            return CursorCircle.db.onlyDuringCombat
+                        end,
+                        set = function(_, value)
+                            CursorCircle.db.onlyDuringCombat = value
+                            onChange()
+                        end
+                    },
+                }
             },
             displaySettings = {
                 type = "group",

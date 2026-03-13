@@ -109,8 +109,10 @@ function CombatTimer:RefreshConfig()
     self.db = profile.CombatTimer
 
     if self.db.enabled then
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent)
         frame:SetScript("OnUpdate", OnUpdate)
+        OnEvent(frame)
     else
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)

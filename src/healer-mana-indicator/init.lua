@@ -172,6 +172,7 @@ function HealerManaIndicator:RefreshConfig()
     if self.db.enabled then
         frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     else
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)

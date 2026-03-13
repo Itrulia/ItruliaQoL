@@ -162,6 +162,7 @@ function FocusInterruptIndicator:RefreshConfig()
         frame:CacheInterruptId()
         frame:SetScript("OnEvent", OnEvent)
         frame:SetScript("OnUpdate", OnUpdate)
+        OnEvent(frame)
     else
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)

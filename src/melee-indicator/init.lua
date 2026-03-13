@@ -171,10 +171,10 @@ local function OnUpdate(self, elapsed)
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed
     
     if self.timeSinceLastUpdate > MeleeIndicator.db.updateInterval then
-        if not self.meleeSpellId then
-            self.text:Hide()
-        elseif not ItruliaQoL.testMode then
+        if not ItruliaQoL.testMode then
             self:UpdateMeleeIndicator()
+        elseif not self.meleeSpellId then
+            self.text:Hide()
         end
 
         self.timeSinceLastUpdate = 0
@@ -200,6 +200,7 @@ function MeleeIndicator:RefreshConfig()
         frame:CacheMeleeSpellId()
         frame:SetScript("OnEvent", OnEvent)
         frame:SetScript("OnUpdate", OnUpdate)
+        OnEvent(frame)
     else
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)

@@ -1,18 +1,18 @@
 local addonName, ItruliaQoL = ...
 local LSM = ItruliaQoL.LSM
 
-local moduleName = "PetPassiveIndicator"
-local PetPassiveIndicator = ItruliaQoL:GetModule(moduleName)
+local moduleName = "CharacterIndicator"
+local CharacterIndicator = ItruliaQoL:GetModule(moduleName)
 
-function PetPassiveIndicator:GetOptions(onChange)
+function CharacterIndicator:GetOptions(onChange)
     return {
         order = 2,
         type = "group",
-        name = "Pet Passive",
+        name = "Character Indicator",
         args = {
             description = {
                 type = "description",
-                name =  "Displays a text when you have a pet and it's set to passive\n\n",
+                name =  "Creates an indicator that is always on during combat indicating where you are\n\n",
                 width = "full",
                 order = 1,
             },
@@ -21,13 +21,13 @@ function PetPassiveIndicator:GetOptions(onChange)
                 type = "toggle",
                 width = "full",
                 name = "Enable",
-                get = function(info)
-                    return PetPassiveIndicator.db.enabled
+                get = function(info) 
+                    return CharacterIndicator.db.enabled
                 end,
                 set = function(info, value)
-                    PetPassiveIndicator.db.enabled = value
-                    PetPassiveIndicator:RefreshConfig()
-                end
+                    CharacterIndicator.db.enabled = value
+                    CharacterIndicator:RefreshConfig()
+                end,
             },
             displaySettings = {
                 type = "group",
@@ -40,33 +40,33 @@ function PetPassiveIndicator:GetOptions(onChange)
                         type = "input",
                         name = "Display text",
                         get = function()
-                            return PetPassiveIndicator.db.displayText
+                            return CharacterIndicator.db.displayText
                         end,
                         set = function(_, value)
-                            PetPassiveIndicator.db.displayText = value
+                            CharacterIndicator.db.displayText = value
                             onChange()
-                        end
+                        end,
                     },
                     color = {
                         order = 2,
                         type = "color",
                         name = "Color",
                         width = 0.4,
-                        hasAlpha = true,
+                        hasAlpha = true, 
                         get = function()
-                            local c = PetPassiveIndicator.db.color
+                            local c = CharacterIndicator.db.color
                             return c.r, c.g, c.b, c.a
                         end,
                         set = function(_, r, g, b, a)
-                            PetPassiveIndicator.db.color = {
+                            CharacterIndicator.db.color = {
                                 r = r,
                                 g = g,
                                 b = b,
-                                a = a
+                                a = a,
                             }
                             onChange()
-                        end
-                    }
+                        end,
+                    },
                 }
             },
             fontSettings = {
@@ -74,10 +74,10 @@ function PetPassiveIndicator:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(PetPassiveIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(CharacterIndicator.db.font, function() 
                     onChange()
                 end)
-            }
+            },
         }
     }
 end

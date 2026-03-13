@@ -307,6 +307,7 @@ function MovementAlert:RefreshConfig()
         frame:CacheMovementId()
         frame:SetScript("OnEvent", OnEvent)
         frame:SetScript("OnUpdate", OnUpdate) 
+        OnEvent(frame)
     else
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)

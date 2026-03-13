@@ -1,11 +1,11 @@
 local addonName, ItruliaQoL = ...
-local moduleName = "PetPassiveIndicator"
+local moduleName = "RepairIndicator"
 
 local LSM = ItruliaQoL.LSM
 local LEM = ItruliaQoL.LEM
 local E = ItruliaQoL.E
 
-local PetPassiveIndicator = ItruliaQoL:NewModule(moduleName)
+local RepairIndicator = ItruliaQoL:NewModule(moduleName)
 
 local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
 frame:SetPoint("CENTER", 0, 300)
@@ -14,22 +14,19 @@ frame:SetSize(28, 28)
 frame.text = frame:CreateFontString(nil, "OVERLAY")
 frame.text:SetPoint("CENTER")
 frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
-frame.text:SetText("**Pet passive!**")
+frame.text:SetText("**Low Durability!**")
 frame.text:SetTextColor(1, 1, 1)
 frame.text:SetJustifyH("CENTER")
 frame.text:Hide()
 
-function frame:IsPetPassive()
-    -- Pet bar might be active while mounted
-    if not UnitExists("pet") or not PetHasActionBar() or IsMounted() then 
-        return false 
-    end
+function frame:RequiresRepair()
+    for slot = 1, 18 do
+        local current, maximum = GetInventoryItemDurability(slot)
 
-    for slot = 1, NUM_PET_ACTION_SLOTS or 10 do
-        local name, _, token, active = GetPetActionInfo(slot)
-
-        if name == "PET_MODE_PASSIVE" and token and active then 
-            return true 
+        if current and maximum then
+            if current == 0 or current / maximum < 0.2 then
+                return true
+            end
         end
     end
 
@@ -40,19 +37,19 @@ function frame:UpdateStyles()
     if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
             self:ClearAllPoints()
-            self:SetPoint(PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)
+            self:SetPoint(RepairIndicator.db.point.point, RepairIndicator.db.point.x, RepairIndicator.db.point.y)
         end
 
-        self:SetFrameStrata(PetPassiveIndicator.db.font.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(PetPassiveIndicator.db.font.frameLevel or 1)
+        self:SetFrameStrata(RepairIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(RepairIndicator.db.font.frameLevel or 1)
         self.text:ClearAllPoints()
-        self.text:SetPoint(PetPassiveIndicator.db.font.justifyH or "CENTER")
-        self.text:SetJustifyH(PetPassiveIndicator.db.font.justifyH or "CENTER")
-        self.text:SetText(PetPassiveIndicator.db.displayText)
-        self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
-        self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font.fontFamily), PetPassiveIndicator.db.font.fontSize, PetPassiveIndicator.db.font.fontOutline)
-        self.text:SetShadowColor(PetPassiveIndicator.db.font.fontShadowColor.r, PetPassiveIndicator.db.font.fontShadowColor.g, PetPassiveIndicator.db.font.fontShadowColor.b, PetPassiveIndicator.db.font.fontShadowColor.a)
-        self.text:SetShadowOffset(PetPassiveIndicator.db.font.fontShadowXOffset, PetPassiveIndicator.db.font.fontShadowYOffset)
+        self.text:SetPoint(RepairIndicator.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(RepairIndicator.db.font.justifyH or "CENTER")
+        self.text:SetText(RepairIndicator.db.displayText)
+        self.text:SetTextColor(RepairIndicator.db.color.r, RepairIndicator.db.color.g, RepairIndicator.db.color.b, RepairIndicator.db.color.a)
+        self.text:SetFont(LSM:Fetch("font", RepairIndicator.db.font.fontFamily), RepairIndicator.db.font.fontSize, RepairIndicator.db.font.fontOutline)
+        self.text:SetShadowColor(RepairIndicator.db.font.fontShadowColor.r, RepairIndicator.db.font.fontShadowColor.g, RepairIndicator.db.font.fontShadowColor.b, RepairIndicator.db.font.fontShadowColor.a)
+        self.text:SetShadowOffset(RepairIndicator.db.font.fontShadowXOffset, RepairIndicator.db.font.fontShadowYOffset)
         
         self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
     end
@@ -64,7 +61,7 @@ local function OnEvent(self, event, ...)
         return
     end
 
-    if self:IsPetPassive() then
+    if not PlayerIsInCombat() and self:RequiresRepair() then
         self.text:Show()
     else
         self.text:Hide()
@@ -72,25 +69,22 @@ local function OnEvent(self, event, ...)
 end
 
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("UNIT_PET")
+frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+frame:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
 frame:RegisterEvent("PLAYER_DEAD")
 frame:RegisterEvent("PLAYER_ALIVE")
-frame:RegisterEvent("PET_BAR_UPDATE")
-frame:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
-frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
-frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
 
-function PetPassiveIndicator:OnInitialize()
+function RepairIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
-    profile.PetPassiveIndicator = profile.PetPassiveIndicator or self:GetDefaults()
-    self.db = profile.PetPassiveIndicator
+    profile.RepairIndicator = profile.RepairIndicator or self:GetDefaults()
+    self.db = profile.RepairIndicator
 end
 
-function PetPassiveIndicator:RefreshConfig()
+function RepairIndicator:RefreshConfig()
     local profile = ItruliaQoL.db.profile
-    profile.PetPassiveIndicator = profile.PetPassiveIndicator or self:GetDefaults()
-    self.db = profile.PetPassiveIndicator
+    profile.RepairIndicator = profile.RepairIndicator or self:GetDefaults()
+    self.db = profile.RepairIndicator
 
     if self.db.enabled then
         frame:UpdateStyles()
@@ -102,7 +96,7 @@ function PetPassiveIndicator:RefreshConfig()
     end
 end
 
-function PetPassiveIndicator:ApplyFontSettings(font)
+function RepairIndicator:ApplyFontSettings(font)
     self.db.font.fontFamily = font.fontFamily
     self.db.font.fontOutline = font.fontOutline
     self.db.font.fontShadowColor = font.fontShadowColor
@@ -112,7 +106,7 @@ function PetPassiveIndicator:ApplyFontSettings(font)
     frame:UpdateStyles()
 end
 
-function PetPassiveIndicator:OnEnable()
+function RepairIndicator:OnEnable()
     if self.db.enabled then 
         frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent) 
@@ -135,7 +129,7 @@ function PetPassiveIndicator:OnEnable()
     end
 end
 
-function PetPassiveIndicator:ToggleTestMode()
+function RepairIndicator:ToggleTestMode()
     if not self.db.enabled then 
         return
     end
@@ -143,7 +137,7 @@ function PetPassiveIndicator:ToggleTestMode()
     OnEvent(frame)
 end
 
-function PetPassiveIndicator:RegisterOptions(parentOptions)
+function RepairIndicator:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
         frame:UpdateStyles()
     end)

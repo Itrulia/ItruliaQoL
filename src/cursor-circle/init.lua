@@ -28,6 +28,11 @@ end
 
 local previousX, previousY
 local function OnUpdate(self)
+    if CursorCircle.db.onlyDuringCombat and not PlayerIsInCombat() then
+        self:SetAlpha(0)
+        return
+    end
+
     local scale = UIParent:GetEffectiveScale()
     local x, y = GetCursorPosition()
     x, y = floor(x / scale + 0.5), floor(y / scale + 0.5)
@@ -35,6 +40,7 @@ local function OnUpdate(self)
     if x ~= previousX or y ~= previousY then
         previousX = x
         previousY = y
+        self:SetAlpha(1)
         self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
     end
 end

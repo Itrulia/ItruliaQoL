@@ -78,6 +78,5 @@ end
 
 function GroupJoinedReminder:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
-        frame:UpdateStyles()
     end)
 end

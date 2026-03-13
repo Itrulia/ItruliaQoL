@@ -81,12 +81,12 @@ frame.surge.cd:SetHideCountdownNumbers(true)
 
 frame.surge.border = FlyingBar:CreateBorder(frame.surge)
 
-frame.secondWind = CreateFrame("StatusBar", "$parent_SecondWind", frame)
-frame.secondWind:SetPoint("TOPLEFT", frame.surge, "TOPRIGHT", 1, 0)
-frame.secondWind:SetPoint("TOPRIGHT")
+frame.vigor = CreateFrame("StatusBar", "$parent_Vigor", frame)
+frame.vigor:SetPoint("TOPLEFT", frame.surge, "TOPRIGHT", 1, 0)
+frame.vigor:SetPoint("TOPRIGHT")
 
-for index = 1, C_Spell.GetSpellCharges(FlyingBar.secondWindSpellId).maxCharges do 
-    local bar = CreateFrame("StatusBar", "$parent_" .. index, frame.secondWind)
+for index = 1, C_Spell.GetSpellCharges(FlyingBar.vigorSpellId).maxCharges do 
+    local bar = CreateFrame("StatusBar", "$parent_" .. index, frame.vigor)
     bar:SetMinMaxValues(0, 100)
     bar:SetPoint("TOP")
     bar:SetPoint("BOTTOM")
@@ -95,17 +95,17 @@ for index = 1, C_Spell.GetSpellCharges(FlyingBar.secondWindSpellId).maxCharges d
     bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
 
     if index == 1 then
-        bar:SetPoint('LEFT', frame.secondWind, 0, 0)
+        bar:SetPoint('LEFT', frame.vigor, 0, 0)
     else
-        bar:SetPoint('LEFT', frame.secondWind[index - 1], 'RIGHT', 1, 0)
+        bar:SetPoint('LEFT', frame.vigor[index - 1], 'RIGHT', 1, 0)
     end
 
-    frame.secondWind[index] = bar
+    frame.vigor[index] = bar
 end
 
 frame.speed = CreateFrame("StatusBar", "$parent_Speed", frame)
-frame.speed:SetPoint("TOPLEFT", frame.secondWind, "BOTTOMLEFT", 0, -1)
-frame.speed:SetPoint("TOPRIGHT", frame.secondWind, "BOTTOMRIGHT", 0, -1)
+frame.speed:SetPoint("TOPLEFT", frame.vigor, "BOTTOMLEFT", 0, -1)
+frame.speed:SetPoint("TOPRIGHT", frame.vigor, "BOTTOMRIGHT", 0, -1)
 frame.speed:SetMinMaxValues(0, 1440)
 frame.speed.border = FlyingBar:CreateBorder(frame.speed)
 frame.speed.bg = FlyingBar:CreateBackground(frame.speed)
@@ -124,12 +124,12 @@ function frame.speed.tick:UpdatePosition()
     frame.speed.tick:SetPoint('LEFT', parent, pixelPerPower * (select(2, parent:GetMinMaxValues()) / 2) - math.ceil(frame.speed.tick:GetWidth() / 2), 0)
 end
 
-frame.vigor = CreateFrame("StatusBar", "$parent_Vigor", frame)
-frame.vigor:SetPoint("TOPLEFT", frame.speed, "BOTTOMLEFT", 0, -1)
-frame.vigor:SetPoint("TOPRIGHT", frame.speed, "BOTTOMRIGHT", 0, -1)
+frame.secondWind = CreateFrame("StatusBar", "$parent_SecondWind", frame)
+frame.secondWind:SetPoint("TOPLEFT", frame.speed, "BOTTOMLEFT", 0, -1)
+frame.secondWind:SetPoint("TOPRIGHT", frame.speed, "BOTTOMRIGHT", 0, -1)
 
-for index = 1, C_Spell.GetSpellCharges(FlyingBar.vigorSpellId).maxCharges do 
-    local bar = CreateFrame("StatusBar", "$parent_" .. index, frame.vigor)
+for index = 1, C_Spell.GetSpellCharges(FlyingBar.secondWindSpellId).maxCharges do 
+    local bar = CreateFrame("StatusBar", "$parent_" .. index, frame.secondWind)
     bar:SetMinMaxValues(0, 100)
     bar:SetPoint("TOP")
     bar:SetPoint("BOTTOM")
@@ -138,12 +138,12 @@ for index = 1, C_Spell.GetSpellCharges(FlyingBar.vigorSpellId).maxCharges do
     bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
 
     if index == 1 then
-        bar:SetPoint('LEFT', frame.vigor, 0, 0)
+        bar:SetPoint('LEFT', frame.secondWind, 0, 0)
     else
-        bar:SetPoint('LEFT', frame.vigor[index - 1], 'RIGHT', 1, 0)
+        bar:SetPoint('LEFT', frame.secondWind[index - 1], 'RIGHT', 1, 0)
     end
 
-    frame.vigor[index] = bar
+    frame.secondWind[index] = bar
 end
 
 local function OnUpdate(self)

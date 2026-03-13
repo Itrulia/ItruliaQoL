@@ -65,24 +65,6 @@ function ItruliaQoL:GetGroupUnits()
     return units
 end
 
--- Credits to KinderLine
--- Only using it for out of combat things that blizzard decided to make secret (cauldrons, etc)
-local launderBar = CreateFrame("StatusBar")
-launderBar:SetMinMaxValues(0, 9999999)
-local onValueChangedResult = nil
-launderBar:SetScript("OnValueChanged", function(self, value)
-    onValueChangedResult = value
-end)
-
-function ItruliaQoL:LaunderSecretValue(value)
-    onValueChangedResult = nil
-    launderBar:SetValue(0)
-    pcall(launderBar.SetValue, launderBar, value)
-
-    return onValueChangedResult
-end
-
-
 function ItruliaQoL:OnDragonRidingChange(onEvent)
     local mountFrame = CreateFrame("frame", nil, UIParent)
     mountFrame:RegisterEvent("PLAYER_ENTERING_WORLD")

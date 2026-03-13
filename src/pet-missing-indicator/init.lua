@@ -137,6 +137,7 @@ function PetMissingIndicator:RefreshConfig()
     self.db = profile.PetMissingIndicator
 
     if self.db.enabled then
+        frame:UpdateStyles()
         frame:SetScript("OnEvent", OnEvent)
         OnEvent(frame)
     else
