@@ -81,7 +81,7 @@ local function OnEvent(self, event, ...)
 
     if 
         (PotionAlert.db.enabledInDungeons and ItruliaQoL:InMythicDungeon()) 
-        or (PotionAlert.db.enabledInRaids and ItruliaQoL:InRaid() and not PlayerIsInCombat()) 
+        or (PotionAlert.db.enabledInRaids and ItruliaQoL:InRaid() and PlayerIsInCombat()) 
     then
         local start = C_Container.GetItemCooldown(potion)
 
