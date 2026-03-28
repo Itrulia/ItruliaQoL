@@ -35,7 +35,6 @@ function DungeonTeleports:OnEnable()
             local onEnterFunc = childFrame:GetScript("OnEnter")
 
             if childFrame.mapID ~= nil then
-                DevTools_Dump(childFrame.mapID)
                 local clickButton = CreateFrame("Button", nil, childFrame, "InsecureActionButtonTemplate")
                 clickButton.vMapId = childFrame.mapID
 
