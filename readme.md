@@ -30,7 +30,7 @@ Non combat related:
 - Dragonriding bar (disabled by default)
 
 
-Combat related modules can be enabled and disabled at will.
+Modules can be enabled and disabled at will.
 
 ## Configure
 

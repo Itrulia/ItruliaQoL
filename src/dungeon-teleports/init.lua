@@ -17,6 +17,16 @@ function DungeonTeleports:OnEnable()
     teleportMap[391] = 367416
     teleportMap[499] = 445444
 
+    -- Midnight S1
+    teleportMap[557] = 1254400
+    teleportMap[239] = 1254551
+    teleportMap[556] = 1254555
+    teleportMap[161] = 159898
+    teleportMap[559] = 1254563
+    teleportMap[558] = 1254572
+    teleportMap[560] = 1254559
+    teleportMap[402] = 393273
+
     frame:RegisterEvent("ADDON_LOADED")
 
     local function onShow()
@@ -25,6 +35,7 @@ function DungeonTeleports:OnEnable()
             local onEnterFunc = childFrame:GetScript("OnEnter")
 
             if childFrame.mapID ~= nil then
+                DevTools_Dump(childFrame.mapID)
                 local clickButton = CreateFrame("Button", nil, childFrame, "InsecureActionButtonTemplate")
                 clickButton.vMapId = childFrame.mapID
 
