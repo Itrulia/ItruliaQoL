@@ -70,11 +70,7 @@ local function OnEvent(self, event, deadGUID, ...)
     end
 
     if event == "UNIT_DIED" then
-        if not canaccessvalue(deadGUID) or not canaccessvalue(UnitTokenFromGUID(deadGUID)) then
-            return;
-        end
-
-        local unitId = UnitTokenFromGUID(deadGUID)
+        local unitId = ItruliaQoL:UnitTokenFromGUID(deadGUID)
 
         if not unitId or not UnitIsDead(unitId) then
             -- well hunters in your party feign deathing is causing the event to fire without actually dying

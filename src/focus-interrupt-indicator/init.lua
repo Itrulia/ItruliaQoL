@@ -63,13 +63,6 @@ function frame:UpdateFocusInterruptIndicator(active)
     end
 end
 
-function frame:GetSpellToCheck()
-    local class = select(2, UnitClass("player"))
-    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
-
-    return self.interruptSpells[class][specId]
-end
-
 function frame:UpdateStyles()
     if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
         if not E then
@@ -92,7 +85,7 @@ function frame:UpdateStyles()
 end
 
 function frame:CacheInterruptId()
-    self.interruptId = self:GetSpellToCheck()
+    self.interruptId = ItruliaQoL:GetInterruptSpell()
 end
 
 local function OnEvent(self, event, unit, ...)
