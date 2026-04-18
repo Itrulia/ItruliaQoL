@@ -29,6 +29,18 @@ function NoTargetIndicator:GetOptions(onChange)
                     NoTargetIndicator:RefreshConfig()
                 end
             },
+            friendlyisValidTarget = {
+                order = 3,
+                type = "toggle",
+                width = "full",
+                name = "Include friendly target as valid target",
+                get = function()
+                    return NoTargetIndicator.db.friendlyisValidTarget
+                end,
+                set = function(_, value)
+                    NoTargetIndicator.db.friendlyisValidTarget = value
+                end
+            },
             displaySettings = {
                 type = "group",
                 name = "",

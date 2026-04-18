@@ -40,15 +40,30 @@ function frame:UpdateStyles()
 end
 
 local function OnEvent(self, ...)
+    self.text:Hide()
+
     if ItruliaQoL.testMode then
         self.text:Show()
         return
     end
 
-    if UnitAffectingCombat("player") and not UnitExists("target") and not UnitIsDead("target") then
+    if not PlayerIsInCombat() then
+        return
+    end
+
+    if UnitIsDeadOrGhost("target") then
         self.text:Show()
-    else
-        self.text:Hide()
+        return
+    end
+
+    if not UnitExists("target") then
+        self.text:Show()
+        return
+    end
+
+    if not UnitCanAttack("player", "target") and not NoTargetIndicator.db.friendlyisValidTarget then
+        self.text:Show()
+        return
     end
 end
 

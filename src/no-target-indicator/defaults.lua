@@ -10,6 +10,7 @@ function NoTargetIndicator:GetDefaults()
         displayText = "No target",
         color = {r = 0.769, g = 0.118, b = 0.227, a = 1},
         point = {point = "CENTER", x = 0, y = 25},
+        friendlyisValidTarget = false,
 
         font = {
             fontFamily = "Expressway",
