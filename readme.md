@@ -20,6 +20,7 @@ Combat related:
 - Display a reminder if you have to rebuff (disabled by default)
 - Display a reminder if you have potion ready (disabled by default)
 - Display a reminder if you have to repair (disabled by default)
+- Disable release unless you hold down control (disabled by default)
 
 Non combat related:
 - Turn your mythic+ season best dungeons into clickable teleport buttons
