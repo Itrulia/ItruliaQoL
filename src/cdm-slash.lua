@@ -46,7 +46,6 @@ function CDMSlash:OnEnable()
 
     SLASH_CDMSC1 = "/cd"
     SLASH_CDMSC2 = "/cdm"
-    SLASH_CDMSC3 = "/wa"
 
     function SlashCmdList.CDMSC(msg, editbox)
         frame:toggleCDM()
