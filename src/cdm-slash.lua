@@ -44,7 +44,6 @@ function CDMSlash:OnEnable()
         end
     end)
 
-    SLASH_CDMSC1 = "/cd"
     SLASH_CDMSC2 = "/cdm"
 
     function SlashCmdList.CDMSC(msg, editbox)
