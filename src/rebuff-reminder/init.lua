@@ -41,7 +41,7 @@ function frame:UpdateStyles()
         self.text:SetPoint(RebuffReminder.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(RebuffReminder.db.font.justifyH or "CENTER")
         self.text:SetTextColor(RebuffReminder.db.color.r, RebuffReminder.db.color.g, RebuffReminder.db.color.b, RebuffReminder.db.color.a)
-        if RebuffReminder.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if RebuffReminder.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(RebuffReminder.db.font.fontShadowColor.r, RebuffReminder.db.font.fontShadowColor.g, RebuffReminder.db.font.fontShadowColor.b, RebuffReminder.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(RebuffReminder.db.font.fontShadowXOffset, RebuffReminder.db.font.fontShadowYOffset)
         else

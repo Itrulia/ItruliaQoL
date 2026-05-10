@@ -77,7 +77,7 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(FocusInterruptIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(FocusInterruptIndicator.db.displayText)
         self.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
-        if FocusInterruptIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if FocusInterruptIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(FocusInterruptIndicator.db.font.fontShadowColor.r, FocusInterruptIndicator.db.font.fontShadowColor.g, FocusInterruptIndicator.db.font.fontShadowColor.b, FocusInterruptIndicator.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(FocusInterruptIndicator.db.font.fontShadowXOffset, FocusInterruptIndicator.db.font.fontShadowYOffset)
         else

@@ -33,7 +33,7 @@ function frame:UpdateStyles()
         self.text:SetPoint(CombatTimer.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(CombatTimer.db.font.justifyH or "CENTER")
         self.text:SetTextColor(CombatTimer.db.color.r, CombatTimer.db.color.g, CombatTimer.db.color.b, CombatTimer.db.color.a)
-        if CombatTimer.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if CombatTimer.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(CombatTimer.db.font.fontShadowColor.r, CombatTimer.db.font.fontShadowColor.g, CombatTimer.db.font.fontShadowColor.b, CombatTimer.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(CombatTimer.db.font.fontShadowXOffset, CombatTimer.db.font.fontShadowYOffset)
         else

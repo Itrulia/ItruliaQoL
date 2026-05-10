@@ -39,7 +39,7 @@ function frame:UpdateStyles()
         self.text:ClearAllPoints()
         self.text:SetPoint(CombatAlert.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(CombatAlert.db.font.justifyH or "CENTER")
-        if CombatAlert.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if CombatAlert.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
         else

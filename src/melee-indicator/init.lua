@@ -141,7 +141,7 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(MeleeIndicator.db.font.justifyH or "CENTER")
         self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
         self.text:SetText(MeleeIndicator.db.displayText)
-        if MeleeIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if MeleeIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(MeleeIndicator.db.font.fontShadowColor.r, MeleeIndicator.db.font.fontShadowColor.g, MeleeIndicator.db.font.fontShadowColor.b, MeleeIndicator.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(MeleeIndicator.db.font.fontShadowXOffset, MeleeIndicator.db.font.fontShadowYOffset)
         else

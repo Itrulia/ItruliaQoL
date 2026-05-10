@@ -45,7 +45,7 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(PotionAlert.db.font.justifyH or "CENTER")
         self.text:SetText(PotionAlert.db.displayText)
         self.text:SetTextColor(PotionAlert.db.color.r, PotionAlert.db.color.g, PotionAlert.db.color.b, PotionAlert.db.color.a)
-        if PotionAlert.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if PotionAlert.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(PotionAlert.db.font.fontShadowColor.r, PotionAlert.db.font.fontShadowColor.g, PotionAlert.db.font.fontShadowColor.b, PotionAlert.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(PotionAlert.db.font.fontShadowXOffset, PotionAlert.db.font.fontShadowYOffset)
         else

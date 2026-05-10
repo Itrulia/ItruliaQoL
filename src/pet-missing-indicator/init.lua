@@ -85,7 +85,7 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(PetMissingIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(PetMissingIndicator.db.displayText)
         self.text:SetTextColor(PetMissingIndicator.db.color.r, PetMissingIndicator.db.color.g, PetMissingIndicator.db.color.b, PetMissingIndicator.db.color.a)
-        if PetMissingIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if PetMissingIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(PetMissingIndicator.db.font.fontShadowColor.r, PetMissingIndicator.db.font.fontShadowColor.g, PetMissingIndicator.db.font.fontShadowColor.b, PetMissingIndicator.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(PetMissingIndicator.db.font.fontShadowXOffset, PetMissingIndicator.db.font.fontShadowYOffset)
         else

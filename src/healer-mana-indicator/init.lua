@@ -29,7 +29,7 @@ function frame:UpdateTextStyle(text)
 
     if not text:HasAnySecretAspect() then
         text:SetJustifyH(HealerManaIndicator.db.font.justifyH or "LEFT")
-        if HealerManaIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if HealerManaIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
             text:SetShadowColor(HealerManaIndicator.db.font.fontShadowColor.r, HealerManaIndicator.db.font.fontShadowColor.g, HealerManaIndicator.db.font.fontShadowColor.b, HealerManaIndicator.db.font.fontShadowColor.a)
             text:SetShadowOffset(HealerManaIndicator.db.font.fontShadowXOffset, HealerManaIndicator.db.font.fontShadowYOffset)
         else

@@ -47,7 +47,7 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(RepairIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(RepairIndicator.db.displayText)
         self.text:SetTextColor(RepairIndicator.db.color.r, RepairIndicator.db.color.g, RepairIndicator.db.color.b, RepairIndicator.db.color.a)
-        if RepairIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if RepairIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(RepairIndicator.db.font.fontShadowColor.r, RepairIndicator.db.font.fontShadowColor.g, RepairIndicator.db.font.fontShadowColor.b, RepairIndicator.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(RepairIndicator.db.font.fontShadowXOffset, RepairIndicator.db.font.fontShadowYOffset)
         else

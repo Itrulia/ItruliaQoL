@@ -50,7 +50,7 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(PetPassiveIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(PetPassiveIndicator.db.displayText)
         self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
-        if PetPassiveIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if PetPassiveIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(PetPassiveIndicator.db.font.fontShadowColor.r, PetPassiveIndicator.db.font.fontShadowColor.g, PetPassiveIndicator.db.font.fontShadowColor.b, PetPassiveIndicator.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(PetPassiveIndicator.db.font.fontShadowXOffset, PetPassiveIndicator.db.font.fontShadowYOffset)
         else

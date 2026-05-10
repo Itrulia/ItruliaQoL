@@ -148,6 +148,9 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                 if onChange then
                     onChange()
                 end
+            end,
+            disabled = function()
+                return not fontObject.fontOutline == "OUTLINESLUG"
             end
         },
         fontShadowYOffset = {
@@ -167,6 +170,9 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                 if onChange then
                     onChange()
                 end
+            end,
+            disabled = function()
+                return not fontObject.fontOutline == "OUTLINESLUG"
             end
         },
         fontShadowColor = {
@@ -190,6 +196,9 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                 if onChange then
                     onChange()
                 end
+            end,
+            disabled = function()
+                return not fontObject.fontOutline == "OUTLINESLUG"
             end
         },
         spacer2 = {

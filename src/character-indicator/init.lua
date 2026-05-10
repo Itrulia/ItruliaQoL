@@ -35,7 +35,7 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(CharacterIndicator.db.font.justifyH or "CENTER")
         self.text:SetTextColor(CharacterIndicator.db.color.r, CharacterIndicator.db.color.g, CharacterIndicator.db.color.b, CharacterIndicator.db.color.a)
         self.text:SetText(CharacterIndicator.db.displayText)
-        if CharacterIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+        if CharacterIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
             self.text:SetShadowColor(CharacterIndicator.db.font.fontShadowColor.r, CharacterIndicator.db.font.fontShadowColor.g, CharacterIndicator.db.font.fontShadowColor.b, CharacterIndicator.db.font.fontShadowColor.a)
             self.text:SetShadowOffset(CharacterIndicator.db.font.fontShadowXOffset, CharacterIndicator.db.font.fontShadowYOffset)
         else
