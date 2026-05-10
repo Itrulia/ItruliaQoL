@@ -31,9 +31,14 @@ function frame:UpdateStyles()
         self.text:SetJustifyH(NoTargetIndicator.db.font.justifyH or "CENTER")
         self.text:SetText(NoTargetIndicator.db.displayText)
         self.text:SetTextColor(NoTargetIndicator.db.color.r, NoTargetIndicator.db.color.g, NoTargetIndicator.db.color.b, NoTargetIndicator.db.color.a)
+        if NoTargetIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+            self.text:SetShadowColor(NoTargetIndicator.db.font.fontShadowColor.r, NoTargetIndicator.db.font.fontShadowColor.g, NoTargetIndicator.db.font.fontShadowColor.b, NoTargetIndicator.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(NoTargetIndicator.db.font.fontShadowXOffset, NoTargetIndicator.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
         self.text:SetFont(LSM:Fetch("font", NoTargetIndicator.db.font.fontFamily), NoTargetIndicator.db.font.fontSize, NoTargetIndicator.db.font.fontOutline)
-        self.text:SetShadowColor(NoTargetIndicator.db.font.fontShadowColor.r, NoTargetIndicator.db.font.fontShadowColor.g, NoTargetIndicator.db.font.fontShadowColor.b, NoTargetIndicator.db.font.fontShadowColor.a)
-        self.text:SetShadowOffset(NoTargetIndicator.db.font.fontShadowXOffset, NoTargetIndicator.db.font.fontShadowYOffset)
 
         self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
     end

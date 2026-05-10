@@ -41,9 +41,14 @@ function frame:UpdateStyles()
         self.text:SetPoint(DeathAlert.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(DeathAlert.db.font.justifyH or "CENTER")
         self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
+        if DeathAlert.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+            self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
         self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
-        self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
-        self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
         self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
         self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
     end

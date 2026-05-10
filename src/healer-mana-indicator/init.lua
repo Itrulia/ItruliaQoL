@@ -29,10 +29,15 @@ function frame:UpdateTextStyle(text)
 
     if not text:HasAnySecretAspect() then
         text:SetJustifyH(HealerManaIndicator.db.font.justifyH or "LEFT")
+        if HealerManaIndicator.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+            text:SetShadowColor(HealerManaIndicator.db.font.fontShadowColor.r, HealerManaIndicator.db.font.fontShadowColor.g, HealerManaIndicator.db.font.fontShadowColor.b, HealerManaIndicator.db.font.fontShadowColor.a)
+            text:SetShadowOffset(HealerManaIndicator.db.font.fontShadowXOffset, HealerManaIndicator.db.font.fontShadowYOffset)
+        else
+            text:SetShadowColor(0, 0, 0, 0)
+            text:SetShadowOffset(0, 0)
+        end
         text:SetFont(LSM:Fetch("font", HealerManaIndicator.db.font.fontFamily), HealerManaIndicator.db.font.fontSize, HealerManaIndicator.db.font.fontOutline)
         text:SetTextColor(HealerManaIndicator.db.color.r, HealerManaIndicator.db.color.g, HealerManaIndicator.db.color.b, HealerManaIndicator.db.color.a)
-        text:SetShadowColor(HealerManaIndicator.db.font.fontShadowColor.r, HealerManaIndicator.db.font.fontShadowColor.g, HealerManaIndicator.db.font.fontShadowColor.b, HealerManaIndicator.db.font.fontShadowColor.a)
-        text:SetShadowOffset(HealerManaIndicator.db.font.fontShadowXOffset, HealerManaIndicator.db.font.fontShadowYOffset)
     end
 end
 

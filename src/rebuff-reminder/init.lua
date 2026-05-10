@@ -41,9 +41,14 @@ function frame:UpdateStyles()
         self.text:SetPoint(RebuffReminder.db.font.justifyH or "CENTER")
         self.text:SetJustifyH(RebuffReminder.db.font.justifyH or "CENTER")
         self.text:SetTextColor(RebuffReminder.db.color.r, RebuffReminder.db.color.g, RebuffReminder.db.color.b, RebuffReminder.db.color.a)
+        if RebuffReminder.db.font.fontOutline ~= ItruliaQoL.OutlineSettings.OUTLINESLUG then
+            self.text:SetShadowColor(RebuffReminder.db.font.fontShadowColor.r, RebuffReminder.db.font.fontShadowColor.g, RebuffReminder.db.font.fontShadowColor.b, RebuffReminder.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(RebuffReminder.db.font.fontShadowXOffset, RebuffReminder.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
         self.text:SetFont(LSM:Fetch("font", RebuffReminder.db.font.fontFamily), RebuffReminder.db.font.fontSize, RebuffReminder.db.font.fontOutline)
-        self.text:SetShadowColor(RebuffReminder.db.font.fontShadowColor.r, RebuffReminder.db.font.fontShadowColor.g, RebuffReminder.db.font.fontShadowColor.b, RebuffReminder.db.font.fontShadowColor.a)
-        self.text:SetShadowOffset(RebuffReminder.db.font.fontShadowXOffset, RebuffReminder.db.font.fontShadowYOffset);
         self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
     end
 end
@@ -68,12 +73,7 @@ local function OnEvent(self, event, ...)
         end
     end
 
-    if self.needsRebuff and (
-        event == "READY_CHECK" 
-        or event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" 
-        or event == "PLAYER_REGEN_ENABLED"
-        or event == "PLAYER_REGEN_DISABLED"
-    ) then
+    if self.needsRebuff then
         if PlayerIsInCombat() or RebuffReminder.db.alertWhenIdle then
             self.text:Show()
 
@@ -92,8 +92,6 @@ end
 
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:RegisterEvent("PLAYER_TALENT_UPDATE")
 frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
 frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")

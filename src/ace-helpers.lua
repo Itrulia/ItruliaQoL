@@ -41,6 +41,7 @@ ItruliaQoL.FrameStrataSettings = {
 ItruliaQoL.OutlineSettings = {
     NONE = "None",
     OUTLINE = "Outline",
+    OUTLINESLUG = "Slug",
     THICKOUTLINE = "Thick Outline",
     MONOCHROME = "Monochrome"
 }
