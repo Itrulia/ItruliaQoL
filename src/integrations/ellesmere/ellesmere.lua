@@ -925,7 +925,15 @@ end
 function ItruliaQoL:RegisterEUI(parentOptions)
     local EUI = self.EUI
 
-    if not (EUI and EUI.RegisterModule and EUI.Widgets) then
+    -- Never gate on EUI.Widgets here. EllesmereUI_Widgets.lua wraps its whole
+    -- body in a deferred init, so EUI.Widgets only exists once EnsureLoaded()
+    -- has run -- and whether that happened before we get here is a PLAYER_LOGIN
+    -- handler-order race (EllesmereUI registers its EnsureLoaded frame at file
+    -- scope, we arrive via AceAddon's frame), so it flips whenever the installed
+    -- addon set changes and silently skips the entire integration. Widgets is
+    -- only read from buildPage, which runs on panel open, long after
+    -- EnsureLoaded. NaowhUI_EUI guards on RegisterModule alone for this reason.
+    if not (EUI and EUI.RegisterModule) then
         return
     end
 
@@ -1065,8 +1073,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         end)
     end
 
-    -- Test mode follows unlock mode (the EllesmereUI equivalent of hooking
-    -- ElvUI's ToggleMovers).
+    -- Test mode follows unlock mode (the EllesmereUI equivalent of hooking ElvUI's ToggleMovers).
     if EUI.RegisterUnlockModeListener then
         EUI:RegisterUnlockModeListener(addonName, function(active)
             ItruliaQoL:ToggleTestMode(active and true or false)

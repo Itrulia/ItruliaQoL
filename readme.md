@@ -17,7 +17,6 @@ Combat related:
 - Display if you are currently stealthed (disabled by default)
 - Display healer mana (disabled by default)
 - Display if you are missing a target (disabled by default)
-- Display a reminder if you have to rebuff (disabled by default)
 - Display a reminder if you have potion ready (disabled by default)
 - Display a reminder if you have to repair (disabled by default)
 - Disable release unless you hold down control (disabled by default)
@@ -30,15 +29,24 @@ Non combat related:
 - Display a circle around your cursor (disabled by default)
 - Dragonriding bar (disabled by default)
 
+Integrations into UI suites:
+- EllesmereUI (Unlocker & Settings)
+- ElvUI (Movers & Settings)
 
 Modules can be enabled and disabled at will.
 
 ## Configure
 
-If ElvUI is enabled you can access the addon configuration in the ElvUI options, else it is accessible in the WoW options.  
+- If **ElvUI** is enabled you can access the addon configuration in the **ElvUI** options
+- If **Ellesmere** is enabled you can access the addon configuration in the **Ellesmere** options
+- Else you can find the configuration in Esc -> Options -> AddOns -> Itrulia QoL
+
 Alternative you can also use the slash command `/itrulia` and it will take you to the correct place.
 
 ## AI Use
 
 The logo was AI generate due to the fact that nearly every new addon on curseforge has an AI generated icon. I wanted to honor this trend.
 If you are an artist that wants to make me one as a **paid** commission, hit me up.
+
+
+There's a limit amount of AI used in the code. Such as porting Ace3 configs to Ellesmere, EllesmereUI integration, spell checking and writing documentation.
