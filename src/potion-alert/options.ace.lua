@@ -175,10 +175,10 @@ function PotionAlert:GetOptions(onChange)
                         type = "input",
                         name = "TTS Message",
                         get = function()
-                            return PotionAlert.db.tts
+                            return PotionAlert.db.TTS
                         end,
                         set = function(_, value)
-                            PotionAlert.db.tts = value
+                            PotionAlert.db.TTS = value
                         end,
                         disabled = function()
                             return not PotionAlert.db.playTTS
@@ -193,10 +193,10 @@ function PotionAlert:GetOptions(onChange)
                         step = 1,
                         name = "TTS Volume",
                         get = function()
-                            return PotionAlert.db.ttsVolume
+                            return PotionAlert.db.TTSVolume
                         end,
                         set = function(_, value)
-                            PotionAlert.db.ttsVolume = value
+                            PotionAlert.db.TTSVolume = value
                         end,
                         disabled = function()
                             return not PotionAlert.db.playTTS

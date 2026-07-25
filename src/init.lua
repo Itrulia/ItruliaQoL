@@ -7,6 +7,7 @@ ItruliaQoL.LSM = LibStub("LibSharedMedia-3.0")
 ItruliaQoL.LEM = LibStub("LibEditMode")
 ItruliaQoL.testMode = false
 ItruliaQoL.E = ElvUI and unpack(ElvUI)
+ItruliaQoL.EUI = _G.EllesmereUI
 
 local AceSerializer = LibStub("AceSerializer-3.0")
 local LibDeflate = LibStub("LibDeflate")
@@ -50,49 +51,7 @@ function ItruliaQoL:ApplyFontSettings()
 end
 
 function ItruliaQoL:RegisterOptions()
-    local options =  {
-        description = {
-            type = "description",
-            name =  "You can move things around using the native Edit Mode. Test mode will automatically be turned on\n\n Note that it ignores the Edit Mode layouts \n\n",
-            width = "full",
-            order = 1,
-        },
-        enable = {
-            order = 2,
-            type = "toggle",
-            width = "full",
-            name = "Test mode",
-            get = function()
-                return ItruliaQoL.testMode
-            end,
-            set = function(_, value)
-                ItruliaQoL:ToggleTestMode(value)
-            end
-        },
-        all = {
-            type = "group",
-            name = "All",
-            order = 1,
-            args = {
-                fontSettings = {
-                    type = "group",
-                    name = "Font",
-                    inline = true,
-                    args = ItruliaQoL:createFontOptions(ItruliaQoL.db.profile.all.font, function() end, {
-                        frameStrata = ItruliaQoL.MergeDeep_Delete_Key,
-                        frameLevel = ItruliaQoL.MergeDeep_Delete_Key,
-                        applyAll = {
-                            type = "execute",
-                            name = "Apply to all",
-                            func = function()
-                                ItruliaQoL:ApplyFontSettings()
-                            end,
-                        },
-                    })
-                },
-            }
-        },
-    }
+    local options = self:GetGeneralOptions()
 
     local AceDBOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 
@@ -178,6 +137,8 @@ function ItruliaQoL:RegisterOptions()
 
         tinsert(ItruliaQoL.E.ConfigModeLayouts, "Itrulia")
         ItruliaQoL.E.ConfigModeLocalizedStrings["Itrulia"] = "Itrulia"
+    elseif ItruliaQoL.EUI then
+        ItruliaQoL:RegisterEUI(parentOptions)
     end
 end
 
@@ -283,6 +244,8 @@ function ItruliaQoL:MySlashProcessorFunc(input)
     if not input or input == "" or input == "config" or input == "c" then
         if self.E then
             self.E:ToggleOptions(addonName)
+        elseif self.EUI and self.EUI.ShowModule then
+            self.EUI:ShowModule(addonName)
         else
             self.CD:Open(addonName)
         end
@@ -301,7 +264,8 @@ if ItruliaQoL.E then
   hooksecurefunc(ItruliaQoL.E, "ToggleMovers", function(_, enabled)
       ItruliaQoL:ToggleTestMode(enabled)
   end)
-else 
+elseif not ItruliaQoL.EUI then
+    -- EllesmereUI drives test mode via RegisterUnlockModeListener (see ellesmere.lua).
     ItruliaQoL.LEM:RegisterCallback('enter', function()
 	    ItruliaQoL:ToggleTestMode(true)
     end)

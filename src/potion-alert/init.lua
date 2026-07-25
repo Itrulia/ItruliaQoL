@@ -94,8 +94,8 @@ local function OnEvent(self, event, ...)
             if self.onCD then
                 if PotionAlert.db.playSound and PotionAlert.db.sound then
                     PlaySoundFile(LSM:Fetch("sound", PotionAlert.db.sound), "Master")
-                elseif PotionAlert.db.playTTS and PotionAlert.db.tts then
-                    C_VoiceChat.SpeakText(0, PotionAlert.db.tts, 1, PotionAlert.db.ttsVolume, true)
+                elseif PotionAlert.db.playTTS and PotionAlert.db.TTS then
+                    C_VoiceChat.SpeakText(0, PotionAlert.db.TTS, 1, PotionAlert.db.TTSVolume, true)
                 end
             end
 
@@ -161,6 +161,8 @@ function PotionAlert:OnEnable()
             end,
             addonName .. "," .. moduleName
         )
+    elseif ItruliaQoL.EUI then
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}

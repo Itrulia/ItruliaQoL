@@ -2,6 +2,9 @@
 	<Script file="init.lua"/>
 	<Script file="utils.lua"/>
 	<Script file="ace-helpers.lua"/>
+	<Script file="ellesmere.lua"/>
+
+	<Include file="general\init.xml"/>
 
 	<Include file="focus-interrupt-indicator\init.xml"/>
 	<Include file="focus-target-marker\init.xml"/>
@@ -27,6 +30,7 @@
 	<Include file="flying-bar\init.xml"/>
 	<Include file="rebuff-reminder\init.xml"/>
 	<Include file="prevent-release\init.xml"/>
+	<Include file="friendly-nameplates\init.xml"/>
 
 	<Script file="cdm-slash.lua"/>
 </Ui>

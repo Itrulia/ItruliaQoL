@@ -151,6 +151,8 @@ function CombatTimer:OnEnable()
             end,
             addonName .. "," .. moduleName
         )
+    elseif ItruliaQoL.EUI then
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
         LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}

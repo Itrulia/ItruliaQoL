@@ -103,7 +103,7 @@ local function optionsForRole(role)
                         DeathAlert.db.byRole.tts[role].TTS = value
                     end,
                     disabled = function()
-                        return DeathAlert.db.playSound or not DeathAlert.db.playTTS or not DeathAlert.db.byRole.sound[role].enabled
+                        return DeathAlert.db.playSound or not DeathAlert.db.playTTS or not DeathAlert.db.byRole.tts[role].enabled
                     end
                 },
             }
