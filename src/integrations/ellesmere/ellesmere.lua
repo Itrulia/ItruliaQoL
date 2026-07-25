@@ -296,6 +296,48 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
     return frame, height
 end
 
+-- Prominent "still being built" banner. Drawn from buildPage rather than from a
+-- single page, so it shows no matter which page the user lands on. Returns
+-- (frame, height) so it slots into the same `y = y - h` flow as everything else.
+function ItruliaQoL:RenderEUIBetaNotice(parent, y)
+    local EUI = self.EUI
+    local PP = EUI.PanelPP or EUI.PP
+    local pad = EUI.CONTENT_PAD or 0
+    local fontPath = (EUI.GetFontPath and EUI.GetFontPath()) or STANDARD_TEXT_FONT
+
+    local PAD_X, PAD_Y = 12, 10
+    local availW = parent:GetWidth() - pad * 2
+
+    local frame = CreateFrame("Frame", nil, parent)
+    PP.Point(frame, "TOPLEFT", parent, "TOPLEFT", pad, y)
+    PP.Size(frame, availW, 1) -- provisional; resized once the text has wrapped
+
+    local bg = frame:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.85, 0.55, 0.1, 0.12)
+
+    local title = frame:CreateFontString(nil, "OVERLAY")
+    title:SetFont(fontPath, 16, "OUTLINE")
+    title:SetTextColor(1, 0.75, 0.2, 1)
+    title:SetPoint("TOPLEFT", frame, "TOPLEFT", PAD_X, -PAD_Y)
+    title:SetText("BETA -- WORK IN PROGRESS")
+
+    local body = frame:CreateFontString(nil, "OVERLAY")
+    body:SetFont(fontPath, 12, "")
+    body:SetTextColor(1, 1, 1, 0.8)
+    body:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
+    body:SetWidth(availW - PAD_X * 2)
+    body:SetJustifyH("LEFT")
+    body:SetWordWrap(true)
+    body:SetText("The EllesmereUI integration is still being built. Settings may be incomplete, move between pages, or not apply until it is finished. The ElvUI and standalone config panels are the complete ones for now.")
+
+    local height = PAD_Y + title:GetStringHeight() + 6 + body:GetStringHeight() + PAD_Y + 8
+    PP.Size(frame, availW, height)
+    PP.CreateBorder(frame, 0.95, 0.65, 0.15, 1, 1)
+
+    return frame, height
+end
+
 -- Font family dropdown data in EllesmereUI's native format: the label is the
 -- font NAME and each item previews in its own font (values[name] = { text, font }),
 -- instead of showing the raw file path. Keyed by LSM font name, so it stays
@@ -1036,12 +1078,14 @@ function ItruliaQoL:RegisterEUI(parentOptions)
 
     local config = {
         title = "Itrulia QoL",
-        description = "Quality-of-life indicators, alerts and helpers. Move things with EllesmereUI's unlock mode.",
+        description = "|cffffbf33BETA:|r this integration is a work in progress. Quality-of-life indicators, alerts and helpers. Move things with EllesmereUI's unlock mode.",
         pages = PAGE_ORDER,
         buildPage = function(pageName, parent, yOffset)
             local fn = PAGES[pageName]
+            local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, yOffset)
+            local y = yOffset - noticeH
 
-            return (fn and fn(parent, yOffset)) or math.abs(yOffset)
+            return (fn and fn(parent, y)) or math.abs(y)
         end,
         onReset = function()
             ItruliaQoL.db:ResetProfile()
@@ -1058,19 +1102,26 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     -- the guard falls through. (Same approach as NaowhUI_EUI.)
     _G.__ItruliaQoL_pendingReg = { key = addonName, config = config }
 
-    local trampoline = loadstring([[
+    local trampoline, err = loadstring([[
         local r = _G.__ItruliaQoL_pendingReg
         if r and EllesmereUI and EllesmereUI.RegisterModule then
             EllesmereUI:RegisterModule(r.key, r.config)
         end
     ]], "ItruliaQoL-register")
-    local ok = trampoline and pcall(trampoline)
+    local ok = false
+
+    if trampoline then
+        ok, err = pcall(trampoline)
+    end
+
     _G.__ItruliaQoL_pendingReg = nil
 
     if not ok then
-        pcall(function()
-            EUI:RegisterModule(addonName, config)
-        end)
+        ok, err = pcall(EUI.RegisterModule, EUI, addonName, config)
+    end
+
+    if not (EUI._modules and EUI._modules[addonName]) then
+        self:Print("|cffff0000EllesmereUI registration failed:|r", err or "caller rejected by EllesmereUI:RegisterModule")
     end
 
     -- Test mode follows unlock mode (the EllesmereUI equivalent of hooking ElvUI's ToggleMovers).
