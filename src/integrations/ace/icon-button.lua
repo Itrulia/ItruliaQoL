@@ -1,0 +1,156 @@
+local addonName, ItruliaQoL = ...
+
+-- A compact execute control for AceConfig: a spell icon framed by a 1px border
+-- with the macro name shown underneath. AceConfigDialog uses it via
+-- `dialogControl = "ItruliaMacroIcon"` and drives it through SetImage /
+-- SetImageSize / SetLabel / OnClick.
+local AceGUI = LibStub("AceGUI-3.0")
+
+local Type, Version = "ItruliaMacroIcon", 3
+
+if (AceGUI:GetWidgetVersion(Type) or 0) >= Version then
+    return
+end
+
+local borderSize = 1
+local labelMargin = 3
+local labelPadding = 6
+local maxLabelWidth = 100
+
+local function Control_OnEnter(frame)
+    frame.obj:Fire("OnEnter")
+end
+
+local function Control_OnLeave(frame)
+    frame.obj:Fire("OnLeave")
+end
+
+local function Control_OnClick(frame, button)
+    frame.obj:Fire("OnClick", button)
+    AceGUI:ClearFocus()
+end
+
+local methods = {
+    ["OnAcquire"] = function(self)
+        self:SetImageSize(36, 36)
+        self:SetImage(nil)
+        self:SetLabel()
+        self:SetDisabled(false)
+    end,
+
+    ["SetLabel"] = function(self, text)
+        if text and text ~= "" then
+            self.label:SetText(text)
+            self.label:Show()
+        else
+            self.label:SetText("")
+            self.label:Hide()
+        end
+
+        self:UpdateLayout()
+    end,
+
+    ["SetImage"] = function(self, path, ...)
+        local image = self.image
+        image:SetTexture(path)
+
+        if image:GetTexture() then
+            local n = select("#", ...)
+            if n == 4 or n == 8 then
+                image:SetTexCoord(...)
+            else
+                image:SetTexCoord(0, 1, 0, 1)
+            end
+        end
+    end,
+
+    ["SetImageSize"] = function(self, width, height)
+        self.imageW = width
+        self.imageH = height
+        self.image:SetSize(width, height)
+        self.border:SetSize(width + borderSize * 2, height + borderSize * 2)
+        self:UpdateLayout()
+    end,
+
+    -- Size the frame to the icon, widening for a longer name up to a cap. Names
+    -- past the cap wrap onto extra lines (making the button taller) rather than
+    -- truncating, so it still flows nicely in the options grid.
+    ["UpdateLayout"] = function(self)
+        local width = (self.imageW or 36) + borderSize * 2
+        local height = (self.imageH or 36) + borderSize * 2
+
+        if self.label:IsShown() then
+            -- GetStringWidth is the unwrapped width; cap it, then constrain the
+            -- label so GetStringHeight reflects the wrapped line count.
+            local labelWidth = math.min(self.label:GetStringWidth(), maxLabelWidth)
+            self.label:SetWidth(labelWidth)
+
+            width = math.max(width, labelWidth + labelPadding)
+            height = height + labelMargin + self.label:GetStringHeight()
+        end
+
+        self.frame:SetSize(width, height)
+    end,
+
+    ["SetDisabled"] = function(self, disabled)
+        self.disabled = disabled
+
+        if disabled then
+            self.frame:Disable()
+            self.image:SetDesaturated(true)
+            self.image:SetVertexColor(0.5, 0.5, 0.5)
+            self.border:SetColorTexture(0.3, 0.3, 0.3, 1)
+            self.label:SetTextColor(0.5, 0.5, 0.5)
+        else
+            self.frame:Enable()
+            self.image:SetDesaturated(false)
+            self.image:SetVertexColor(1, 1, 1)
+            self.border:SetColorTexture(0, 0, 0, 1)
+            self.label:SetTextColor(1, 1, 1)
+        end
+    end,
+}
+
+local function Constructor()
+    local frame = CreateFrame("Button", nil, UIParent)
+    frame:Hide()
+    frame:EnableMouse(true)
+    frame:SetScript("OnEnter", Control_OnEnter)
+    frame:SetScript("OnLeave", Control_OnLeave)
+    frame:SetScript("OnClick", Control_OnClick)
+
+    local border = frame:CreateTexture(nil, "BACKGROUND")
+    border:SetColorTexture(0, 0, 0, 1)
+    border:SetPoint("TOP")
+
+    local image = frame:CreateTexture(nil, "ARTWORK")
+    image:SetPoint("CENTER", border, "CENTER")
+
+    local highlight = frame:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(image)
+    highlight:SetColorTexture(1, 1, 1, 0.25)
+    highlight:SetBlendMode("ADD")
+
+    local label = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    label:SetPoint("TOP", border, "BOTTOM", 0, -labelMargin)
+    label:SetJustifyH("CENTER")
+    label:SetWordWrap(true)
+
+    local widget = {
+        image = image,
+        border = border,
+        label = label,
+        frame = frame,
+        type = Type,
+    }
+
+    for method, func in pairs(methods) do
+        widget[method] = func
+    end
+
+    widget.SetText = widget.SetLabel
+
+    return AceGUI:RegisterAsWidget(widget)
+end
+
+AceGUI:RegisterWidgetType(Type, Constructor, Version)

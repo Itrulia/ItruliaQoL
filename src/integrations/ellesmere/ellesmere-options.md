@@ -75,6 +75,7 @@ Each entry in `rows` is one of the following tables.
 { type = "color",   label=, hasAlpha=, get=, set= }
 { type = "input",   label=, tooltip=, width=, disabled=, refresh=, get=, set= }
 { type = "execute", label=, disabled=, refresh=, func= }
+{ type = "icons",   items = { <icon>, <icon>, ... } }   -- grid of icon buttons
 ```
 
 Field reference:
@@ -92,6 +93,31 @@ Field reference:
 | `get`      | reader — see below |
 | `set`/`func` | writer / button action — see below |
 | `refresh`  | `true` to re-render the page after this edit — see below |
+
+### Icon grid (`icons`)
+
+A grid of clickable spell-icon buttons (a 1px-bordered icon with a label
+underneath, an accent hover border, and a hover tooltip), matching EllesmereUI's
+own macro page. Use it when a plain list of `execute` buttons would be too heavy —
+e.g. a set of one-click actions that read better as icons.
+
+```lua
+{ type = "icons", items = {
+    {
+        icon        = 194913,                       -- texture id/path, resolved by the caller
+        label       = "Frostbane",                  -- shown under the icon (truncates; full name on hover)
+        tooltip     = "What it does",               -- optional; hover tooltip body
+        onClick     = function() ... end,           -- run when the icon is clicked
+        desaturated = function() return <bool> end, -- optional; greys the icon when true
+    },
+    -- ...more icons...
+} }
+```
+
+The grid lays icons left-to-right, wrapping to fit the panel width and centering
+the last row. `icon` must already be a texture (resolve spell ids to textures via
+`C_Spell.GetSpellTexture` before building the row). `desaturated` is re-evaluated
+after each click, so state (e.g. "macro already exists") updates immediately.
 
 ### `get` / `set` signatures
 

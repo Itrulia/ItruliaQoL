@@ -25,6 +25,19 @@ function ItruliaQoL:GetInterruptSpell()
     return ItruliaQoL.interruptSpells[class][specId]
 end
 
+ItruliaQoL.battleRezSpells = {
+    DEATHKNIGHT = 61999,  -- Raise Ally
+    DRUID = 20484,        -- Rebirth
+    PALADIN = 391054,     -- Intercession
+    WARLOCK = 20707,      -- Soulstone
+}
+
+function ItruliaQoL:GetBattleRezSpell()
+    local class = select(2, UnitClass("player"))
+
+    return ItruliaQoL.battleRezSpells[class]
+end
+
 function ItruliaQoL:InDungeon()
     local inInstance, instanceType = IsInInstance()
 

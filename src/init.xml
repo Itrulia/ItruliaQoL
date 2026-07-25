@@ -1,8 +1,9 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">	
 	<Script file="init.lua"/>
 	<Script file="utils.lua"/>
-	<Script file="ace-helpers.lua"/>
-	<Script file="ellesmere.lua"/>
+
+	<Include file="integrations/ace/init.xml"/>
+	<Include file="integrations/ellesmere/init.xml"/>
 
 	<Include file="general\init.xml"/>
 
@@ -31,6 +32,7 @@
 	<Include file="rebuff-reminder\init.xml"/>
 	<Include file="prevent-release\init.xml"/>
 	<Include file="friendly-nameplates\init.xml"/>
+	<Include file="macro-factory\init.xml"/>
 
 	<Script file="cdm-slash.lua"/>
 </Ui>

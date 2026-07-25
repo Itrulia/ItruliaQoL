@@ -70,6 +70,7 @@ end
 --   { type = "color",   label=, hasAlpha=, get=, set= }       -- get -> r,g,b,a ; set(r,g,b,a)
 --   { type = "input",   label=, width=, disabled=, get=, set= }
 --   { type = "execute", label=, disabled=, func= }
+--   { type = "icons",   items = { { icon=, label=, tooltip=, onClick=, desaturated= }, ... } }
 --
 -- `disabled` is a function returning a bool. `get`/`set` read/write the module
 -- db directly and call the module's own apply (e.g. self:RefreshConfig()).
@@ -187,10 +188,112 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 onClick = wrap(item.func, item.refresh),
             })
             y = y - h
+        elseif item.type == "icons" then
+            _, h = self:RenderEUIIconGrid(parent, y, item.items or {})
+            y = y - h
         end
     end
 
     return y
+end
+
+-- Renders a grid of clickable spell-icon buttons (a 1px-bordered icon with a
+-- label underneath and an accent hover border), matching EllesmereUI's own macro
+-- page. Used by the "icons" row type. Each item:
+--   { icon = <texture>, label = <string>, tooltip = <string?>,
+--     onClick = function() ... end, desaturated = function() return <bool> end? }
+-- Returns (frame, height) so it slots into RenderEUIList's `y = y - h` loop.
+function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
+    local EUI = self.EUI
+    local PP = EUI.PanelPP or EUI.PP
+    local pad = EUI.CONTENT_PAD or 0
+    local fontPath = (EUI.GetFontPath and EUI.GetFontPath()) or STANDARD_TEXT_FONT
+
+    local ICON = 36
+    local CELL_W = 84 -- horizontal stride per icon (icon + gap + label room)
+    local ROW_H = 60  -- vertical stride per row (icon + label + gap)
+    local TOP = 8
+
+    local availW = parent:GetWidth() - pad * 2
+    local perRow = math.max(1, math.floor(availW / CELL_W))
+    local count = #items
+    local rows = math.ceil(count / perRow)
+    local height = TOP + rows * ROW_H
+
+    local frame = CreateFrame("Frame", nil, parent)
+    PP.Size(frame, availW, height)
+    PP.Point(frame, "TOPLEFT", parent, "TOPLEFT", pad, y)
+
+    for i, item in ipairs(items) do
+        local idx = i - 1
+        local row = math.floor(idx / perRow)
+        local col = idx % perRow
+        -- Centre the (possibly partial) last row within the available width.
+        local inThisRow = math.min(perRow, count - row * perRow)
+        local startX = (availW - inThisRow * CELL_W) / 2
+        local cx = startX + col * CELL_W + CELL_W / 2
+        local cy = -TOP - row * ROW_H
+
+        local btn = CreateFrame("Button", nil, frame)
+        PP.Size(btn, ICON, ICON)
+        btn:SetPoint("TOP", frame, "TOPLEFT", cx, cy)
+
+        local tex = btn:CreateTexture(nil, "ARTWORK")
+        tex:SetAllPoints()
+        tex:SetTexture(item.icon)
+        tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+
+        local bdr = CreateFrame("Frame", nil, btn)
+        bdr:SetAllPoints()
+        bdr:SetFrameLevel(btn:GetFrameLevel() + 1)
+        PP.CreateBorder(bdr, 0, 0, 0, 1, 1)
+
+        local hoverBdr = CreateFrame("Frame", nil, btn)
+        hoverBdr:SetPoint("TOPLEFT", btn, "TOPLEFT", -1, 1)
+        hoverBdr:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 1, -1)
+        hoverBdr:SetFrameLevel(btn:GetFrameLevel() + 2)
+        local ar, ag, ab = EUI.GetAccentColor()
+        PP.CreateBorder(hoverBdr, ar, ag, ab, 1, 2)
+        hoverBdr:Hide()
+
+        local label = frame:CreateFontString(nil, "OVERLAY")
+        label:SetFont(fontPath, 12, "")
+        label:SetTextColor(1, 1, 1, 0.9)
+        label:SetPoint("TOP", btn, "BOTTOM", 0, -3)
+        label:SetWidth(CELL_W - 10)
+        label:SetWordWrap(false)
+        label:SetJustifyH("CENTER")
+        label:SetText((item.label or ""):gsub("\n", " "))
+
+        local function refreshState()
+            if item.desaturated then
+                tex:SetDesaturated(item.desaturated() and true or false)
+            end
+        end
+        refreshState()
+
+        btn:SetScript("OnEnter", function(self2)
+            hoverBdr:Show()
+            GameTooltip:SetOwner(self2, "ANCHOR_RIGHT")
+            GameTooltip:SetText(item.label or "", 1, 1, 1, 1, true)
+            if item.tooltip then
+                GameTooltip:AddLine(item.tooltip, 1, 1, 1, true)
+            end
+            GameTooltip:Show()
+        end)
+        btn:SetScript("OnLeave", function()
+            hoverBdr:Hide()
+            GameTooltip:Hide()
+        end)
+        btn:SetScript("OnClick", function()
+            if item.onClick then
+                item.onClick()
+            end
+            refreshState()
+        end)
+    end
+
+    return frame, height
 end
 
 -- Font family dropdown data in EllesmereUI's native format: the label is the
@@ -473,6 +576,7 @@ local MODULE_PAGE = {
     FlyingBar        = PAGE_UTILITY,
     PreventRelease   = PAGE_UTILITY,
     DungeonTeleports = PAGE_UTILITY,
+    MacroFactory     = PAGE_UTILITY,
 }
 
 -- Top-level parentOptions.args keys that are not modules.

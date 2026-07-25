@@ -1,0 +1,11 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="init.lua"/>
+
+	<Script file="macros/general.lua"/>
+	<Script file="macros/priest.lua"/>
+	<Script file="macros/death-knight.lua"/>
+
+	<Script file="defaults.lua"/>
+	<Script file="options.ace.lua"/>
+	<Script file="options.eui.lua"/>
+</Ui>
