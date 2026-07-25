@@ -567,7 +567,6 @@ local MODULE_PAGE = {
     PotionAlert         = PAGE_ALERTS,
     CombatTimer         = PAGE_ALERTS,
     MovementAlert       = PAGE_ALERTS,
-    RebuffReminder      = PAGE_ALERTS,
     RepairIndicator     = PAGE_ALERTS,
     GroupJoinedReminder = PAGE_ALERTS,
 

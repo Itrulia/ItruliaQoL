@@ -7,13 +7,13 @@ MacroFactory:RegisterMacro({
     group = "General",
     name = "Extra Action Button",
     icon = [[Interface\ICONS\INV_Misc_QuestionMark]],
-    create = function()
+    create = function(name)
         local body = table.concat({
             "/click ExtraActionButton1",
             "/click ExtraActionButton2",
         }, "\n")
 
-        MacroFactory:CreateOrUpdateMacro("Extra Action Button", body, false)
+        MacroFactory:CreateOrUpdateMacro(name, body, false)
     end
 })
 
@@ -25,7 +25,7 @@ MacroFactory:RegisterMacro({
     icon = function() 
         return ItruliaQoL:GetInterruptSpell() 
     end,
-    create = function()
+    create = function(name)
         local focusCast = MacroFactory:BuildInterruptCast("@focus,harm")
         local tabCast = MacroFactory:BuildInterruptCast()
 
@@ -43,7 +43,7 @@ MacroFactory:RegisterMacro({
             "/targetlasttarget",
         }, "\n")
 
-        MacroFactory:CreateOrUpdateMacro("Focus Kick", body, true)
+        MacroFactory:CreateOrUpdateMacro(name, body, true)
     end
 })
 
@@ -55,7 +55,7 @@ MacroFactory:RegisterMacro({
     icon = function()
         return ItruliaQoL:GetInterruptSpell() 
     end,
-    create = function()
+    create = function(name)
         local tabCast = MacroFactory:BuildInterruptCast()
 
         if not tabCast then
@@ -70,7 +70,7 @@ MacroFactory:RegisterMacro({
             "/targetlasttarget",
         }, "\n")
 
-        MacroFactory:CreateOrUpdateMacro("Tab Kick", body, true)
+        MacroFactory:CreateOrUpdateMacro(name, body, true)
     end
 })
 
@@ -79,7 +79,7 @@ MacroFactory:RegisterMacro({
     group = "All Classes",
     name = "Battle Rez",
     icon = function() return ItruliaQoL:GetBattleRezSpell() end,
-    create = function()
+    create = function(name)
         local spellId = ItruliaQoL:GetBattleRezSpell()
         local spell = spellId and C_Spell.GetSpellName(spellId)
 
@@ -92,6 +92,6 @@ MacroFactory:RegisterMacro({
             "/cast [@mouseover, dead, help][] " .. spell,
         }, "\n")
 
-        MacroFactory:CreateOrUpdateMacro("Battle Rez", body, true)
+        MacroFactory:CreateOrUpdateMacro(name, body, true)
     end
 })

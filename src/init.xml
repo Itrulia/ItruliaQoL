@@ -29,7 +29,6 @@
 	<Include file="dungeon-teleports\init.xml"/>
 	<Include file="cursor-circle\init.xml"/>
 	<Include file="flying-bar\init.xml"/>
-	<Include file="rebuff-reminder\init.xml"/>
 	<Include file="prevent-release\init.xml"/>
 	<Include file="friendly-nameplates\init.xml"/>
 	<Include file="macro-factory\init.xml"/>
