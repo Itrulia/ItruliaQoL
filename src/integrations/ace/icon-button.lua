@@ -6,7 +6,7 @@ local addonName, ItruliaQoL = ...
 -- SetImageSize / SetLabel / OnClick.
 local AceGUI = LibStub("AceGUI-3.0")
 
-local Type, Version = "ItruliaMacroIcon", 3
+local Type, Version = "ItruliaMacroIcon", 4
 
 if (AceGUI:GetWidgetVersion(Type) or 0) >= Version then
     return
@@ -32,6 +32,7 @@ end
 
 local methods = {
     ["OnAcquire"] = function(self)
+        self.exists = nil -- widgets are pooled; clear stale state
         self:SetImageSize(36, 36)
         self:SetImage(nil)
         self:SetLabel()
@@ -92,22 +93,37 @@ local methods = {
         self.frame:SetSize(width, height)
     end,
 
-    ["SetDisabled"] = function(self, disabled)
-        self.disabled = disabled
-
-        if disabled then
+    ["ApplyState"] = function(self)
+        if self.disabled then
             self.frame:Disable()
             self.image:SetDesaturated(true)
             self.image:SetVertexColor(0.5, 0.5, 0.5)
             self.border:SetColorTexture(0.3, 0.3, 0.3, 1)
             self.label:SetTextColor(0.5, 0.5, 0.5)
-        else
-            self.frame:Enable()
-            self.image:SetDesaturated(false)
-            self.image:SetVertexColor(1, 1, 1)
-            self.border:SetColorTexture(0, 0, 0, 1)
-            self.label:SetTextColor(1, 1, 1)
+            return
         end
+
+        self.frame:Enable()
+
+        -- Grey out (desaturate) the icon once its macro has been created.
+        local exists = self.exists and self.exists()
+        self.image:SetDesaturated(exists and true or false)
+        self.image:SetVertexColor(1, 1, 1)
+        self.border:SetColorTexture(0, 0, 0, 1)
+        self.label:SetTextColor(1, 1, 1)
+    end,
+
+    ["SetDisabled"] = function(self, disabled)
+        self.disabled = disabled
+        self:ApplyState()
+    end,
+
+    -- AceConfigDialog forwards the option's `arg` here; we use it as an "exists"
+    -- getter so the icon greys out when its macro already exists. Re-runs on each
+    -- page rebuild (e.g. after a click creates the macro).
+    ["SetCustomData"] = function(self, exists)
+        self.exists = exists
+        self:ApplyState()
     end,
 }
 

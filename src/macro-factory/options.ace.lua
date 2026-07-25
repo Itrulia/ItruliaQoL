@@ -40,8 +40,13 @@ function MacroFactory:GetOptions(onChange)
             imageCoords = iconCoords,
             imageWidth = 36,
             imageHeight = 36,
+            -- Forwarded to the icon widget's SetCustomData: greys it out when the
+            -- macro already exists.
+            arg = function()
+                return GetMacroIndexByName(macro.name) ~= 0
+            end,
             func = function()
-                macro.create(MacroFactory)
+                macro.create(macro.name)
             end,
         }
     end

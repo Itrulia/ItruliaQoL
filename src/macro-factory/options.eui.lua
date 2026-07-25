@@ -14,10 +14,11 @@ function MacroFactory:GetEUIOptions()
             label = macro.name,
             tooltip = macro.desc,
             desaturated = function()
+                print(macro.name)
                 return GetMacroIndexByName(macro.name) ~= 0
             end,
             onClick = function()
-                macro.create(MacroFactory)
+                macro.create(macro.name)
             end,
         }
     end

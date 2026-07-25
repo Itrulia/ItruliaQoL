@@ -19,7 +19,7 @@ MacroFactory:RegisterMacro({
 
 -- Focus Kick
 MacroFactory:RegisterMacro({
-    group = "All Classes",
+    group = "General",
     name = "Focus Kick",
     desc = "Macro that kicks your focus target if it's set and else tab targets to the next casting mob, kicks and then tabs back",
     icon = function() 
@@ -49,7 +49,7 @@ MacroFactory:RegisterMacro({
 
 -- Tab Kick
 MacroFactory:RegisterMacro({
-    group = "All Classes",
+    group = "General",
     name = "Tab Kick",
     desc = "Macro that tab targets to the next casting mob, kicks and then tabs back",
     icon = function()
@@ -75,23 +75,25 @@ MacroFactory:RegisterMacro({
 })
 
 -- Battle Rez
-MacroFactory:RegisterMacro({
-    group = "All Classes",
-    name = "Battle Rez",
-    icon = function() return ItruliaQoL:GetBattleRezSpell() end,
-    create = function(name)
-        local spellId = ItruliaQoL:GetBattleRezSpell()
-        local spell = spellId and C_Spell.GetSpellName(spellId)
+if ItruliaQoL:GetBattleRezSpell() then
+    MacroFactory:RegisterMacro({
+        group = "General",
+        name = "Battle Rez",
+        icon = function() return ItruliaQoL:GetBattleRezSpell() end,
+        create = function(name)
+            local spellId = ItruliaQoL:GetBattleRezSpell()
+            local spell = spellId and C_Spell.GetSpellName(spellId)
 
-        if not spell then
-            return
+            if not spell then
+                return
+            end
+
+            local body = table.concat({
+                "#showtooltip",
+                "/cast [@mouseover, dead, help][] " .. spell,
+            }, "\n")
+
+            MacroFactory:CreateOrUpdateMacro(name, body, true)
         end
-
-        local body = table.concat({
-            "#showtooltip",
-            "/cast [@mouseover, dead, help][] " .. spell,
-        }, "\n")
-
-        MacroFactory:CreateOrUpdateMacro(name, body, true)
-    end
-})
+    })
+end
