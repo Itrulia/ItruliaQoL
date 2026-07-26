@@ -62,90 +62,6 @@ function FlyingBar:CreateTextureBorder(f)
     return border
 end
 
-local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
-frame:SetAlpha(0)
-frame:SetPoint("CENTER")
-
-frame.surge = CreateFrame("frame", "$parent_WhirlingSurge", frame)
-frame.surge:SetPoint("TOPLEFT")
-frame.surge:SetPoint("BOTTOMLEFT")
-
-frame.surge.icon = frame.surge:CreateTexture(nil, 'ARTWORK')
-frame.surge.icon:SetAllPoints()
-frame.surge.icon:SetTexture(C_Spell.GetSpellTexture(FlyingBar.whirlingSurgeSpellId))
-frame.surge.icon:SetTexCoord(.08, .92, .08, .92)
-
-frame.surge.cd = CreateFrame('Cooldown', nil, frame.surge, 'CooldownFrameTemplate') ---@diagnostic disable-line: generic-constraint-mismatch
-frame.surge.cd:SetAllPoints()
-frame.surge.cd:SetHideCountdownNumbers(true)
-
-frame.surge.border = FlyingBar:CreateBorder(frame.surge)
-
-frame.vigor = CreateFrame("StatusBar", "$parent_Vigor", frame)
-frame.vigor:SetPoint("TOPLEFT", frame.surge, "TOPRIGHT", 1, 0)
-frame.vigor:SetPoint("TOPRIGHT")
-
-for index = 1, C_Spell.GetSpellCharges(FlyingBar.vigorSpellId).maxCharges do 
-    local bar = CreateFrame("StatusBar", "$parent_" .. index, frame.vigor)
-    bar:SetMinMaxValues(0, 100)
-    bar:SetPoint("TOP")
-    bar:SetPoint("BOTTOM")
-    bar.border = FlyingBar:CreateBorder(bar)
-    bar.bg = FlyingBar:CreateBackground(bar)
-    bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
-
-    if index == 1 then
-        bar:SetPoint('LEFT', frame.vigor, 0, 0)
-    else
-        bar:SetPoint('LEFT', frame.vigor[index - 1], 'RIGHT', 1, 0)
-    end
-
-    frame.vigor[index] = bar
-end
-
-frame.speed = CreateFrame("StatusBar", "$parent_Speed", frame)
-frame.speed:SetPoint("TOPLEFT", frame.vigor, "BOTTOMLEFT", 0, -1)
-frame.speed:SetPoint("TOPRIGHT", frame.vigor, "BOTTOMRIGHT", 0, -1)
-frame.speed:SetMinMaxValues(0, 1440)
-frame.speed.border = FlyingBar:CreateBorder(frame.speed)
-frame.speed.bg = FlyingBar:CreateBackground(frame.speed)
-frame.speed.textureBorder = FlyingBar:CreateTextureBorder(frame.speed)
-frame.speed.tick = frame.speed:CreateTexture(nil, "OVERLAY")
-frame.speed.tick:SetWidth(1)
-frame.speed.tick:SetColorTexture(0, 0, 0, 1)
-function frame.speed.tick:UpdatePosition()
-    local parent = frame.speed.tick:GetParent();
-    local width = parent:GetWidth();
-    local pixelPerPower = width / select(2, parent:GetMinMaxValues())
-
-    frame.speed.tick:ClearAllPoints()
-    frame.speed.tick:SetPoint('TOP', parent)
-    frame.speed.tick:SetPoint('BOTTOM', parent)
-    frame.speed.tick:SetPoint('LEFT', parent, pixelPerPower * (select(2, parent:GetMinMaxValues()) / 2) - math.ceil(frame.speed.tick:GetWidth() / 2), 0)
-end
-
-frame.secondWind = CreateFrame("StatusBar", "$parent_SecondWind", frame)
-frame.secondWind:SetPoint("TOPLEFT", frame.speed, "BOTTOMLEFT", 0, -1)
-frame.secondWind:SetPoint("TOPRIGHT", frame.speed, "BOTTOMRIGHT", 0, -1)
-
-for index = 1, C_Spell.GetSpellCharges(FlyingBar.secondWindSpellId).maxCharges do 
-    local bar = CreateFrame("StatusBar", "$parent_" .. index, frame.secondWind)
-    bar:SetMinMaxValues(0, 100)
-    bar:SetPoint("TOP")
-    bar:SetPoint("BOTTOM")
-    bar.border = FlyingBar:CreateBorder(bar)
-    bar.bg = FlyingBar:CreateBackground(bar)
-    bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
-
-    if index == 1 then
-        bar:SetPoint('LEFT', frame.secondWind, 0, 0)
-    else
-        bar:SetPoint('LEFT', frame.secondWind[index - 1], 'RIGHT', 1, 0)
-    end
-
-    frame.secondWind[index] = bar
-end
-
 local function OnUpdate(self)
     local isGliding, _, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
 
@@ -161,9 +77,9 @@ local function OnEvent(self)
     self:SetAlphaFromBoolean(canGlide, 1, 0)
 
     if canGlide then
-        frame:SetScript("OnUpdate", OnUpdate)
+        self:SetScript("OnUpdate", OnUpdate)
     else
-        frame:SetScript("OnUpdate", nil)
+        self:SetScript("OnUpdate", nil)
         return
     end
 
@@ -204,51 +120,177 @@ local function OnEvent(self)
 	end
 end
 
-frame:RegisterEvent('SPELL_UPDATE_COOLDOWN')
-frame:RegisterEvent('SPELL_UPDATE_CHARGES')
-frame:RegisterEvent('PLAYER_ENTERING_WORLD')
-frame:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
-frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
-frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
 
-function frame:UpdateStyles()
-    if not E then
-        self:ClearAllPoints()
-        self:SetPoint(FlyingBar.db.point.point, FlyingBar.db.point.x, FlyingBar.db.point.y)
+function FlyingBar:GenerateFrame(name, parent)
+    local f = CreateFrame("frame", name, parent or UIParent)
+    f:SetAlpha(0)
+    f:SetPoint("CENTER")
+
+    f.surge = CreateFrame("frame", "$parent_WhirlingSurge", f)
+    f.surge:SetPoint("TOPLEFT")
+    f.surge:SetPoint("BOTTOMLEFT")
+
+    f.surge.icon = f.surge:CreateTexture(nil, 'ARTWORK')
+    f.surge.icon:SetAllPoints()
+    f.surge.icon:SetTexture(C_Spell.GetSpellTexture(FlyingBar.whirlingSurgeSpellId))
+    f.surge.icon:SetTexCoord(.08, .92, .08, .92)
+
+    f.surge.cd = CreateFrame('Cooldown', nil, f.surge, 'CooldownFrameTemplate') ---@diagnostic disable-line: generic-constraint-mismatch
+    f.surge.cd:SetAllPoints()
+    f.surge.cd:SetHideCountdownNumbers(true)
+
+    f.surge.border = FlyingBar:CreateBorder(f.surge)
+
+    f.vigor = CreateFrame("StatusBar", "$parent_Vigor", f)
+    f.vigor:SetPoint("TOPLEFT", f.surge, "TOPRIGHT", 1, 0)
+    f.vigor:SetPoint("TOPRIGHT")
+
+    for index = 1, C_Spell.GetSpellCharges(FlyingBar.vigorSpellId).maxCharges do
+        local bar = CreateFrame("StatusBar", "$parent_" .. index, f.vigor)
+        bar:SetMinMaxValues(0, 100)
+        bar:SetPoint("TOP")
+        bar:SetPoint("BOTTOM")
+        bar.border = FlyingBar:CreateBorder(bar)
+        bar.bg = FlyingBar:CreateBackground(bar)
+        bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
+
+        if index == 1 then
+            bar:SetPoint('LEFT', f.vigor, 0, 0)
+        else
+            bar:SetPoint('LEFT', f.vigor[index - 1], 'RIGHT', 1, 0)
+        end
+
+        f.vigor[index] = bar
     end
 
-    self:SetSize(
-        FlyingBar.db.width, 
-        FlyingBar.db.vigor.height + FlyingBar.db.speed.height + FlyingBar.db.secondWind.height + 2
-    )
-    self:SetFrameStrata(FlyingBar.db.frameStrata or "BACKGROUND")
-    self:SetFrameLevel(FlyingBar.db.frameLevel or 1)
+    f.speed = CreateFrame("StatusBar", "$parent_Speed", f)
+    f.speed:SetPoint("TOPLEFT", f.vigor, "BOTTOMLEFT", 0, -1)
+    f.speed:SetPoint("TOPRIGHT", f.vigor, "BOTTOMRIGHT", 0, -1)
+    f.speed:SetMinMaxValues(0, 1440)
+    f.speed.border = FlyingBar:CreateBorder(f.speed)
+    f.speed.bg = FlyingBar:CreateBackground(f.speed)
+    f.speed.textureBorder = FlyingBar:CreateTextureBorder(f.speed)
+    f.speed.tick = f.speed:CreateTexture(nil, "OVERLAY")
+    f.speed.tick:SetWidth(1)
+    f.speed.tick:SetColorTexture(0, 0, 0, 1)
 
-    self.surge:SetWidth(FlyingBar.db.vigor.height + FlyingBar.db.speed.height + FlyingBar.db.secondWind.height + 2)
-    self.secondWind:SetHeight(FlyingBar.db.secondWind.height)
-    self.speed:SetHeight(FlyingBar.db.speed.height)
-    self.vigor:SetHeight(FlyingBar.db.vigor.height)
+    -- `self`, not the live frame's tick: a preview instance must place its own.
+    function f.speed.tick:UpdatePosition()
+        -- `owner`, not `parent`: GenerateFrame's own `parent` is in scope here.
+        local owner = self:GetParent();
+        local width = owner:GetWidth();
+        local pixelPerPower = width / select(2, owner:GetMinMaxValues())
 
-    self.speed:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.speed.statusbarTexture))
-    self.speed:SetStatusBarColor(FlyingBar.db.speed.color.r, FlyingBar.db.speed.color.g, FlyingBar.db.speed.color.b, FlyingBar.db.speed.color.a)
-    self.speed.tick:UpdatePosition()
-    self.speed.textureBorder:UpdatePosition()
+        self:ClearAllPoints()
+        self:SetPoint('TOP', owner)
+        self:SetPoint('BOTTOM', owner)
+        self:SetPoint('LEFT', owner, pixelPerPower * (select(2, owner:GetMinMaxValues()) / 2) - math.ceil(self:GetWidth() / 2), 0)
+    end
 
-    local frameWidth = self.speed:GetWidth()
+    f.secondWind = CreateFrame("StatusBar", "$parent_SecondWind", f)
+    f.secondWind:SetPoint("TOPLEFT", f.speed, "BOTTOMLEFT", 0, -1)
+    f.secondWind:SetPoint("TOPRIGHT", f.speed, "BOTTOMRIGHT", 0, -1)
 
-    for i, bar in ipairs(self.vigor) do
-        bar:SetWidth((frameWidth - (#self.vigor - 1)) / #self.vigor)
-        bar:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.vigor.statusbarTexture))
-        bar:SetStatusBarColor(FlyingBar.db.vigor.color.r, FlyingBar.db.vigor.color.g, FlyingBar.db.vigor.color.b, FlyingBar.db.vigor.color.a)
-        bar.textureBorder:UpdatePosition()
-	end
+    for index = 1, C_Spell.GetSpellCharges(FlyingBar.secondWindSpellId).maxCharges do
+        local bar = CreateFrame("StatusBar", "$parent_" .. index, f.secondWind)
+        bar:SetMinMaxValues(0, 100)
+        bar:SetPoint("TOP")
+        bar:SetPoint("BOTTOM")
+        bar.border = FlyingBar:CreateBorder(bar)
+        bar.bg = FlyingBar:CreateBackground(bar)
+        bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
 
-    for i, bar in ipairs(self.secondWind) do
-        bar:SetWidth((frameWidth - (#self.secondWind - 1)) / #self.secondWind)
-        bar:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.secondWind.statusbarTexture))
-        bar:SetStatusBarColor(FlyingBar.db.secondWind.color.r, FlyingBar.db.secondWind.color.g, FlyingBar.db.secondWind.color.b, FlyingBar.db.secondWind.color.a)
-        bar.textureBorder:UpdatePosition()
-	end
+        if index == 1 then
+            bar:SetPoint('LEFT', f.secondWind, 0, 0)
+        else
+            bar:SetPoint('LEFT', f.secondWind[index - 1], 'RIGHT', 1, 0)
+        end
+
+        f.secondWind[index] = bar
+    end
+
+    function f:UpdateStyles()
+        if not E then
+            self:ClearAllPoints()
+            self:SetPoint(FlyingBar.db.point.point, FlyingBar.db.point.x, FlyingBar.db.point.y)
+        end
+
+        self:SetSize(
+            FlyingBar.db.width,
+            FlyingBar.db.vigor.height + FlyingBar.db.speed.height + FlyingBar.db.secondWind.height + 2
+        )
+        self:SetFrameStrata(FlyingBar.db.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(FlyingBar.db.frameLevel or 1)
+
+        self.surge:SetWidth(FlyingBar.db.vigor.height + FlyingBar.db.speed.height + FlyingBar.db.secondWind.height + 2)
+        self.secondWind:SetHeight(FlyingBar.db.secondWind.height)
+        self.speed:SetHeight(FlyingBar.db.speed.height)
+        self.vigor:SetHeight(FlyingBar.db.vigor.height)
+
+        self.speed:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.speed.statusbarTexture))
+        self.speed:SetStatusBarColor(FlyingBar.db.speed.color.r, FlyingBar.db.speed.color.g, FlyingBar.db.speed.color.b, FlyingBar.db.speed.color.a)
+        self.speed.tick:UpdatePosition()
+        self.speed.textureBorder:UpdatePosition()
+
+        local frameWidth = self.speed:GetWidth()
+
+        for i, bar in ipairs(self.vigor) do
+            bar:SetWidth((frameWidth - (#self.vigor - 1)) / #self.vigor)
+            bar:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.vigor.statusbarTexture))
+            bar:SetStatusBarColor(FlyingBar.db.vigor.color.r, FlyingBar.db.vigor.color.g, FlyingBar.db.vigor.color.b, FlyingBar.db.vigor.color.a)
+            bar.textureBorder:UpdatePosition()
+        end
+
+        for i, bar in ipairs(self.secondWind) do
+            bar:SetWidth((frameWidth - (#self.secondWind - 1)) / #self.secondWind)
+            bar:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.secondWind.statusbarTexture))
+            bar:SetStatusBarColor(FlyingBar.db.secondWind.color.r, FlyingBar.db.secondWind.color.g, FlyingBar.db.secondWind.color.b, FlyingBar.db.secondWind.color.a)
+            bar.textureBorder:UpdatePosition()
+        end
+    end
+
+    return f
+end
+
+-- Returns the live instance, building it on the first call and reusing it after that.
+--
+-- The mover is registered here rather than in OnEnable so a module switched on later
+-- in the session still gets one; ElvUI, EllesmereUI and LibEditMode all accept a
+-- late registration.
+function FlyingBar:EnsureFrame()
+    if self.frame then
+        return self.frame
+    end
+
+    local f = self:GenerateFrame(addonName .. moduleName)
+    self.frame = f
+
+    f:RegisterEvent('SPELL_UPDATE_COOLDOWN')
+    f:RegisterEvent('SPELL_UPDATE_CHARGES')
+    f:RegisterEvent('PLAYER_ENTERING_WORLD')
+    f:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
+    f:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
+    f:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
+
+    if E then
+        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+            nil,
+            nil,
+            "ALL,ITRULIA",
+            function()
+                return self.db.enabled
+            end,
+            addonName .. "," .. moduleName
+        )
+    elseif ItruliaQoL.EUI then
+        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+    else
+        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+            self.db.point = {point = point, x = x, y = y}
+        end, self:GetDefaults().point)
+    end
+
+    return f
 end
 
 function FlyingBar:OnInitialize()
@@ -267,44 +309,27 @@ function FlyingBar:RefreshConfig()
     self.db = profile[moduleName]
 
     if self.db.enabled then
-        frame:Show()
-        frame:UpdateStyles()
-        frame:SetScript("OnEvent", OnEvent)
-        OnEvent(frame)
-    else
-        frame:SetScript("OnEvent", nil)
-        frame:SetScript("OnUpdate", nil)
-        frame:Hide()
+        local f = self:EnsureFrame()
+
+        f:Show()
+        f:UpdateStyles()
+        f:SetScript("OnEvent", OnEvent)
+        OnEvent(f)
+    elseif self.frame then
+        self.frame:SetScript("OnEvent", nil)
+        self.frame:SetScript("OnUpdate", nil)
+        self.frame:Hide()
     end
 end
 
 function FlyingBar:OnEnable()
-    if self.db.enabled then 
-        frame:UpdateStyles()
-        frame:SetScript("OnEvent", OnEvent)
-    end
-
-    if E then
-        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
-            nil,
-            nil,
-            "ALL,ITRULIA",
-            function()
-                return self.db.enabled
-            end,
-            addonName .. "," .. moduleName
-        )
-    elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
-    else
-        LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
-            self.db.point = {point = point, x = x, y = y}
-        end, self:GetDefaults().point)
-    end
+    self:RefreshConfig()
 end
 
 function FlyingBar:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
-        frame:UpdateStyles()
+        if self.frame then
+            self.frame:UpdateStyles()
+        end
     end)
 end

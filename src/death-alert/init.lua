@@ -7,63 +7,16 @@ local E = ItruliaQoL.E
 
 local DeathAlert = ItruliaQoL:NewModule(moduleName)
 
-local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
-frame:SetPoint("CENTER", 0, 300)
-frame:SetSize(28, 28)
-frame.lastSoundPlayedAt = nil
-
-frame.text = frame:CreateFontString(nil, "OVERLAY")
-frame.text:SetPoint("CENTER")
-frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
-frame.text:SetTextColor(1, 1, 1)
-frame.text:SetJustifyH("CENTER")
-
-frame.text.anim = frame.text:CreateAnimationGroup()
-frame.text.anim:SetScript("OnFinished", function() 
-    frame.text:SetText("") 
-end)
-frame.alpha = frame.text.anim:CreateAnimation("Alpha")
-frame.alpha:SetFromAlpha(1)
-frame.alpha:SetToAlpha(0)
-frame.alpha:SetDuration(1)
-frame.alpha:SetStartDelay(4)
-
-function frame:UpdateStyles()
-    if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-        if not E then
-            self:ClearAllPoints()
-            self:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
-        end
-
-        self:SetFrameStrata(DeathAlert.db.font.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(DeathAlert.db.font.frameLevel or 1)
-        self.text:ClearAllPoints()
-        self.text:SetPoint(DeathAlert.db.font.justifyH or "CENTER")
-        self.text:SetJustifyH(DeathAlert.db.font.justifyH or "CENTER")
-        self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
-        if DeathAlert.db.font.fontOutline ~= "OUTLINESLUG" then
-            self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
-            self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
-        else
-            self.text:SetShadowColor(0, 0, 0, 0)
-            self.text:SetShadowOffset(0, 0)
-        end
-        self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
-        self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
-        self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
-    end
-end
-
 local function OnEvent(self, event, deadGUID, ...)
     if ItruliaQoL.testMode then
         local name = UnitName("player")
         local _, class = UnitClass("player")
-        
+
         local color = C_ClassColor.GetClassColor(class);
         local displayText = CreateColor(
             DeathAlert.db.color.r,
-            DeathAlert.db.color.g, 
-            DeathAlert.db.color.b, 
+            DeathAlert.db.color.g,
+            DeathAlert.db.color.b,
             DeathAlert.db.color.a
         ):WrapTextInColorCode(DeathAlert.db.displayText)
         local nameText = color:WrapTextInColorCode(name)
@@ -79,7 +32,7 @@ local function OnEvent(self, event, deadGUID, ...)
 
         if not unitId or not UnitIsDead(unitId) then
             -- well hunters in your party feign deathing is causing the event to fire without actually dying
-            return 
+            return
         end
 
         if UnitInParty(unitId) or UnitInRaid(unitId) or unitId == "player" then
@@ -145,8 +98,8 @@ local function OnEvent(self, event, deadGUID, ...)
 
                 local displayText = CreateColor(
                     DeathAlert.db.color.r,
-                    DeathAlert.db.color.g, 
-                    DeathAlert.db.color.b, 
+                    DeathAlert.db.color.g,
+                    DeathAlert.db.color.b,
                     DeathAlert.db.color.a
                 ):WrapTextInColorCode(DeathAlert.db.displayText)
                 local nameText = classColor:WrapTextInColorCode(name)
@@ -176,7 +129,88 @@ local function OnEvent(self, event, deadGUID, ...)
     self:UpdateStyles()
 end
 
-frame:RegisterEvent("UNIT_DIED")
+function DeathAlert:GenerateFrame(name, parent)
+    local f = CreateFrame("frame", name, parent or UIParent)
+    f:SetPoint("CENTER", 0, 300)
+    f:SetSize(28, 28)
+    f.lastSoundPlayedAt = nil
+
+    f.text = f:CreateFontString(nil, "OVERLAY")
+    f.text:SetPoint("CENTER")
+    f.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
+    f.text:SetTextColor(1, 1, 1)
+    f.text:SetJustifyH("CENTER")
+
+    f.text.anim = f.text:CreateAnimationGroup()
+    f.text.anim:SetScript("OnFinished", function()
+        f.text:SetText("")
+    end)
+    f.alpha = f.text.anim:CreateAnimation("Alpha")
+    f.alpha:SetFromAlpha(1)
+    f.alpha:SetToAlpha(0)
+    f.alpha:SetDuration(1)
+    f.alpha:SetStartDelay(4)
+
+    function f:UpdateStyles()
+        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
+            if not E then
+                self:ClearAllPoints()
+                self:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
+            end
+
+            self:SetFrameStrata(DeathAlert.db.font.frameStrata or "BACKGROUND")
+            self:SetFrameLevel(DeathAlert.db.font.frameLevel or 1)
+            self.text:ClearAllPoints()
+            self.text:SetPoint(DeathAlert.db.font.justifyH or "CENTER")
+            self.text:SetJustifyH(DeathAlert.db.font.justifyH or "CENTER")
+            self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
+            if DeathAlert.db.font.fontOutline ~= "OUTLINESLUG" then
+                self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
+                self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
+            else
+                self.text:SetShadowColor(0, 0, 0, 0)
+                self.text:SetShadowOffset(0, 0)
+            end
+            self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
+            self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
+
+            self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+        end
+    end
+
+    return f
+end
+
+function DeathAlert:EnsureFrame()
+    if self.frame then
+        return self.frame
+    end
+
+    local f = self:GenerateFrame(addonName .. moduleName)
+    self.frame = f
+
+    f:RegisterEvent("UNIT_DIED")
+
+    if E then
+        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+            nil,
+            nil,
+            "ALL,ITRULIA",
+            function()
+                return self.db.enabled
+            end,
+            addonName .. "," .. moduleName
+        )
+    elseif ItruliaQoL.EUI then
+        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+    else
+        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+            self.db.point = {point = point, x = x, y = y}
+        end, self:GetDefaults().point)
+    end
+
+    return f
+end
 
 function DeathAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
@@ -193,12 +227,16 @@ function DeathAlert:RefreshConfig()
     self.db = profile.DeathAlert
 
     if self.db.enabled then
-        frame:UpdateStyles()
-        frame:SetScript("OnEvent", OnEvent)
-        OnEvent(frame)
-    else
-        frame:SetScript("OnEvent", nil)
-        frame:SetScript("OnUpdate", nil)
+        local f = self:EnsureFrame()
+
+        f:UpdateStyles()
+        f:SetScript("OnEvent", OnEvent)
+        OnEvent(f)
+    elseif self.frame then
+        self.frame:SetScript("OnEvent", nil)
+        self.frame:SetScript("OnUpdate", nil)
+        self.frame.text.anim:Stop()
+        self.frame.text:SetText("")
     end
 end
 
@@ -209,44 +247,28 @@ function DeathAlert:ApplyFontSettings(font)
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
     self.db.font.justifyH = font.justifyH
-    frame:UpdateStyles()
+
+    if self.frame then
+        self.frame:UpdateStyles()
+    end
 end
 
 function DeathAlert:OnEnable()
-    if self.db.enabled then 
-        frame:UpdateStyles()
-        frame:SetScript("OnEvent", OnEvent) 
-    end
-
-    if E then
-        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
-            nil,
-            nil,
-            "ALL,ITRULIA",
-            function()
-                return self.db.enabled
-            end,
-            addonName .. "," .. moduleName
-        )
-    elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
-    else
-        LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
-            self.db.point = {point = point, x = x, y = y}
-        end, self:GetDefaults().point)
-    end
+    self:RefreshConfig()
 end
 
 function DeathAlert:ToggleTestMode()
-    if not self.db.enabled then 
+    if not self.db.enabled or not self.frame then
         return
     end
 
-    OnEvent(frame)
+    OnEvent(self.frame)
 end
 
 function DeathAlert:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
-        frame:UpdateStyles()
+        if self.frame then
+            self.frame:UpdateStyles()
+        end
     end)
 end

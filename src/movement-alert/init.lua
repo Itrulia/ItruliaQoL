@@ -7,24 +7,7 @@ local E = ItruliaQoL.E
 
 local MovementAlert = ItruliaQoL:NewModule(moduleName)
 
-local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
-frame:SetPoint("CENTER", 0, 300)
-frame:SetSize(28, 28)
-frame.movementId = nil;
-frame.movementName = nil;
-frame.ignoreMovementCd = false
-frame.spellsToIgnoreGlowsFrom = {}
-frame.timeSpiralOn = false;
-frame.ignoreGlow = false
-
-frame.text = frame:CreateFontString(nil, "OVERLAY")
-frame.text:SetPoint("CENTER")
-frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
-frame.text:SetTextColor(1, 1, 1, 1)
-frame.text:SetJustifyH("CENTER")
-frame.text:Hide();
-
-frame.movementAbilities = {
+local MOVEMENT_ABILITIES = {
     DEATHKNIGHT = {[250] = {48265}, [251] = {48265}, [252] = {48265}},
     DEMONHUNTER = {[577] = {195072}, [581] = {189110}, [1480] = {1234796}},
     DRUID = {[102] = {102401, 252216, 1850}, [103] = {102401, 252216, 1850}, [104] = {102401, 106898}, [105] = {102401, 252216, 1850}},
@@ -41,7 +24,7 @@ frame.movementAbilities = {
 }
 
 -- List taken from: https://www.curseforge.com/wow/addons/time-spiral-tracker
-frame.timeSpiralAbilities = {
+local TIME_SPIRAL_ABILITIES = {
     -- DK
     [48265] = true, -- Death's Advance
     -- DH
@@ -77,7 +60,7 @@ frame.timeSpiralAbilities = {
     [6544] = true, -- Heroic Leap
 }
 
-frame.spellsThatTriggerGlows = {
+local SPELLS_THAT_TRIGGER_GLOWS = {
 	DEMONHUNTER = {
         [577] = {
             { talent = 427640, spellId = 370965, delay = 1 }, -- Inertia / The hunt
@@ -87,117 +70,35 @@ frame.spellsThatTriggerGlows = {
 	},
     WARLOCK = {
         [265] = {
-            { talent = 385899, spellId = 385899 } -- Soulburn 
-        }, 
+            { talent = 385899, spellId = 385899 } -- Soulburn
+        },
         [266] = {
-            { talent = 385899, spellId = 385899 } -- Soulburn 
+            { talent = 385899, spellId = 385899 } -- Soulburn
         },
         [267] = {
-            { talent = 385899, spellId = 385899 } -- Soulburn 
+            { talent = 385899, spellId = 385899 } -- Soulburn
         },
     },
 }
 
-frame.spellsThatHaveTheirOwnGCD = {
+local SPELLS_WITH_OWN_GCD = {
 	[1234796] = 0.8
 }
 
-function frame:GetSpellToCheck()
-    local class = ItruliaQoL.PlayerClass
-    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
-    local spells = self.movementAbilities[class]
-
-    if not spells or not specId then 
-        return nil
-    end
-
-    local spellIds = spells[specId]
-    if not spellIds then
-        return nil
-    end
-
-    local spellId
-    for _, s in ipairs(spellIds) do
-        if s and ItruliaQoL:IsSpellKnown(s) then
-            spellId = s
-            break
-        end
-    end
-
-    if not spellId then
-        return nil
-    end
-
-    local spellInfo = C_Spell.GetSpellInfo(spellId)
-    if not spellInfo then
-        return nil
-    end
-
-    return spellId
-end
-
-function frame:GetSpellsToIgnoreGlowsFrom()
-    local class = ItruliaQoL.PlayerClass
-    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
-    local specs = self.spellsThatTriggerGlows[class]
-
-    if not specs or not specId then 
-        return nil
-    end
-
-    if not specs[specId] then
-        return nil
-    end
-
-    local ignoredList = {}
-    for _, s in ipairs(specs[specId]) do
-        if ItruliaQoL:IsSpellKnown(s.talent) then
-            ignoredList[s.spellId] = 0.05 + (s.delay or 0)
-        end
-    end
-
-    return ignoredList
-end
-
-function frame:UpdateStyles()
-    if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-        if not E then
-            self:ClearAllPoints()
-            self:SetPoint(MovementAlert.db.point.point, MovementAlert.db.point.x, MovementAlert.db.point.y)
-        end
-
-        self:SetFrameStrata(MovementAlert.db.font.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(MovementAlert.db.font.frameLevel or 1)
-        self.text:ClearAllPoints()
-        self.text:SetPoint(MovementAlert.db.font.justifyH or "CENTER")
-        self.text:SetJustifyH(MovementAlert.db.font.justifyH or "CENTER")
-        self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
-        if MovementAlert.db.font.fontOutline ~= "OUTLINESLUG" then
-            self.text:SetShadowColor(MovementAlert.db.font.fontShadowColor.r, MovementAlert.db.font.fontShadowColor.g, MovementAlert.db.font.fontShadowColor.b, MovementAlert.db.font.fontShadowColor.a)
-            self.text:SetShadowOffset(MovementAlert.db.font.fontShadowXOffset, MovementAlert.db.font.fontShadowYOffset)
-        else
-            self.text:SetShadowColor(0, 0, 0, 0)
-            self.text:SetShadowOffset(0, 0)
-        end
-        self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
-        self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
-    end
-end
-
 local function OnUpdate(self, elapsed, ...)
-    if not self.timeSinceLastUpdate then 
-        self.timeSinceLastUpdate = 0 
+    if not self.timeSinceLastUpdate then
+        self.timeSinceLastUpdate = 0
     end
 
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed
-    
+
     if self.timeSinceLastUpdate > MovementAlert.db.updateInterval then
         if not ItruliaQoL.testMode then
             if self.timeSpiralOn then
                 local timeSpiralText = CreateColor(
                     MovementAlert.db.timeSpiralColor.r,
-                    MovementAlert.db.timeSpiralColor.g, 
-                    MovementAlert.db.timeSpiralColor.b, 
+                    MovementAlert.db.timeSpiralColor.g,
+                    MovementAlert.db.timeSpiralColor.b,
                     MovementAlert.db.timeSpiralColor.a
                 ):WrapTextInColorCode(MovementAlert.db.timeSpiralText .. "\n" .. string.format(
                     "%." .. MovementAlert.db.precision .. "f", 10 - (GetTime() - self.timeSpiralOn)
@@ -207,11 +108,11 @@ local function OnUpdate(self, elapsed, ...)
             elseif self.movementId and self.movementName then
                 local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
 
-                if 
-                    not self.ignoreMovementCd 
-                    and cdInfo 
-                    and cdInfo.timeUntilEndOfStartRecovery 
-                    and not cdInfo.isOnGCD 
+                if
+                    not self.ignoreMovementCd
+                    and cdInfo
+                    and cdInfo.timeUntilEndOfStartRecovery
+                    and not cdInfo.isOnGCD
                     -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
                     -- WL teleport isOnGCD exists while on gcd and then is nil
                     and (cdInfo.isOnGCD ~= nil or ItruliaQoL.PlayerClass == "WARLOCK")
@@ -228,13 +129,6 @@ local function OnUpdate(self, elapsed, ...)
 
         self.timeSinceLastUpdate = 0
     end
-end
-
-function frame:CacheMovementId()
-    self.movementId = self:GetSpellToCheck()
-    local spellInfo = self.movementId and C_Spell.GetSpellInfo(self.movementId)
-    self.movementName = spellInfo and spellInfo.name
-    self.spellsToIgnoreGlowsFrom = self:GetSpellsToIgnoreGlowsFrom()
 end
 
 local function OnEvent(self, event, ...)
@@ -270,7 +164,7 @@ local function OnEvent(self, event, ...)
             if self.spellsToIgnoreGlowsFrom and self.spellsToIgnoreGlowsFrom[spellId] then
                 self.ignoreGlow = true
 
-                C_Timer.After(self.spellsToIgnoreGlowsFrom[spellId], function() 
+                C_Timer.After(self.spellsToIgnoreGlowsFrom[spellId], function()
                     self.ignoreGlow = false;
                 end)
             end
@@ -278,7 +172,7 @@ local function OnEvent(self, event, ...)
             if self.spellsThatHaveTheirOwnGCD[spellId] then
                 self.ignoreMovementCd = true
 
-                C_Timer.After(self.spellsThatHaveTheirOwnGCD[spellId], function() 
+                C_Timer.After(self.spellsThatHaveTheirOwnGCD[spellId], function()
                     self.ignoreMovementCd = false;
                 end)
             end
@@ -288,13 +182,157 @@ local function OnEvent(self, event, ...)
     end
 end
 
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-frame:RegisterEvent("PLAYER_TALENT_UPDATE")
-frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
-frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
-frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
-frame:RegisterUnitEvent("UNIT_SPELLCAST_SENT", "player")
+function MovementAlert:GenerateFrame(name, parent)
+    local f = CreateFrame("frame", name, parent or UIParent)
+    f:SetPoint("CENTER", 0, 300)
+    f:SetSize(28, 28)
+    f.movementId = nil;
+    f.movementName = nil;
+    f.ignoreMovementCd = false
+    f.spellsToIgnoreGlowsFrom = {}
+    f.timeSpiralOn = false;
+    f.ignoreGlow = false
+
+    f.movementAbilities = MOVEMENT_ABILITIES
+    f.timeSpiralAbilities = TIME_SPIRAL_ABILITIES
+    f.spellsThatTriggerGlows = SPELLS_THAT_TRIGGER_GLOWS
+    f.spellsThatHaveTheirOwnGCD = SPELLS_WITH_OWN_GCD
+
+    f.text = f:CreateFontString(nil, "OVERLAY")
+    f.text:SetPoint("CENTER")
+    f.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
+    f.text:SetTextColor(1, 1, 1, 1)
+    f.text:SetJustifyH("CENTER")
+    f.text:Hide();
+
+    function f:GetSpellToCheck()
+        local class = ItruliaQoL.PlayerClass
+        local specId = select(1, GetSpecializationInfo(GetSpecialization()))
+        local spells = self.movementAbilities[class]
+
+        if not spells or not specId then
+            return nil
+        end
+
+        local spellIds = spells[specId]
+        if not spellIds then
+            return nil
+        end
+
+        local spellId
+        for _, s in ipairs(spellIds) do
+            if s and ItruliaQoL:IsSpellKnown(s) then
+                spellId = s
+                break
+            end
+        end
+
+        if not spellId then
+            return nil
+        end
+
+        local spellInfo = C_Spell.GetSpellInfo(spellId)
+        if not spellInfo then
+            return nil
+        end
+
+        return spellId
+    end
+
+    function f:GetSpellsToIgnoreGlowsFrom()
+        local class = ItruliaQoL.PlayerClass
+        local specId = select(1, GetSpecializationInfo(GetSpecialization()))
+        local specs = self.spellsThatTriggerGlows[class]
+
+        if not specs or not specId then
+            return nil
+        end
+
+        if not specs[specId] then
+            return nil
+        end
+
+        local ignoredList = {}
+        for _, s in ipairs(specs[specId]) do
+            if ItruliaQoL:IsSpellKnown(s.talent) then
+                ignoredList[s.spellId] = 0.05 + (s.delay or 0)
+            end
+        end
+
+        return ignoredList
+    end
+
+    function f:CacheMovementId()
+        self.movementId = self:GetSpellToCheck()
+        local spellInfo = self.movementId and C_Spell.GetSpellInfo(self.movementId)
+        self.movementName = spellInfo and spellInfo.name
+        self.spellsToIgnoreGlowsFrom = self:GetSpellsToIgnoreGlowsFrom()
+    end
+
+    function f:UpdateStyles()
+        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
+            if not E then
+                self:ClearAllPoints()
+                self:SetPoint(MovementAlert.db.point.point, MovementAlert.db.point.x, MovementAlert.db.point.y)
+            end
+
+            self:SetFrameStrata(MovementAlert.db.font.frameStrata or "BACKGROUND")
+            self:SetFrameLevel(MovementAlert.db.font.frameLevel or 1)
+            self.text:ClearAllPoints()
+            self.text:SetPoint(MovementAlert.db.font.justifyH or "CENTER")
+            self.text:SetJustifyH(MovementAlert.db.font.justifyH or "CENTER")
+            self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
+            if MovementAlert.db.font.fontOutline ~= "OUTLINESLUG" then
+                self.text:SetShadowColor(MovementAlert.db.font.fontShadowColor.r, MovementAlert.db.font.fontShadowColor.g, MovementAlert.db.font.fontShadowColor.b, MovementAlert.db.font.fontShadowColor.a)
+                self.text:SetShadowOffset(MovementAlert.db.font.fontShadowXOffset, MovementAlert.db.font.fontShadowYOffset)
+            else
+                self.text:SetShadowColor(0, 0, 0, 0)
+                self.text:SetShadowOffset(0, 0)
+            end
+            self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
+            self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
+        end
+    end
+
+    return f
+end
+
+function MovementAlert:EnsureFrame()
+    if self.frame then
+        return self.frame
+    end
+
+    local f = self:GenerateFrame(addonName .. moduleName)
+    self.frame = f
+
+    f:RegisterEvent("PLAYER_ENTERING_WORLD")
+    f:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    f:RegisterEvent("PLAYER_TALENT_UPDATE")
+    f:RegisterEvent("TRAIT_CONFIG_UPDATED")
+    f:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
+    f:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
+    f:RegisterUnitEvent("UNIT_SPELLCAST_SENT", "player")
+
+    if E then
+        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+            nil,
+            nil,
+            "ALL,ITRULIA",
+            function()
+                return self.db.enabled
+            end,
+            addonName .. "," .. moduleName
+        )
+    elseif ItruliaQoL.EUI then
+        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+    else
+        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+            self.db.point = {point = point, x = x, y = y}
+        end, self:GetDefaults().point)
+    end
+
+    return f
+end
 
 function MovementAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
@@ -308,14 +346,17 @@ function MovementAlert:RefreshConfig()
     self.db = profile.MovementAlert
 
     if self.db.enabled then
-        frame:UpdateStyles()
-        frame:CacheMovementId()
-        frame:SetScript("OnEvent", OnEvent)
-        frame:SetScript("OnUpdate", OnUpdate) 
-        OnEvent(frame)
-    else
-        frame:SetScript("OnEvent", nil)
-        frame:SetScript("OnUpdate", nil)
+        local f = self:EnsureFrame()
+
+        f:UpdateStyles()
+        f:CacheMovementId()
+        f:SetScript("OnEvent", OnEvent)
+        f:SetScript("OnUpdate", OnUpdate)
+        OnEvent(f)
+    elseif self.frame then
+        self.frame:SetScript("OnEvent", nil)
+        self.frame:SetScript("OnUpdate", nil)
+        self.frame.text:Hide()
     end
 end
 
@@ -326,45 +367,28 @@ function MovementAlert:ApplyFontSettings(font)
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
     self.db.font.justifyH = font.justifyH
-    frame:UpdateStyles()
+
+    if self.frame then
+        self.frame:UpdateStyles()
+    end
 end
 
 function MovementAlert:OnEnable()
-    if self.db.enabled then 
-        frame:UpdateStyles()
-        frame:SetScript("OnEvent", OnEvent) 
-        frame:SetScript("OnUpdate", OnUpdate) 
-    end
-
-    if E then
-        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
-            nil,
-            nil,
-            "ALL,ITRULIA",
-            function()
-                return self.db.enabled
-            end,
-            addonName .. "," .. moduleName
-        )
-    elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
-    else
-        LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
-            self.db.point = {point = point, x = x, y = y}
-        end, self:GetDefaults().point)
-    end
+    self:RefreshConfig()
 end
 
 function MovementAlert:ToggleTestMode()
-    if not self.db.enabled then 
+    if not self.db.enabled or not self.frame then
         return
     end
 
-    OnEvent(frame)
+    OnEvent(self.frame)
 end
 
 function MovementAlert:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
-        frame:UpdateStyles()
+        if self.frame then
+            self.frame:UpdateStyles()
+        end
     end)
 end

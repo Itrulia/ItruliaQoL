@@ -7,44 +7,6 @@ local E = ItruliaQoL.E
 
 local StealthIndicator = ItruliaQoL:NewModule(moduleName)
 
-local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
-frame:SetPoint("CENTER", 0, 50)
-frame:SetSize(28, 28)
-
-frame.text = frame:CreateFontString(nil, "OVERLAY")
-frame.text:SetPoint("CENTER")
-frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
-frame.text:SetTextColor(1, 1, 1)
-frame.text:SetJustifyH("CENTER")
-
-function frame:UpdateStyles()
-    if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-        if not E then
-            self:ClearAllPoints()
-            self:SetPoint(StealthIndicator.db.point.point, StealthIndicator.db.point.x, StealthIndicator.db.point.y)
-        end
-
-        self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
-        self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
-        self.text:ClearAllPoints()
-        self.text:SetPoint(StealthIndicator.db.font.justifyH or "CENTER")
-        self.text:SetJustifyH(StealthIndicator.db.font.justifyH or "CENTER")
-        self.text:SetText(StealthIndicator.db.displayText)
-        self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
-
-        if StealthIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
-            self.text:SetShadowColor(StealthIndicator.db.font.fontShadowColor.r, StealthIndicator.db.font.fontShadowColor.g, StealthIndicator.db.font.fontShadowColor.b, StealthIndicator.db.font.fontShadowColor.a)
-            self.text:SetShadowOffset(StealthIndicator.db.font.fontShadowXOffset, StealthIndicator.db.font.fontShadowYOffset)
-        else
-            self.text:SetShadowColor(0, 0, 0, 0)
-            self.text:SetShadowOffset(0, 0)
-        end
-        self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
-
-        self:SetSize(frame.text:GetStringWidth(), frame.text:GetStringHeight())
-    end
-end
-
 local function OnEvent(self, ...)
     if ItruliaQoL.testMode then
         self.text:Show()
@@ -58,8 +20,80 @@ local function OnEvent(self, ...)
     end
 end
 
-frame:RegisterEvent("UPDATE_STEALTH")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+function StealthIndicator:GenerateFrame(name, parent)
+    local f = CreateFrame("frame", name, parent or UIParent)
+    f:SetPoint("CENTER", 0, 50)
+    f:SetSize(28, 28)
+
+    f.text = f:CreateFontString(nil, "OVERLAY")
+    f.text:SetPoint("CENTER")
+    f.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
+    f.text:SetTextColor(1, 1, 1)
+    f.text:SetJustifyH("CENTER")
+
+    function f:UpdateStyles()
+        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
+            if not E then
+                self:ClearAllPoints()
+                self:SetPoint(StealthIndicator.db.point.point, StealthIndicator.db.point.x, StealthIndicator.db.point.y)
+            end
+
+            self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
+            self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
+            self.text:ClearAllPoints()
+            self.text:SetPoint(StealthIndicator.db.font.justifyH or "CENTER")
+            self.text:SetJustifyH(StealthIndicator.db.font.justifyH or "CENTER")
+            self.text:SetText(StealthIndicator.db.displayText)
+            self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
+
+            if StealthIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
+                self.text:SetShadowColor(StealthIndicator.db.font.fontShadowColor.r, StealthIndicator.db.font.fontShadowColor.g, StealthIndicator.db.font.fontShadowColor.b, StealthIndicator.db.font.fontShadowColor.a)
+                self.text:SetShadowOffset(StealthIndicator.db.font.fontShadowXOffset, StealthIndicator.db.font.fontShadowYOffset)
+            else
+                self.text:SetShadowColor(0, 0, 0, 0)
+                self.text:SetShadowOffset(0, 0)
+            end
+            self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
+
+            -- `self`, not the module's live frame: a preview instance must size itself.
+            self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+        end
+    end
+
+    return f
+end
+
+function StealthIndicator:EnsureFrame()
+    if self.frame then
+        return self.frame
+    end
+
+    local f = self:GenerateFrame(addonName .. moduleName)
+    self.frame = f
+
+    f:RegisterEvent("UPDATE_STEALTH")
+    f:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+    if E then
+        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+            nil,
+            nil,
+            "ALL,ITRULIA",
+            function()
+                return self.db.enabled
+            end,
+            addonName .. "," .. moduleName
+        )
+    elseif ItruliaQoL.EUI then
+        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+    else
+        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+            self.db.point = {point = point, x = x, y = y}
+        end, self:GetDefaults().point)
+    end
+
+    return f
+end
 
 function StealthIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
@@ -73,12 +107,15 @@ function StealthIndicator:RefreshConfig()
     self.db = profile.StealthIndicator
 
     if self.db.enabled then
-        frame:UpdateStyles()
-        frame:SetScript("OnEvent", OnEvent)
-        OnEvent(frame)
-    else
-        frame:SetScript("OnEvent", nil)
-        frame:SetScript("OnUpdate", nil)
+        local f = self:EnsureFrame()
+
+        f:UpdateStyles()
+        f:SetScript("OnEvent", OnEvent)
+        OnEvent(f)
+    elseif self.frame then
+        self.frame:SetScript("OnEvent", nil)
+        self.frame:SetScript("OnUpdate", nil)
+        self.frame.text:Hide()
     end
 end
 
@@ -89,44 +126,28 @@ function StealthIndicator:ApplyFontSettings(font)
     self.db.font.fontShadowXOffset = font.fontShadowXOffset
     self.db.font.fontShadowYOffset = font.fontShadowYOffset
     self.db.font.justifyH = font.justifyH
-    frame:UpdateStyles()
+
+    if self.frame then
+        self.frame:UpdateStyles()
+    end
 end
 
 function StealthIndicator:OnEnable()
-    if self.db.enabled then 
-        frame:UpdateStyles()
-        frame:SetScript("OnEvent", OnEvent) 
-    end
-
-    if E then
-        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
-            nil,
-            nil,
-            "ALL,ITRULIA",
-            function()
-                return self.db.enabled
-            end,
-            addonName .. "," .. moduleName
-        )
-    elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
-    else
-        LEM:AddFrame(frame, function(frame, layoutName, point, x, y)
-            self.db.point = {point = point, x = x, y = y}
-        end, self:GetDefaults().point)
-    end
+    self:RefreshConfig()
 end
 
 function StealthIndicator:ToggleTestMode()
-    if not self.db.enabled then 
+    if not self.db.enabled or not self.frame then
         return
     end
 
-    OnEvent(frame)
+    OnEvent(self.frame)
 end
 
 function StealthIndicator:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
-        frame:UpdateStyles()
+        if self.frame then
+            self.frame:UpdateStyles()
+        end
     end)
 end

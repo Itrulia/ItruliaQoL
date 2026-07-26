@@ -9,7 +9,8 @@ if ItruliaQoL.EUI or ItruliaQoL.E then
     return
 end
 
-local frame = CreateFrame("frame", addonName .. moduleName, UIParent)
+-- The live frame hangs off the module as FriendlyNameplates.frame, so anything holding
+-- the module can reach it. Nil until the module is first enabled; see EnsureFrame.
 
 local function OnEvent()
     _G.SystemFont_NamePlate:SetFont(LSM:Fetch("font", FriendlyNameplates.db.font.fontFamily), FriendlyNameplates.db.font.fontSize, FriendlyNameplates.db.font.fontOutline)
@@ -20,7 +21,31 @@ local function OnEvent()
     SetCVar("nameplateShowOnlyNameForFriendlyPlayerUnits", 1)
 end
 
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+-- Builds the module's frame.
+--
+-- This module draws nothing of its own -- the frame is purely an event listener that
+-- restyles Blizzard's nameplate fonts -- but it is still built here rather than at file
+-- scope so nothing exists until the module is actually enabled (see RefreshConfig).
+--
+-- Deliberately registers no events; those belong to the live instance only, and are
+-- wired in EnsureFrame.
+function FriendlyNameplates:GenerateFrame(name, parent)
+    return CreateFrame("frame", name, parent or UIParent)
+end
+
+-- Returns the live instance, building it on the first call and reusing it after that.
+function FriendlyNameplates:EnsureFrame()
+    if self.frame then
+        return self.frame
+    end
+
+    local f = self:GenerateFrame(addonName .. moduleName)
+    self.frame = f
+
+    f:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+    return f
+end
 
 function FriendlyNameplates:OnInitialize()
     local profile = ItruliaQoL.db.profile
@@ -34,21 +59,23 @@ function FriendlyNameplates:RefreshConfig()
     self.db = profile.FriendlyNameplates
 
     if self.db.enabled then
-        frame:SetScript("OnEvent", OnEvent)
-        OnEvent(frame)
-    else
-        frame:SetScript("OnEvent", nil)
+        local f = self:EnsureFrame()
+
+        f:SetScript("OnEvent", OnEvent)
+        OnEvent(f)
+    elseif self.frame then
+        self.frame:SetScript("OnEvent", nil)
     end
 end
 
 function FriendlyNameplates:OnEnable()
-    if self.db.enabled then
-        frame:SetScript("OnEvent", OnEvent)
-    end
+    self:RefreshConfig()
 end
 
 function FriendlyNameplates:RegisterOptions(parentOptions)
     parentOptions.args[moduleName] = self:GetOptions(function()
-        OnEvent(frame)
+        if self.frame then
+            OnEvent(self.frame)
+        end
     end)
 end
