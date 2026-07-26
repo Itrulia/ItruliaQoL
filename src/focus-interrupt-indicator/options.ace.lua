@@ -10,6 +10,7 @@ function FocusInterruptIndicator:GetOptions(onChange)
         type = "group",
         name = "Focus Interrupt",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(FocusInterruptIndicator),
             description = {
                 type = "description",
                 name = "Shows an alert when your focus casts an interruptable cast and you have your interrupt ready \n\n",

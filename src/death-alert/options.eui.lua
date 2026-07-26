@@ -1,5 +1,4 @@
 local addonName, ItruliaQoL = ...
-local LSM = ItruliaQoL.LSM
 
 local moduleName = "DeathAlert"
 local DeathAlert = ItruliaQoL:GetModule(moduleName)
@@ -31,10 +30,7 @@ local function roleRows(role)
                 DeathAlert.db.byRole.sound[role].enabled = value
             end,
         },
-        {
-            type = "select",
-            label = "Sound",
-            values = LSM:HashTable("sound"),
+        ItruliaQoL:EUISoundRow({
             disabled = function()
                 return not DeathAlert.db.playSound or not DeathAlert.db.byRole.sound[role].enabled
             end,
@@ -44,7 +40,7 @@ local function roleRows(role)
             set = function(value)
                 DeathAlert.db.byRole.sound[role].sound = value
             end,
-        },
+        }),
         {
             type = "execute",
             label = "Clear",
@@ -88,15 +84,9 @@ local function roleRows(role)
     }
 end
 
--- This module has enough settings to warrant tabs of its own. ellesmere.lua reads
--- this static list at registration (a plain table, so the sidebar can be built
--- without calling into every module at login) and passes the selected page back to
--- GetEUIOptions. The other hosts call GetEUIOptions with no page name and get the
--- Display list, which is the fallback below.
+
 DeathAlert.EUIPages = { "Display", "Sound Alert", "Filters" }
 
--- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua's AceConfig table, split per page.
 function DeathAlert:GetEUIOptions(pageName)
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
@@ -118,10 +108,7 @@ function DeathAlert:GetEUIOptions(pageName)
                         DeathAlert.db.playSound = value
                     end,
                 },
-                {
-                    type = "select",
-                    label = "Sound",
-                    values = LSM:HashTable("sound"),
+                ItruliaQoL:EUISoundRow({
                     disabled = function()
                         return not DeathAlert.db.playSound
                     end,
@@ -131,7 +118,7 @@ function DeathAlert:GetEUIOptions(pageName)
                     set = function(value)
                         DeathAlert.db.sound = value
                     end,
-                },
+                }),
                 {
                     header = "Text-to-Speech",
                 },
@@ -239,7 +226,6 @@ function DeathAlert:GetEUIOptions(pageName)
         }
     end
 
-    -- "Display", and the fallback for any caller that passes no page name.
     return {
         name = "Death Alert",
         rows = {

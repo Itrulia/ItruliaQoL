@@ -3,8 +3,6 @@ local addonName, ItruliaQoL = ...
 local moduleName = "CombatTimer"
 local CombatTimer = ItruliaQoL:GetModule(moduleName)
 
--- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua's AceConfig table.
 function CombatTimer:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 

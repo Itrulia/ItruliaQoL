@@ -3,15 +3,8 @@ local addonName, ItruliaQoL = ...
 local moduleName = "MacroFactory"
 local MacroFactory = ItruliaQoL:GetModule(moduleName)
 
--- No enable switch on the sidebar row: this module has nothing to turn off. It only
--- creates macros when an icon is clicked, and its db.enabled is vestigial -- nothing
--- reads or writes it.
 MacroFactory.EUINoEnableSwitch = true
 
--- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua -- both build their layout from the shared
--- macro registry (MacroFactory:GetGroupedMacros) so they stay in sync. Each
--- section becomes an icon grid ("icons" row); clicking an icon creates the macro.
 function MacroFactory:GetEUIOptions()
     local function iconItem(macro)
         return {

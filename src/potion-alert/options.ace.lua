@@ -10,6 +10,7 @@ function PotionAlert:GetOptions(onChange)
         type = "group",
         name = "Potion Alert",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(PotionAlert),
             description = {
                 type = "description",
                 name =  "Displays a text and plays a sound when your combat potion is off CD\n\n",

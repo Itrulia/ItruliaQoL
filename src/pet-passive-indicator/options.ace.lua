@@ -10,6 +10,7 @@ function PetPassiveIndicator:GetOptions(onChange)
         type = "group",
         name = "Pet Passive",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(PetPassiveIndicator),
             description = {
                 type = "description",
                 name =  "Displays a text when you have a pet and it's set to passive\n\n",

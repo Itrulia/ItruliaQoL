@@ -10,6 +10,7 @@ function CharacterIndicator:GetOptions(onChange)
         type = "group",
         name = "Character Indicator",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(CharacterIndicator),
             description = {
                 type = "description",
                 name =  "Creates an indicator that is always on during combat indicating where you are\n\n",

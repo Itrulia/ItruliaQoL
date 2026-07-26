@@ -48,7 +48,6 @@ function CursorCircle:GenerateFrame(name, parent)
     return f
 end
 
--- Returns the live instance, building it on the first call and reusing it after that.
 function CursorCircle:EnsureFrame()
     if self.frame then
         return self.frame
@@ -92,5 +91,7 @@ function CursorCircle:RegisterOptions(parentOptions)
         if self.frame then
             self.frame:UpdateStyles()
         end
+
+        ItruliaQoL:RefreshPreview(self)
     end)
 end

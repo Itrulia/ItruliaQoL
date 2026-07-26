@@ -204,10 +204,10 @@ control greys/ungreys immediately:
 { type = "toggle", label = "Play sound", refresh = true,
   get = function() return M.db.playSound end,
   set = function(v) M.db.playSound = v end },
-{ type = "select", label = "Sound", values = LSM:HashTable("sound"),
+ItruliaQoL:EUISoundRow({
   disabled = function() return not M.db.playSound end,   -- gated by the toggle above
   get = function() return M.db.sound end,
-  set = function(v) M.db.sound = v end },
+  set = function(v) M.db.sound = v end }),
 ```
 
 `refresh` is honoured on `toggle`, `select`, `input`, and `execute`. Don't put it
@@ -237,11 +237,34 @@ interaction.
   ```
 - **`ItruliaQoL:EUIFontValues()`** → `(values, order)` for a font-family dropdown,
   if you need to build the select row by hand.
+- **`ItruliaQoL:EUIStatusbarRow(row)`** → a statusbar-texture dropdown row: the
+  texture **name** as the label and the texture itself drawn behind each menu row
+  as a preview. `row` is the usual select spec minus `values`/`order`
+  (`label?`, `tooltip?`, `disabled?`, `refresh?`, `get`, `set`); `label` defaults
+  to `"Statusbar texture"`:
+  ```lua
+  ItruliaQoL:EUIStatusbarRow({
+      get = function() return M.db.statusbarTexture end,
+      set = function(v) M.db.statusbarTexture = v; apply() end,
+  }),
+  ```
+- **`ItruliaQoL:EUISoundRow(row)`** → a sound dropdown row: the sound **name** as
+  the label plus a click-to-preview speaker icon on each menu row, and a search
+  box in the menu. Same `row` spec; `label` defaults to `"Sound"`.
+- **`ItruliaQoL:EUIStatusbarValues()`** / **`ItruliaQoL:EUISoundValues()`** →
+  `(values, order)` for those dropdowns, if you need to build the select row by
+  hand (e.g. to add extra entries). The previews ride on `values._menuOpts`, so
+  copy that field along if you shallow-copy the table.
 - **`ItruliaQoL:ApplyModuleStyles(moduleName)`** → calls the module's named frame
-  `:UpdateStyles()` (see apply rules above).
+  `:UpdateStyles()` and redraws the module's preview (see apply rules above, and
+  **The preview** below).
 
-Font family/size use LSM (the same fonts EllesmereUI registers), so values stay
-compatible with `db.font.fontFamily` and `LSM:Fetch`.
+Fonts, statusbar textures and sounds all come from LSM (the same media
+EllesmereUI registers), and every helper keys its dropdown by the LSM **name** —
+never the file path — so values stay compatible with what `db` stores and with
+`LSM:Fetch`. Passing `LSM:HashTable(...)` straight into a `select` is the mistake
+to avoid: that table is name → path, so the dropdown ends up labelling every row
+with a raw file path.
 
 ---
 
@@ -272,6 +295,97 @@ description = {
 Because of that, do **not** open `rows` with a plain `{ text = ... }` describing the
 module. `ellesmere.lua` strips a leading text-only row precisely because it would
 repeat the header. Put per-control explanations in `tooltip` instead.
+
+### The preview
+
+A module that draws something on screen gets a **live preview of its own frame**
+pinned above its settings, in EllesmereUI's content header — the non-scrolling
+strip between the tab bar and the page, which is where EllesmereUI puts its own
+previews. It restyles as you edit, so you can see a colour or font change without
+closing the panel, and it works whether the module is switched on or off.
+
+The preview is a *second instance* built by the module's own `GenerateFrame`, so it
+styles itself through the same `UpdateStyles` as the live one — there is no
+duplicated drawing code to keep in sync. It is built the first time its page is
+opened and parked (hidden, out of the panel's frame tree) once you navigate away.
+
+To opt in, add a `preview.lua` to the module's folder — registered in its `init.xml`
+between `defaults.lua` and the options files — defining `Module:PreparePreview(frame)`.
+`UpdateStyles` has already run when it is called; its job is
+to put the instance into the state its `OnEvent` reaches when the feature actually
+fires, since a freshly generated frame usually starts blank or hidden:
+
+```lua
+function StealthIndicator:PreparePreview(f)
+    f.text:Show()
+end
+```
+
+Modules whose display depends on live data fill in a sample instead, mirroring what
+their `OnEvent` does under `ItruliaQoL.testMode`. Anything that changes the text has
+to re-run `UpdateStyles` afterwards, because the frame sizes itself from it:
+
+```lua
+function CombatTimer:PreparePreview(f)
+    f.text:SetText(f:FormatTime(83))
+    f.text:Show()
+    f:UpdateStyles()
+end
+```
+
+A module split across tabs gets the selected page as a second argument, so each tab
+can preview the text it configures. There is still only one preview instance —
+switching tabs re-points it:
+
+```lua
+-- preview.lua
+MovementAlert.pageDisplay = "Movement Alert"
+MovementAlert.pageTimeSpiral = "Time Spiral"
+
+function MovementAlert:PreparePreview(f, page)
+    if page == self.pageTimeSpiral then
+        -- ... the time spiral readout
+    else
+        -- ... the movement cooldown readout
+    end
+
+    f.text:Show()
+    f:UpdateStyles()
+end
+```
+
+The page names belong on the module in `preview.lua` — that is what switches on them —
+rather than inlined as strings: `EUIPages` here, the AceConfig tab groups in
+`options.ace.lua` and `PreparePreview` all have to agree, across three files.
+`EUIPages` itself stays in `options.eui.lua`, built from those two names:
+
+```lua
+-- options.eui.lua
+MovementAlert.EUIPages = { MovementAlert.pageDisplay, MovementAlert.pageTimeSpiral }
+```
+
+That is the whole contract. `PreparePreview` doubles as the opt-in flag: a module
+that draws nothing — a pure event listener like `FocusTargetMarker` or
+`PreventRelease` — simply omits it and gets no header, costing nothing. The same
+function drives the AceConfig preview, so writing it once covers every host.
+
+The AceConfig side needs its placement spelled out, having no content header to put it
+in: add `ItruliaQoL:CreatePreviewOption(Module)` as the first entry of the module's
+`args`. A tabbed module sets `childGroups = "tab"` on its group and puts one preview
+option at the top of each tab's group, naming that tab —
+`ItruliaQoL:CreatePreviewOption(MovementAlert, 0, nil, MovementAlert.pageTimeSpiral)`
+— which is what feeds `PreparePreview` its `page` there.
+
+Two things the preview deliberately overrides after `UpdateStyles`, handled centrally
+in `src/preview.lua` so no module has to care:
+
+- **Position and strata.** `UpdateStyles` anchors the frame at its saved point with
+  the configured frame strata, which are meant for its real home on `UIParent`. Left
+  alone, the saved point would push the preview out of the header and a `BACKGROUND`
+  strata would hide it behind the panel.
+- **Scale.** The config window can run at a different effective scale than
+  `UIParent`, so the preview is scaled to compensate and a 28px font previews at the
+  size it really draws.
 
 ### The enable switch
 
@@ -308,6 +422,9 @@ Always return a valid list for the no-argument case — other hosts may call wit
 one. Tabs lay out in a single non-wrapping row, so keep the names short and the
 count to roughly six or fewer.
 
+The content header sits *below* the tab bar, so each tab gets its own preview and
+`PreparePreview` is told which tab is open — see **The preview** above.
+
 ### Combined rows (`COMBINED_ROWS`)
 
 Two or more modules can share one sidebar row, each becoming a tab on it. This is
@@ -333,6 +450,7 @@ order is unchanged. Three things follow from it being one row:
   is on.
 - `EUIPages` on a member is ignored — a combined row already spends its tabs on its
   members.
+- The preview follows the selected tab, showing that member's own frame.
 
 If two modules are grouped permanently, consider merging them into one real module
 instead (as `AutoAcceptRole` + `GroupJoinedReminder` became `LFGImprovements`);

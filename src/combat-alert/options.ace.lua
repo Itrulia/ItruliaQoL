@@ -10,6 +10,7 @@ function CombatAlert:GetOptions(onChange)
         type = "group",
         name = "Combat Alert",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(CombatAlert),
             description = {
                 type = "description",
                 name = "Shows an alert when entering or leaving combat \n\n",

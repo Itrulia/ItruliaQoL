@@ -135,7 +135,7 @@ function FlyingBar:GenerateFrame(name, parent)
     f.surge.icon:SetTexture(C_Spell.GetSpellTexture(FlyingBar.whirlingSurgeSpellId))
     f.surge.icon:SetTexCoord(.08, .92, .08, .92)
 
-    f.surge.cd = CreateFrame('Cooldown', nil, f.surge, 'CooldownFrameTemplate') ---@diagnostic disable-line: generic-constraint-mismatch
+    f.surge.cd = CreateFrame('Cooldown', nil, f.surge, 'CooldownFrameTemplate')
     f.surge.cd:SetAllPoints()
     f.surge.cd:SetHideCountdownNumbers(true)
 
@@ -174,9 +174,7 @@ function FlyingBar:GenerateFrame(name, parent)
     f.speed.tick:SetWidth(1)
     f.speed.tick:SetColorTexture(0, 0, 0, 1)
 
-    -- `self`, not the live frame's tick: a preview instance must place its own.
     function f.speed.tick:UpdatePosition()
-        -- `owner`, not `parent`: GenerateFrame's own `parent` is in scope here.
         local owner = self:GetParent();
         local width = owner:GetWidth();
         local pixelPerPower = width / select(2, owner:GetMinMaxValues())
@@ -234,14 +232,14 @@ function FlyingBar:GenerateFrame(name, parent)
 
         local frameWidth = self.speed:GetWidth()
 
-        for i, bar in ipairs(self.vigor) do
+        for _, bar in ipairs(self.vigor) do
             bar:SetWidth((frameWidth - (#self.vigor - 1)) / #self.vigor)
             bar:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.vigor.statusbarTexture))
             bar:SetStatusBarColor(FlyingBar.db.vigor.color.r, FlyingBar.db.vigor.color.g, FlyingBar.db.vigor.color.b, FlyingBar.db.vigor.color.a)
             bar.textureBorder:UpdatePosition()
         end
 
-        for i, bar in ipairs(self.secondWind) do
+        for _, bar in ipairs(self.secondWind) do
             bar:SetWidth((frameWidth - (#self.secondWind - 1)) / #self.secondWind)
             bar:SetStatusBarTexture(LSM:Fetch("statusbar", FlyingBar.db.secondWind.statusbarTexture))
             bar:SetStatusBarColor(FlyingBar.db.secondWind.color.r, FlyingBar.db.secondWind.color.g, FlyingBar.db.secondWind.color.b, FlyingBar.db.secondWind.color.a)
@@ -252,11 +250,6 @@ function FlyingBar:GenerateFrame(name, parent)
     return f
 end
 
--- Returns the live instance, building it on the first call and reusing it after that.
---
--- The mover is registered here rather than in OnEnable so a module switched on later
--- in the session still gets one; ElvUI, EllesmereUI and LibEditMode all accept a
--- late registration.
 function FlyingBar:EnsureFrame()
     if self.frame then
         return self.frame
@@ -331,5 +324,7 @@ function FlyingBar:RegisterOptions(parentOptions)
         if self.frame then
             self.frame:UpdateStyles()
         end
+
+        ItruliaQoL:RefreshPreview(self)
     end)
 end

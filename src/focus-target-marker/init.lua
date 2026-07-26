@@ -4,11 +4,6 @@ local LSM = ItruliaQoL.LSM
 
 local FocusTargetMarker = ItruliaQoL:NewModule(moduleName)
 
--- The live frame hangs off the module as FocusTargetMarker.frame, so anything holding
--- the module can reach it. Nil until the module is first enabled; see EnsureFrame.
-
--- Shared by every generated frame rather than rebuilt per instance -- it is read-only
--- lookup data.
 local TARGET_MARKER_TEXT = {
     [1] = 'Star',
     [2] = 'Circle',
@@ -40,14 +35,6 @@ local function OnEvent(self, event, ...)
     end;
 end
 
--- Builds the module's frame and everything hanging off it.
---
--- This module draws nothing -- the frame is purely an event listener that keeps the
--- macro in sync -- but it is still built here rather than at file scope so nothing
--- exists until the module is actually enabled (see RefreshConfig).
---
--- Deliberately registers no events; those belong to the live instance only, and are
--- wired in EnsureFrame.
 function FocusTargetMarker:GenerateFrame(name, parent)
     local f = CreateFrame("frame", name, parent or UIParent)
 
@@ -76,7 +63,6 @@ function FocusTargetMarker:GenerateFrame(name, parent)
     return f
 end
 
--- Returns the live instance, building it on the first call and reusing it after that.
 function FocusTargetMarker:EnsureFrame()
     if self.frame then
         return self.frame

@@ -3,9 +3,6 @@ local moduleName = "LFGImprovements"
 
 local LFGImprovements = ItruliaQoL:NewModule(moduleName)
 
--- The live frame hangs off the module as LFGImprovements.frame, so anything holding the
--- module can reach it. Nil until the module is first enabled; see EnsureFrame.
-
 local function OnEvent(self, event, ...)
     if LFGImprovements.db.groupJoinedReminder.enabled then
         if event == "GROUP_LEFT" then
@@ -49,14 +46,6 @@ local function OnEvent(self, event, ...)
     end
 end
 
--- Builds the module's frame.
---
--- This module draws nothing -- the frame is purely an event listener for the group
--- joined reminder -- but it is still built here rather than at file scope so nothing
--- exists until the module is actually enabled (see RefreshConfig).
---
--- Deliberately registers no events; those belong to the live instance only, and are
--- wired in EnsureFrame.
 function LFGImprovements:GenerateFrame(name, parent)
     local f = CreateFrame("frame", name, parent or UIParent)
     f.groupName = nil
@@ -64,7 +53,6 @@ function LFGImprovements:GenerateFrame(name, parent)
     return f
 end
 
--- Returns the live instance, building it on the first call and reusing it after that.
 function LFGImprovements:EnsureFrame()
     if self.frame then
         return self.frame
@@ -99,10 +87,6 @@ function LFGImprovements:RefreshConfig()
 end
 
 function LFGImprovements:OnEnable()
-    -- Stays wired regardless of the module's state: this is a script on a Blizzard
-    -- button, not on our frame, so there is nothing to create lazily. It checks
-    -- db.enabled itself -- without that the role check would still auto-accept with
-    -- the whole module switched off.
     LFDRoleCheckPopupAcceptButton:SetScript("OnShow", function()
         if self.db.enabled and self.db.autoAcceptRole.enabled then
             LFDRoleCheckPopupAcceptButton:Click()

@@ -3,21 +3,11 @@ local moduleName = "PreventRelease"
 
 local PreventRelease = ItruliaQoL:NewModule(moduleName)
 
--- The live frame hangs off the module as PreventRelease.frame, so anything holding the
--- module can reach it. Nil until the module is first enabled; see EnsureFrame.
 
 local function OnEvent(self)
     self:Cleanup()
 end
 
--- Builds the module's frame and everything hanging off it.
---
--- This module draws nothing of its own -- the frame only tracks the release button it
--- has disabled on Blizzard's death popup -- but it is still built here rather than at
--- file scope so nothing exists until the module is actually enabled (see RefreshConfig).
---
--- Deliberately registers no events; those belong to the live instance only, and are
--- wired in EnsureFrame.
 function PreventRelease:GenerateFrame(name, parent)
     local f = CreateFrame("frame", name, parent or UIParent)
 
@@ -84,7 +74,6 @@ function PreventRelease:GenerateFrame(name, parent)
     return f
 end
 
--- Returns the live instance, building it on the first call and reusing it after that.
 function PreventRelease:EnsureFrame()
     if self.frame then
         return self.frame
@@ -116,8 +105,6 @@ function PreventRelease:RefreshConfig()
         f:SetScript("OnEvent", OnEvent)
         OnEvent(f)
     elseif self.frame then
-        -- Re-enable the release button before going quiet, or it stays disabled for the
-        -- rest of the session.
         self.frame:Cleanup()
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)
@@ -125,9 +112,6 @@ function PreventRelease:RefreshConfig()
 end
 
 function PreventRelease:OnEnable()
-    -- Stays hooked regardless of the module's state: hooksecurefunc cannot be undone,
-    -- so the enabled check lives inside. The frame is only built once the popup we care
-    -- about actually appears with the module on.
     hooksecurefunc("StaticPopup_Show", function(which)
         if which == "DEATH" and self.db.enabled then
             self:EnsureFrame():SetupPopup()

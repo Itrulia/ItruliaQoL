@@ -25,11 +25,6 @@ local function RaidMarkerString(index)
     )
 end
 
--- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua's AceConfig table. This module has no styled
--- frame (no UpdateStyles), so appearance-style changes route through
--- RefreshConfig, which rewrites the macro -- the equivalent of the AceConfig
--- onChange (OnEvent).
 function FocusTargetMarker:GetEUIOptions()
     return {
         name = "Focus Marker",

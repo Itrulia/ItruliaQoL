@@ -9,6 +9,7 @@ function MovementAlert:GetOptions(onChange)
         order = 2,
         type = "group",
         name = "Movement Alert",
+        childGroups = "tab",
         args = {
             description = {
                 type = "description",
@@ -29,71 +30,73 @@ function MovementAlert:GetOptions(onChange)
                     MovementAlert:RefreshConfig()
                 end
             },
-            displaySettings = {
+            display = {
+                order = 10,
                 type = "group",
-                name = "",
-                order = 4,
-                inline = true,
+                name = MovementAlert.pageDisplay,
                 args = {
-                    color = {
-                        order = 2,
-                        type = "color",
-                        name = "Color",
-                        width = 0.4,
-                        hasAlpha = true,
-                        get = function()
-                            local c = MovementAlert.db.color
-                            return c.r, c.g, c.b, c.a
-                        end,
-                        set = function(_, r, g, b, a)
-                            MovementAlert.db.color = {
-                                r = r,
-                                g = g,
-                                b = b,
-                                a = a
-                            }
-                            onChange()
-                        end
+                    preview = ItruliaQoL:CreatePreviewOption(MovementAlert, 0, nil, MovementAlert.pageDisplay),
+                    displaySettings = {
+                        type = "group",
+                        name = "",
+                        order = 4,
+                        inline = true,
+                        args = {
+                            color = {
+                                order = 2,
+                                type = "color",
+                                name = "Color",
+                                width = 0.4,
+                                hasAlpha = true,
+                                get = function()
+                                    local c = MovementAlert.db.color
+                                    return c.r, c.g, c.b, c.a
+                                end,
+                                set = function(_, r, g, b, a)
+                                    MovementAlert.db.color = {
+                                        r = r,
+                                        g = g,
+                                        b = b,
+                                        a = a
+                                    }
+                                    onChange()
+                                end
+                            },
+                            decimals = {
+                                order = 3,
+                                type = "range",
+                                width = 0.75,
+                                min = 0,
+                                max = 1,
+                                step = 1,
+                                name = "Decimal precision",
+                                get = function()
+                                    return MovementAlert.db.precision
+                                end,
+                                set = function(_, value)
+                                    MovementAlert.db.precision = value
+                                    onChange()
+                                end
+                            },
+                        }
                     },
-                    decimals = {
-                        order = 3,
-                        type = "range",
-                        width = 0.75,
-                        min = 0,
-                        max = 1,
-                        step = 1,
-                        name = "Decimal precision",
-                        get = function()
-                            return MovementAlert.db.precision
-                        end,
-                        set = function(_, value)
-                            MovementAlert.db.precision = value
+                    fontSettings = {
+                        type = "group",
+                        name = "",
+                        order = 5,
+                        inline = true,
+                        args = ItruliaQoL:createFontOptions(MovementAlert.db.font, function()
                             onChange()
-                        end
+                        end)
                     },
                 }
             },
-            fontSettings = {
+            timeSpiral = {
+                order = 20,
                 type = "group",
-                name = "",
-                order = 5,
-                inline = true,
-                args = ItruliaQoL:createFontOptions(MovementAlert.db.font, function() 
-                    onChange()
-                end)
-            },
-            spacer = {
-                type = "description",
-                name = " ",
-                width = "full",
-                order = 6,
-            },
-            timeSpiralSettings = {
-                type = "group",
-                name = "Time spiral",
-                order = 7,
-                inline = true,
+                name = MovementAlert.pageTimeSpiral,
                 args = {
+                    preview = ItruliaQoL:CreatePreviewOption(MovementAlert, 0, nil, MovementAlert.pageTimeSpiral),
                     showTimeSpiral = {
                         order = 1,
                         type = "toggle",
@@ -126,7 +129,7 @@ function MovementAlert:GetOptions(onChange)
                         order = 3,
                         type = "color",
                         name = "Time spiral color",
-                        hasAlpha = true, 
+                        hasAlpha = true,
                         get = function()
                             local c = MovementAlert.db.timeSpiralColor
                             return c.r, c.g, c.b, c.a
@@ -154,7 +157,7 @@ function MovementAlert:GetOptions(onChange)
                                 order = 1,
                                 type = "toggle",
                                 name = "Play sound when time spiral becomes active",
-                                get = function() 
+                                get = function()
                                     return MovementAlert.db.timeSpiralPlaySound
                                 end,
                                 set = function(_, value)
@@ -165,7 +168,7 @@ function MovementAlert:GetOptions(onChange)
                             timeSpiralSound = {
                                 order = 2,
                                 type = "select",
-                                dialogControl = "LSM30_Sound", 
+                                dialogControl = "LSM30_Sound",
                                 name = "Sound",
                                 values = LSM:HashTable("sound"),
                                 get = function()
@@ -194,7 +197,7 @@ function MovementAlert:GetOptions(onChange)
                                 order = 1,
                                 type = "toggle",
                                 name = "Play TTS when time spiral becomes active",
-                                get = function() 
+                                get = function()
                                     return MovementAlert.db.timeSpiralPlayTTS
                                 end,
                                 set = function(_, value)

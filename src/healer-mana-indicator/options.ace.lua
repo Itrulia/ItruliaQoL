@@ -10,6 +10,7 @@ function HealerManaIndicator:GetOptions(onChange)
         type = "group",
         name = "Healer Mana Indicator",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(HealerManaIndicator),
             description = {
                 type = "description",
                 name = "Shows the mana of your healers \n\n",

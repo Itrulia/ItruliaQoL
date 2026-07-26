@@ -1,9 +1,5 @@
 local addonName, ItruliaQoL = ...
 
--- Top-level "General" options: Test mode + the shared "All" font template.
--- AceConfig table for ElvUI / the standalone window. init.lua's RegisterOptions
--- folds the returned table into the parent options. The manual EllesmereUI
--- counterpart is general/options.eui.lua.
 function ItruliaQoL:GetGeneralOptions()
     return {
         description = {

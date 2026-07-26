@@ -250,5 +250,7 @@ function HealerManaIndicator:RegisterOptions(parentOptions)
         if self.frame then
             OnEvent(self.frame)
         end
+
+        ItruliaQoL:RefreshPreview(self)
     end)
 end

@@ -55,7 +55,6 @@ function StealthIndicator:GenerateFrame(name, parent)
             end
             self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
 
-            -- `self`, not the module's live frame: a preview instance must size itself.
             self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end
@@ -149,5 +148,7 @@ function StealthIndicator:RegisterOptions(parentOptions)
         if self.frame then
             self.frame:UpdateStyles()
         end
+
+        ItruliaQoL:RefreshPreview(self)
     end)
 end

@@ -1,11 +1,8 @@
 local addonName, ItruliaQoL = ...
-local LSM = ItruliaQoL.LSM
 
 local moduleName = "PotionAlert"
 local PotionAlert = ItruliaQoL:GetModule(moduleName)
 
--- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua's AceConfig table.
 function PotionAlert:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
@@ -84,10 +81,7 @@ function PotionAlert:GetEUIOptions()
                     PotionAlert.db.playSound = value
                 end,
             },
-            {
-                type = "select",
-                label = "Sound",
-                values = LSM:HashTable("sound"),
+            ItruliaQoL:EUISoundRow({
                 disabled = function()
                     return not PotionAlert.db.playSound
                 end,
@@ -97,7 +91,7 @@ function PotionAlert:GetEUIOptions()
                 set = function(value)
                     PotionAlert.db.sound = value
                 end,
-            },
+            }),
             {
                 header = "Text-to-Speech",
             },

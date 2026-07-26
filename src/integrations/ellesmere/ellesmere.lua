@@ -11,6 +11,9 @@ local addonName, ItruliaQoL = ...
 -- its EllesmereUI settings as a list of rows in its own options.eui.lua
 -- (Module:GetEUIOptions), which RenderEUIList turns into EllesmereUI widgets.
 --
+-- A module that draws something also gets a live preview of its own frame pinned
+-- above the page, in EllesmereUI's content header -- see EUIPreviewHeaderBuilder.
+--
 -- The registration technique (loadstring trampoline to pass EllesmereUI's
 -- caller whitelist, plus manual sidebar injection) follows NaowhUI_EUI, the
 -- reference third-party companion addon.
@@ -40,6 +43,13 @@ end
 -- `== false` rather than `not`: a module without the field must still restyle.
 function ItruliaQoL:ApplyModuleStyles(moduleName)
     local module = self:GetModule(moduleName, true)
+
+    -- Ahead of the disabled guard: the preview is a separate instance that never
+    -- touches the screen, so it keeps tracking the settings while the module is off.
+    -- Seeing what a module will look like before switching it on is the point of it.
+    if module then
+        self:RefreshPreview(module)
+    end
 
     if module and module.db and module.db.enabled == false then
         return
@@ -345,6 +355,70 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
     return frame, height
 end
 
+-- Live preview of the module's own frame, in EllesmereUI's content header -- the
+-- non-scrolling strip between the tab bar and the page, which is where EllesmereUI
+-- puts its own previews (see the resource bars / action bars options).
+--
+-- A module page gets one by returning this builder from the registration's
+-- `getHeaderBuilder`; EllesmereUI runs it on each cold page build and passes the
+-- header frame and its width, expecting the used height back. Pages that return nil
+-- get no header at all, so modules that draw nothing cost nothing.
+--
+-- Lifecycle, and why nothing here has to free anything: when the page is left,
+-- EllesmereUI either stashes the header's children (page cached) or orphans them with
+-- SetParent(nil) (page cleared). Either way `display` goes with it and the preview
+-- inside it stops drawing. On the way back, a cached page fires onPageCacheRestore
+-- (RestoreEUIPreview below) and a cleared one rebuilds cold through this builder.
+local PREVIEW_HEADER_HEIGHT = 120
+
+-- `pageName` is passed through to PreparePreview, so a module split across tabs can
+-- preview the state each tab configures. Its display is remembered per page: a tabbed
+-- module has one header per tab, each cached separately by EllesmereUI.
+function ItruliaQoL:EUIPreviewHeaderBuilder(module, pageName)
+    if not self:HasPreview(module) then
+        return nil
+    end
+
+    return function(hdr, hdrW)
+        -- Clipped so an oversized preview (a long alert text, a wide bar) stays in the
+        -- header strip instead of drawing over the page below it.
+        local display = CreateFrame("Frame", nil, hdr)
+        display:SetSize(hdrW, PREVIEW_HEADER_HEIGHT)
+        display:SetPoint("CENTER", hdr, "CENTER", 0, 0)
+        display:SetClipsChildren(true)
+
+        if not ItruliaQoL:ShowPreview(module, display, pageName) then
+            return 0
+        end
+
+        module.euiPreviewDisplays = module.euiPreviewDisplays or {}
+        module.euiPreviewDisplays[pageName or true] = display
+
+        return PREVIEW_HEADER_HEIGHT
+    end
+end
+
+-- The builder for one page of a sidebar entry, or nil when that page previews nothing.
+function ItruliaQoL:EUIPageHeaderBuilder(entry, pageName)
+    local module = entry.previewFor and entry.previewFor(pageName)
+
+    return module and self:EUIPreviewHeaderBuilder(module, pageName) or nil
+end
+
+-- Re-attach after EllesmereUI restores a cached page: the header's frames come back
+-- from its stash rather than through the builder, so the preview has to be re-hung
+-- and redrawn against the settings as they stand now.
+function ItruliaQoL:RestoreEUIPreview(module, pageName)
+    local displays = module.euiPreviewDisplays
+    local display = displays and displays[pageName or true]
+
+    -- No parent means EllesmereUI orphaned this header instead of caching it; the page
+    -- is about to be built cold, and the builder will make a fresh display.
+    if display and display:GetParent() then
+        self:ShowPreview(module, display, pageName)
+    end
+end
+
 -- Prominent "still being built" banner. Drawn from buildPage rather than from a
 -- single page, so it shows no matter which page the user lands on. Returns
 -- (frame, height) so it slots into the same `y = y - h` flow as everything else.
@@ -423,6 +497,112 @@ function ItruliaQoL:EUIFontFamilyRow(f, apply)
                 apply()
             end
         end,
+    }
+end
+
+-- Statusbar texture dropdown data in EllesmereUI's native format: the label is
+-- the texture NAME and each row previews the texture behind it (via the
+-- dropdown's `_menuOpts.background` hook, the same way EllesmereUI's own bar
+-- texture pickers do), instead of showing the raw file path. Keyed by LSM name,
+-- so it stays compatible with the stored value and LSM:Fetch.
+function ItruliaQoL:EUIStatusbarValues()
+    local LSM = self.LSM
+    local vals, order = {}, {}
+
+    for name in pairs(LSM:HashTable("statusbar")) do
+        vals[name] = name
+        order[#order + 1] = name
+    end
+
+    table.sort(order)
+
+    vals._menuOpts = {
+        itemHeight = 28,
+        background = function(key)
+            return LSM:Fetch("statusbar", key)
+        end,
+    }
+
+    return vals, order
+end
+
+-- A single EllesmereUI-native "Statusbar texture" dropdown row (name label +
+-- per-texture preview). `row` is the usual select spec minus values/order:
+--   { label?, tooltip?, disabled?, refresh?, get, set }
+-- `get`/`set` read/write the LSM texture name.
+function ItruliaQoL:EUIStatusbarRow(row)
+    local vals, order = self:EUIStatusbarValues()
+
+    return {
+        type = "select",
+        label = row.label or "Statusbar texture",
+        tooltip = row.tooltip,
+        values = vals,
+        order = order,
+        disabled = row.disabled,
+        refresh = row.refresh,
+        get = row.get,
+        set = row.set,
+    }
+end
+
+-- Sound dropdown data in EllesmereUI's native format: the label is the sound
+-- NAME and each row gets a click-to-preview speaker icon (via the dropdown's
+-- `_menuOpts.icon*` hooks, the same way EllesmereUI's own sound pickers do),
+-- instead of showing the raw file path. Keyed by LSM sound name, so it stays
+-- compatible with the stored value and LSM:Fetch.
+function ItruliaQoL:EUISoundValues()
+    local LSM = self.LSM
+    local vals, order = {}, {}
+
+    for name in pairs(LSM:HashTable("sound")) do
+        vals[name] = name
+        order[#order + 1] = name
+    end
+
+    table.sort(order)
+
+    vals._menuOpts = {
+        itemHeight = 26,
+        maxTextWidthPct = 0.8,
+        searchable = true,
+        iconAtlas = function()
+            return "common-icon-sound"
+        end,
+        iconPressedAtlas = function()
+            return "common-icon-sound-pressed"
+        end,
+        iconOnClick = function(key)
+            local path = LSM:Fetch("sound", key)
+
+            if path then
+                PlaySoundFile(path, "Master")
+            end
+        end,
+        iconTooltip = function()
+            return "Preview Sound"
+        end,
+    }
+
+    return vals, order
+end
+
+-- A single EllesmereUI-native "Sound" dropdown row (name label + click-to-preview
+-- speaker icon). Same `row` spec as EUIStatusbarRow; `get`/`set` read/write the
+-- LSM sound name.
+function ItruliaQoL:EUISoundRow(row)
+    local vals, order = self:EUISoundValues()
+
+    return {
+        type = "select",
+        label = row.label or "Sound",
+        tooltip = row.tooltip,
+        values = vals,
+        order = order,
+        disabled = row.disabled,
+        refresh = row.refresh,
+        get = row.get,
+        set = row.set,
     }
 end
 
@@ -1394,7 +1574,10 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     -- a normal module row, several for a combined one. It is what gives the row its
     -- enable switch (see AttachEUISidebarSwitches); rows without it (General,
     -- Profiles) get none.
-    local function addEntry(key, display, pages, build, description, members)
+    -- `previewFor` maps a page name to the module whose preview belongs in that page's
+    -- content header -- one module for a normal row, the tab's own member for a
+    -- combined one. Rows without it (General, Profiles) show no preview.
+    local function addEntry(key, display, pages, build, description, members, previewFor)
         entries[#entries + 1] = {
             key = addonName .. "_" .. key,
             display = display,
@@ -1402,6 +1585,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
             build = build,
             description = description,
             members = members,
+            previewFor = previewFor,
         }
     end
 
@@ -1473,7 +1657,9 @@ function ItruliaQoL:RegisterEUI(parentOptions)
                             local module = moduleByPage[pageName] or parts[1].module
 
                             return ItruliaQoL:BuildEUIModulePage(module, parent, y, true)
-                        end, combined.description, parts)
+                        end, combined.description, parts, function(pageName)
+                            return moduleByPage[pageName]
+                        end)
                 end
             end
         else
@@ -1491,7 +1677,9 @@ function ItruliaQoL:RegisterEUI(parentOptions)
                 addEntry(key, displayFor(key), module.EUIPages or { PAGE_SETTINGS },
                     function(pageName, parent, y)
                         return ItruliaQoL:BuildEUIModulePage(module, parent, y, true, pageName)
-                    end, descriptionFor(key), members)
+                    end, descriptionFor(key), members, function()
+                        return module
+                    end)
             end
         end
     end
@@ -1556,10 +1744,35 @@ function ItruliaQoL:RegisterEUI(parentOptions)
             description = "|cffffbf33BETA:|r " .. (entry.description or ""),
             pages = entry.pages,
             buildPage = function(pageName, parent, yOffset)
+                -- Filling the content header is the page's own job on a cold build;
+                -- getHeaderBuilder below only hands the same builder back so
+                -- EllesmereUI can re-run it after invalidating its header cache.
+                --
+                -- Not while prebuilding: EllesmereUI's global search runs buildPage
+                -- against an off-screen wrapper to index it, and there is only ever
+                -- one preview instance per module -- filling the header here would
+                -- move it out of the page the player is actually looking at.
+                local headerBuilder = not EUI._prebuilding
+                    and ItruliaQoL:EUIPageHeaderBuilder(entry, pageName)
+
+                if headerBuilder and EUI.SetContentHeader then
+                    EUI:SetContentHeader(headerBuilder)
+                end
+
                 local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, yOffset)
                 local y = yOffset - noticeH
 
                 return build(pageName, parent, y) or math.abs(y)
+            end,
+            getHeaderBuilder = function(pageName)
+                return ItruliaQoL:EUIPageHeaderBuilder(entry, pageName)
+            end,
+            onPageCacheRestore = function(pageName)
+                local module = entry.previewFor and entry.previewFor(pageName)
+
+                if module then
+                    ItruliaQoL:RestoreEUIPreview(module, pageName)
+                end
             end,
             onReset = onReset,
         })

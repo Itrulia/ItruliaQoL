@@ -117,6 +117,7 @@ function DeathAlert:GetOptions(onChange)
         type = "group",
         name = "Death Alert",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(DeathAlert),
             description = {
                 type = "description",
                 name = "Shows an alert when someone in your party or raid dies \n\n",

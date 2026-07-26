@@ -10,6 +10,7 @@ function MeleeIndicator:GetOptions(onChange)
         type = "group",
         name = "Melee Indicator",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(MeleeIndicator),
             description = {
                 type = "description",
                 name =  "Creates an indicator that shows up when you not in melee range as a melee spec\n\n",

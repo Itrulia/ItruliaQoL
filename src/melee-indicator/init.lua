@@ -279,5 +279,7 @@ function MeleeIndicator:RegisterOptions(parentOptions)
         if self.frame then
             self.frame:UpdateStyles()
         end
+
+        ItruliaQoL:RefreshPreview(self)
     end)
 end

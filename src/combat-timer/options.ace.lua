@@ -10,6 +10,7 @@ function CombatTimer:GetOptions(onChange)
         type = "group",
         name = "Combat Timer",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(CombatTimer),
             description = {
                 type = "description",
                 name = "Shows a combat timer \n\n",

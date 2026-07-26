@@ -21,15 +21,12 @@ function MacroFactory:RegisterMacro(def)
     table.insert(self.macros, def)
 end
 
--- Resolves a macro's `icon` (a spell id, a texture path/id, or a function
--- returning one of those) into a texture usable by an icon button.
 function MacroFactory:ResolveIcon(icon)
     if type(icon) == "function" then
         icon = icon()
     end
 
     if type(icon) == "number" then
-        -- Treat as a spell id first, fall back to using it as a raw texture id.
         return C_Spell.GetSpellTexture(icon) or icon
     end
 
@@ -111,7 +108,6 @@ StaticPopupDialogs["ITRULIAQOL_MACRO_OVERRIDE"] = {
     preferredIndex = 3,
 }
 
--- Writes the macro into an existing slot, or creates a new one when slotIndex is nil.
 function MacroFactory:WriteMacro(name, body, perCharacter, icon, slotIndex)
     if InCombatLockdown() then
         ItruliaQoL:Print("|cffff0000Can't create macros in combat.|r")
@@ -131,7 +127,6 @@ function MacroFactory:WriteMacro(name, body, perCharacter, icon, slotIndex)
     end
 end
 
--- Creates a macro, asking the player to confirm before overwriting one that already exists.
 function MacroFactory:CreateOrUpdateMacro(name, body, perCharacter, icon)
     if InCombatLockdown() then
         ItruliaQoL:Print("|cffff0000Can't create macros in combat.|r")
@@ -182,9 +177,6 @@ function MacroFactory:GetClassInterruptSpellNames()
     return names
 end
 
--- Builds a /cast line for the player's interrupt(s). Classes whose interrupt
--- differs by spec get a [known:spellName] clause per spell so a single macro
--- covers every spec; classes with one interrupt just cast it directly.
 function MacroFactory:BuildInterruptCast(conditions)
     local names = self:GetClassInterruptSpellNames()
 

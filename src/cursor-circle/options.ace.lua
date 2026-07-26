@@ -10,6 +10,7 @@ function CursorCircle:GetOptions(onChange)
         type = "group",
         name = "Cursor Circle",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(CursorCircle),
             description = {
                 type = "description",
                 name = "Puts a circle arounds your cursor \n\n",

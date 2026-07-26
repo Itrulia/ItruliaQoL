@@ -1,16 +1,11 @@
 local addonName, ItruliaQoL = ...
-local LSM = ItruliaQoL.LSM
 
 local moduleName = "FlyingBar"
 local FlyingBar = ItruliaQoL:GetModule(moduleName)
 
--- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua's AceConfig table.
 function FlyingBar:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
-    -- Per-statusbar appearance rows, mirroring options.ace.lua's
-    -- createStatusbarOptions. `key` indexes FlyingBar.db live.
     local function statusbarRows(key)
         return {
             {
@@ -31,10 +26,7 @@ function FlyingBar:GetEUIOptions()
                     apply()
                 end,
             },
-            {
-                type = "select",
-                label = "Statusbar texture",
-                values = LSM:HashTable("statusbar"),
+            ItruliaQoL:EUIStatusbarRow({
                 get = function()
                     return FlyingBar.db[key].statusbarTexture
                 end,
@@ -42,7 +34,7 @@ function FlyingBar:GetEUIOptions()
                     FlyingBar.db[key].statusbarTexture = value
                     apply()
                 end,
-            },
+            }),
             {
                 type = "slider",
                 label = "Height",

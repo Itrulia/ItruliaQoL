@@ -10,6 +10,7 @@ function PetMissingIndicator:GetOptions(onChange)
         type = "group",
         name = "Pet Missing",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(PetMissingIndicator),
             description = {
                 type = "description",
                 name =  "Displays a text when you are a pet spec and your pet is missing\n\n",

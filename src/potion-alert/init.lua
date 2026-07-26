@@ -204,5 +204,7 @@ function PotionAlert:RegisterOptions(parentOptions)
             self.frame:UpdateStyles()
             OnEvent(self.frame)
         end
+
+        ItruliaQoL:RefreshPreview(self)
     end)
 end

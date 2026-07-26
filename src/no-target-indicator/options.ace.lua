@@ -10,6 +10,7 @@ function NoTargetIndicator:GetOptions(onChange)
         type = "group",
         name = "No Target Indicator",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(NoTargetIndicator),
             description = {
                 type = "description",
                 name = "Shows an indicator text when player doesn't have a target when in combat \n\n",

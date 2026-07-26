@@ -66,6 +66,7 @@ function FlyingBar:GetOptions(onChange)
         type = "group",
         name = "Flying Bar",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(FlyingBar),
             description = {
                 type = "description",
                 name = "Dragonflying bar \n\n",

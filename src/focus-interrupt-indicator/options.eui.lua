@@ -1,11 +1,8 @@
 local addonName, ItruliaQoL = ...
-local LSM = ItruliaQoL.LSM
 
 local moduleName = "FocusInterruptIndicator"
 local FocusInterruptIndicator = ItruliaQoL:GetModule(moduleName)
 
--- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua's AceConfig table.
 function FocusInterruptIndicator:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
@@ -65,10 +62,7 @@ function FocusInterruptIndicator:GetEUIOptions()
                     FocusInterruptIndicator.db.playSound = value
                 end,
             },
-            {
-                type = "select",
-                label = "Sound",
-                values = LSM:HashTable("sound"),
+            ItruliaQoL:EUISoundRow({
                 disabled = function()
                     return not FocusInterruptIndicator.db.playSound
                 end,
@@ -78,7 +72,7 @@ function FocusInterruptIndicator:GetEUIOptions()
                 set = function(value)
                     FocusInterruptIndicator.db.sound = value
                 end,
-            },
+            }),
             {
                 header = "Text-to-Speech",
             },

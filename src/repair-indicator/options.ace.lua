@@ -10,6 +10,7 @@ function RepairIndicator:GetOptions(onChange)
         type = "group",
         name = "Repair Indicator",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(RepairIndicator),
             description = {
                 type = "description",
                 name =  "Displays a text when one of your items is broken or about to be\n\n",

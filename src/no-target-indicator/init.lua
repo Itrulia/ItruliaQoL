@@ -69,7 +69,6 @@ function NoTargetIndicator:GenerateFrame(name, parent)
             end
             self.text:SetFont(LSM:Fetch("font", NoTargetIndicator.db.font.fontFamily), NoTargetIndicator.db.font.fontSize, NoTargetIndicator.db.font.fontOutline)
 
-            -- `self`, not the module's live frame: a preview instance must size itself.
             self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end
@@ -166,5 +165,7 @@ function NoTargetIndicator:RegisterOptions(parentOptions)
         if self.frame then
             self.frame:UpdateStyles()
         end
+
+        ItruliaQoL:RefreshPreview(self)
     end)
 end

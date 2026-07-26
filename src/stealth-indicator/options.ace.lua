@@ -10,6 +10,7 @@ function StealthIndicator:GetOptions(onChange)
         type = "group",
         name = "Stealth Indicator",
         args = {
+            preview = ItruliaQoL:CreatePreviewOption(StealthIndicator),
             description = {
                 type = "description",
                 name = "Shows an indicator text when stealthed (not invisible) \n\n",
