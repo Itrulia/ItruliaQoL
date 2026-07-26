@@ -88,17 +88,161 @@ local function roleRows(role)
     }
 end
 
+-- This module has enough settings to warrant tabs of its own. ellesmere.lua reads
+-- this static list at registration (a plain table, so the sidebar can be built
+-- without calling into every module at login) and passes the selected page back to
+-- GetEUIOptions. The other hosts call GetEUIOptions with no page name and get the
+-- Display list, which is the fallback below.
+DeathAlert.EUIPages = { "Display", "Sound Alert", "Filters" }
+
 -- Hand-authored EllesmereUI settings, rendered by ellesmere.lua. Manual
--- counterpart to options.ace.lua's AceConfig table.
-function DeathAlert:GetEUIOptions()
+-- counterpart to options.ace.lua's AceConfig table, split per page.
+function DeathAlert:GetEUIOptions(pageName)
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
+    if pageName == "Sound Alert" then
+        return {
+            name = "Death Alert",
+            rows = {
+                {
+                    header = "Sound",
+                },
+                {
+                    type = "toggle",
+                    label = "Play sound",
+                    refresh = true,
+                    get = function()
+                        return DeathAlert.db.playSound
+                    end,
+                    set = function(value)
+                        DeathAlert.db.playSound = value
+                    end,
+                },
+                {
+                    type = "select",
+                    label = "Sound",
+                    values = LSM:HashTable("sound"),
+                    disabled = function()
+                        return not DeathAlert.db.playSound
+                    end,
+                    get = function()
+                        return DeathAlert.db.sound
+                    end,
+                    set = function(value)
+                        DeathAlert.db.sound = value
+                    end,
+                },
+                {
+                    header = "Text-to-Speech",
+                },
+                {
+                    type = "toggle",
+                    label = "Play TTS",
+                    refresh = true,
+                    disabled = function()
+                        return DeathAlert.db.playSound
+                    end,
+                    get = function()
+                        return DeathAlert.db.playTTS
+                    end,
+                    set = function(value)
+                        DeathAlert.db.playTTS = value
+                    end,
+                },
+                {
+                    type = "input",
+                    label = "TTS Message",
+                    disabled = function()
+                        return DeathAlert.db.playSound or not DeathAlert.db.playTTS
+                    end,
+                    get = function()
+                        return DeathAlert.db.TTS
+                    end,
+                    set = function(value)
+                        DeathAlert.db.TTS = value
+                    end,
+                },
+                {
+                    type = "slider",
+                    label = "TTS Volume",
+                    min = 0,
+                    max = 100,
+                    step = 1,
+                    disabled = function()
+                        return DeathAlert.db.playSound or not DeathAlert.db.playTTS
+                    end,
+                    get = function()
+                        return DeathAlert.db.TTSVolume
+                    end,
+                    set = function(value)
+                        DeathAlert.db.TTSVolume = value
+                    end,
+                },
+            },
+        }
+    end
+
+    if pageName == "Filters" then
+        return {
+            name = "Death Alert",
+            rows = {
+                {
+                    header = "Names",
+                },
+                {
+                    type = "input",
+                    label = "Whitelist names",
+                    tooltip = "Comma seperated list of names",
+                    get = function()
+                        return DeathAlert.db.whitelist
+                    end,
+                    set = function(value)
+                        DeathAlert.db.whitelist = value
+                    end,
+                },
+                {
+                    type = "input",
+                    label = "Blacklist names",
+                    tooltip = "Comma seperated list of names",
+                    disabled = function()
+                        return DeathAlert.db.whitelist ~= nil and DeathAlert.db.whitelist ~= ""
+                    end,
+                    get = function()
+                        return DeathAlert.db.blacklist
+                    end,
+                    set = function(value)
+                        DeathAlert.db.blacklist = value
+                    end,
+                },
+                {
+                    header = "Settings based on dead player's role",
+                },
+                {
+                    text = "These settings only work while in a raid as you might not care about a dps standing in fire ;)",
+                },
+                {
+                    text = "Empty settings will fallback to the settings above",
+                },
+                {
+                    header = "DPS",
+                    rows = roleRows("DAMAGER"),
+                },
+                {
+                    header = "Healer",
+                    rows = roleRows("HEALER"),
+                },
+                {
+                    header = "Tank",
+                    rows = roleRows("TANK"),
+                },
+            },
+        }
+    end
+
+    -- "Display", and the fallback for any caller that passes no page name.
     return {
         name = "Death Alert",
         rows = {
-            {
-                text = "Shows an alert when someone in your party or raid dies",
-            },
             {
                 type = "toggle",
                 label = "Enable",
@@ -156,126 +300,6 @@ function DeathAlert:GetEUIOptions()
             {
                 header = "Font",
                 rows = ItruliaQoL:EUIFontRows(DeathAlert.db.font, apply),
-            },
-            {
-                header = "Sound",
-            },
-            {
-                type = "toggle",
-                label = "Play sound",
-                refresh = true,
-                get = function()
-                    return DeathAlert.db.playSound
-                end,
-                set = function(value)
-                    DeathAlert.db.playSound = value
-                end,
-            },
-            {
-                type = "select",
-                label = "Sound",
-                values = LSM:HashTable("sound"),
-                disabled = function()
-                    return not DeathAlert.db.playSound
-                end,
-                get = function()
-                    return DeathAlert.db.sound
-                end,
-                set = function(value)
-                    DeathAlert.db.sound = value
-                end,
-            },
-            {
-                header = "Text-to-Speech",
-            },
-            {
-                type = "toggle",
-                label = "Play TTS",
-                refresh = true,
-                disabled = function()
-                    return DeathAlert.db.playSound
-                end,
-                get = function()
-                    return DeathAlert.db.playTTS
-                end,
-                set = function(value)
-                    DeathAlert.db.playTTS = value
-                end,
-            },
-            {
-                type = "input",
-                label = "TTS Message",
-                disabled = function()
-                    return DeathAlert.db.playSound or not DeathAlert.db.playTTS
-                end,
-                get = function()
-                    return DeathAlert.db.TTS
-                end,
-                set = function(value)
-                    DeathAlert.db.TTS = value
-                end,
-            },
-            {
-                type = "slider",
-                label = "TTS Volume",
-                min = 0,
-                max = 100,
-                step = 1,
-                disabled = function()
-                    return DeathAlert.db.playSound or not DeathAlert.db.playTTS
-                end,
-                get = function()
-                    return DeathAlert.db.TTSVolume
-                end,
-                set = function(value)
-                    DeathAlert.db.TTSVolume = value
-                end,
-            },
-            {
-                type = "input",
-                label = "Whitelist names",
-                tooltip = "Comma seperated list of names",
-                get = function()
-                    return DeathAlert.db.whitelist
-                end,
-                set = function(value)
-                    DeathAlert.db.whitelist = value
-                end,
-            },
-            {
-                type = "input",
-                label = "Blacklist names",
-                tooltip = "Comma seperated list of names",
-                disabled = function()
-                    return DeathAlert.db.whitelist ~= nil and DeathAlert.db.whitelist ~= ""
-                end,
-                get = function()
-                    return DeathAlert.db.blacklist
-                end,
-                set = function(value)
-                    DeathAlert.db.blacklist = value
-                end,
-            },
-            {
-                header = "Settings based on dead player's role",
-            },
-            {
-                text = "These settings only work while in a raid as you might not care about a dps standing in fire ;)",
-            },
-            {
-                text = "Empty settings will fallback to the settings above",
-            },
-            {
-                header = "DPS",
-                rows = roleRows("DAMAGER"),
-            },
-            {
-                header = "Healer",
-                rows = roleRows("HEALER"),
-            },
-            {
-                header = "Tank",
-                rows = roleRows("TANK"),
             },
         },
     }

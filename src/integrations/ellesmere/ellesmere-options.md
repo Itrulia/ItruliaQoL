@@ -11,10 +11,13 @@ widgets.
   Blizzard-options / `/itrulia` window.
 - **`options.eui.lua`** — the manual list. Used only when EllesmereUI is present.
 
-Both edit the **same** `module.db`, so the two stay in sync automatically. If a
-module has no `options.eui.lua`, `ellesmere.lua` falls back to auto-translating
-its AceConfig table (a best-effort mirror), so an `options.eui.lua` is optional
-but preferred.
+Both edit the **same** `module.db`, so the two stay in sync automatically.
+
+`options.eui.lua` is **required** for a module to show up in EllesmereUI. There is
+no auto-translation of the AceConfig table any more: a module without
+`GetEUIOptions` is skipped entirely and gets no sidebar row, leaving its settings
+reachable only from the ElvUI / standalone panels. `DungeonTeleports` is the one
+module in that state today.
 
 ---
 
@@ -51,6 +54,9 @@ called every time the page is (re)built, so read/write `module.db` **live**
 inside the callbacks — never capture `local db = self.db` (that snapshot goes
 stale on a profile switch).
 
+It also receives one optional argument, the selected page name. That only matters
+for modules that declare tabs — see **Tabs** below.
+
 ---
 
 ## Row types
@@ -64,7 +70,20 @@ Each entry in `rows` is one of the following tables.
 { spacer = 12 }                      -- vertical gap of N px
 { text   = "Some help text." }       -- a plain, non-interactive line
 { header = "Font", rows = { ... } }  -- a titled sub-list (nested rows)
+{ pair   = { <row>, <row> } }        -- two controls on one row, half width each
 ```
+
+`pair` takes any two control rows (not just toggles) and puts them side by side:
+
+```lua
+{ pair = {
+    { type = "toggle", label = "Auto accept role", get = ..., set = ... },
+    { type = "toggle", label = "Announce key",     get = ..., set = ... },
+} },
+```
+
+Each half gets half the row width, and EllesmereUI **truncates** labels rather than
+wrapping them, so keep paired labels short and put the detail in `tooltip`.
 
 ### Controls
 
@@ -226,21 +245,98 @@ compatible with `db.font.fontFamily` and `LSM:Fetch`.
 
 ---
 
-## Where the module appears (pages)
+## Where the module appears
 
-`ellesmere.lua` groups modules onto tabbed pages via the `MODULE_PAGE` map:
-**General**, **Indicators**, **Alerts**, **Utility** (plus **Profiles** and
-**Import / Export**, which are built-in). A module not listed in `MODULE_PAGE`
-defaults to **Utility**. To place a new module, add it there:
+Every module with an `options.eui.lua` gets **its own row** in EllesmereUI's
+sidebar, under an "Itrulia QoL" group appended after EllesmereUI's own groups.
+There are no shared category pages — the old `MODULE_PAGE` bucketing (Indicators /
+Alerts / Utility) is gone, and nothing needs registering to place a new module: add
+`options.eui.lua` and the row appears. Row order follows the module group's
+AceConfig `order`, then name. Two rows are built in: **General**, and **Profiles**
+(which holds the Profiles and Import / Export tabs).
+
+### The panel header
+
+The header text under the module title comes from the AceConfig `description` arg
+in `options.ace.lua`, **not** from the eui list:
 
 ```lua
-local MODULE_PAGE = {
-    ...
-    MyNewModule = PAGE_INDICATORS,
+description = {
+    type = "description",
+    name = "Shows a timer counting up while you are in combat\n\n",
+    width = "full",
+    order = 1,
+},
+```
+
+Because of that, do **not** open `rows` with a plain `{ text = ... }` describing the
+module. `ellesmere.lua` strips a leading text-only row precisely because it would
+repeat the header. Put per-control explanations in `tooltip` instead.
+
+### The enable switch
+
+Each row carries a power icon on its right edge, styled like the one EllesmereUI
+puts on its own addons. It toggles `db.enabled` and calls `RefreshConfig()`, so a
+module can be switched on or off without opening its page. Nothing to author — it
+appears automatically for every module row.
+
+### Tabs (`EUIPages`)
+
+A module with more settings than fit comfortably on one page can declare tabs in a
+static `EUIPages` field. `ellesmere.lua` reads it at registration — a plain table
+rather than a call, so building the sidebar never means invoking every module at
+login — and passes the selected page back to `GetEUIOptions`:
+
+```lua
+DeathAlert.EUIPages = { "Display", "Sound Alert", "Filters" }
+
+function DeathAlert:GetEUIOptions(pageName)
+    if pageName == "Sound Alert" then
+        return { name = "Death Alert", rows = { ... } }
+    end
+
+    if pageName == "Filters" then
+        return { name = "Death Alert", rows = { ... } }
+    end
+
+    -- "Display", and the fallback for any caller that passes no page name
+    return { name = "Death Alert", rows = { ... } }
+end
+```
+
+Always return a valid list for the no-argument case — other hosts may call without
+one. Tabs lay out in a single non-wrapping row, so keep the names short and the
+count to roughly six or fewer.
+
+### Combined rows (`COMBINED_ROWS`)
+
+Two or more modules can share one sidebar row, each becoming a tab on it. This is
+configured in `ellesmere.lua`, not in the modules:
+
+```lua
+local COMBINED_ROWS = {
+    {
+        key = "PetIndicators",
+        display = "Pet Indicators",
+        members = { "PetMissingIndicator", "PetPassiveIndicator" },
+        description = "Missing/Passive pet text indicators.",
+    },
 }
 ```
 
-Order within a page follows the module group's AceConfig `order`, then name.
+The row is emitted where its first member would have appeared, so the surrounding
+order is unchanged. Three things follow from it being one row:
+
+- It needs its own `description`. The header is per row, not per tab, so the
+  members' individual `description` args are never shown.
+- Its enable switch sets **all** members at once, and reads as on when *any* member
+  is on.
+- `EUIPages` on a member is ignored — a combined row already spends its tabs on its
+  members.
+
+If two modules are grouped permanently, consider merging them into one real module
+instead (as `AutoAcceptRole` + `GroupJoinedReminder` became `LFGImprovements`);
+`COMBINED_ROWS` is for presentation only.
 
 ---
 
@@ -256,10 +352,11 @@ local CombatTimer = ItruliaQoL:GetModule(moduleName)
 function CombatTimer:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
+    -- No description row: that text lives in the AceConfig `description` arg and is
+    -- rendered as the panel header (see "Where the module appears").
     return {
         name = "Combat Timer",
         rows = {
-            { text = "Shows a timer counting up while you are in combat." },
             {
                 type = "toggle",
                 label = "Enable",

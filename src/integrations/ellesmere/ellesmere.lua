@@ -79,6 +79,7 @@ end
 --   { spacer = 12 }                                           -- vertical gap
 --   { text   = "Some help text" }                             -- plain label row
 --   { rows   = { ... }, header = "optional" }                 -- nested sub-list
+--   { pair   = { <row>, <row> } }                             -- two controls, half width each
 --   { type = "toggle",  label=, tooltip=, disabled=, get=, set= }
 --   { type = "slider",  label=, min=, max=, step=, disabled=, get=, set= }
 --   { type = "select",  label=, values=, order=, disabled=, get=, set= }
@@ -109,40 +110,38 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
         end
     end
 
-    for _, item in ipairs(rows) do
-        if item.rows then
-            if item.header then
-                _, h = W:SectionHeader(parent, item.header, y)
-                y = y - h
-            end
+    -- Translate one row spec into a DualRow half config. EllesmereUI's DualRow takes
+    -- a left and a right config, so the same translation serves a full-width row
+    -- (left only) and a `pair` (both halves) -- see the `pair` branch below.
+    -- Returns nil for the specs that are not controls (headers, spacers, grids).
+    local function halfConfig(item)
+        if not item then
+            return nil
+        end
 
-            y = self:RenderEUIList(W, parent, y, item.rows)
-        elseif item.header then
-            _, h = W:SectionHeader(parent, item.header, y)
-            y = y - h
-        elseif item.spacer then
-            _, h = W:Spacer(parent, y, item.spacer)
-            y = y - h
-        elseif item.text then
-            _, h = W:DualRow(parent, y, { text = item.text })
-            y = y - h
-        elseif item.type == "toggle" then
-            _, h = W:DualRow(parent, y, {
+        if item.text and not item.type then
+            return { text = item.text }
+        end
+
+        if item.type == "toggle" then
+            return {
                 type = "toggle",
                 text = item.label,
                 tooltip = item.tooltip,
                 disabled = item.disabled,
                 getValue = item.get,
                 setValue = wrap(item.set, item.refresh),
-            })
-            y = y - h
-        elseif item.type == "slider" then
+            }
+        end
+
+        if item.type == "slider" then
             -- EllesmereUI's slider does arithmetic on the value, so it must never
             -- be nil. Existing profiles can lack a field added after they were
             -- created (module defaults only seed brand-new profiles), so fall
             -- back to the slider min.
             local getV = item.get
-            _, h = W:DualRow(parent, y, {
+
+            return {
                 type = "slider",
                 text = item.label,
                 tooltip = item.tooltip,
@@ -160,11 +159,13 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                     return v
                 end,
                 setValue = item.set,
-            })
-            y = y - h
-        elseif item.type == "select" then
+            }
+        end
+
+        if item.type == "select" then
             local vals = item.values or {}
-            _, h = W:DualRow(parent, y, {
+
+            return {
                 type = "dropdown",
                 text = item.label,
                 tooltip = item.tooltip,
@@ -173,19 +174,21 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 disabled = item.disabled,
                 getValue = item.get,
                 setValue = wrap(item.set, item.refresh),
-            })
-            y = y - h
-        elseif item.type == "color" then
-            _, h = W:DualRow(parent, y, {
+            }
+        end
+
+        if item.type == "color" then
+            return {
                 type = "colorpicker",
                 text = item.label,
                 hasAlpha = item.hasAlpha,
                 getValue = item.get,
                 setValue = item.set,
-            })
-            y = y - h
-        elseif item.type == "input" then
-            _, h = W:DualRow(parent, y, {
+            }
+        end
+
+        if item.type == "input" then
+            return {
                 type = "input",
                 text = item.label,
                 tooltip = item.tooltip,
@@ -193,19 +196,50 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 disabled = item.disabled,
                 getValue = item.get,
                 setValue = wrap(item.set, item.refresh),
-            })
-            y = y - h
-        elseif item.type == "execute" then
-            _, h = W:DualRow(parent, y, {
+            }
+        end
+
+        if item.type == "execute" then
+            return {
                 type = "button",
                 text = item.label,
                 disabled = item.disabled,
                 onClick = wrap(item.func, item.refresh),
-            })
+            }
+        end
+
+        return nil
+    end
+
+    for _, item in ipairs(rows) do
+        if item.pair then
+            -- Two controls sharing one row, each getting half the width.
+            _, h = W:DualRow(parent, y, halfConfig(item.pair[1]), halfConfig(item.pair[2]))
+            y = y - h
+        elseif item.rows then
+            if item.header then
+                _, h = W:SectionHeader(parent, item.header, y)
+                y = y - h
+            end
+
+            y = self:RenderEUIList(W, parent, y, item.rows)
+        elseif item.header then
+            _, h = W:SectionHeader(parent, item.header, y)
+            y = y - h
+        elseif item.spacer then
+            _, h = W:Spacer(parent, y, item.spacer)
             y = y - h
         elseif item.type == "icons" then
             _, h = self:RenderEUIIconGrid(parent, y, item.items or {})
             y = y - h
+        else
+            -- Anything else is a single control on its own full-width row.
+            local cfg = halfConfig(item)
+
+            if cfg then
+                _, h = W:DualRow(parent, y, cfg)
+                y = y - h
+            end
         end
     end
 
@@ -622,12 +656,6 @@ local COMBINED_ROWS = {
         members = { "PetMissingIndicator", "PetPassiveIndicator" },
         description = "Missing/Passive pet text indicators.",
     },
-    {
-        key = "LFGImprovements",
-        display = "LFG Improvements",
-        members = { "AutoAcceptRole", "GroupJoinedReminder" },
-        description = "Group Finder helpers: automatic role confirmation and a reminder of the key you joined.",
-    },
 }
 
 local COMBINED_BY_MODULE = {}
@@ -672,7 +700,13 @@ end
 -- the page. Combined rows pass it too, so their tabs stay clean -- but note that
 -- config.description is per row rather than per page, so a combined row's header
 -- carries one shared blurb and the members' individual ones are not shown.
-function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHeader)
+--
+-- `pageName` is forwarded to GetEUIOptions so a module big enough to want tabs can
+-- return just that page's rows. Such a module lists its tabs in a static
+-- `EUIPages` field, which is read at registration -- a plain table rather than a
+-- call, so building the sidebar does not mean invoking every module at login.
+-- Modules without EUIPages ignore the argument and keep their single page.
+function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHeader, pageName)
     local W = self.EUI.Widgets
     local y = yOffset
     local _, h
@@ -680,7 +714,7 @@ function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHea
     _, h = W:Spacer(parent, y, 8)
     y = y - h
 
-    local spec = module.GetEUIOptions and module:GetEUIOptions()
+    local spec = module.GetEUIOptions and module:GetEUIOptions(pageName)
 
     if not spec then
         _, h = W:DualRow(parent, y, { text = "This module has no EllesmereUI settings yet." })
@@ -1065,6 +1099,194 @@ function ItruliaQoL:InjectEUISidebar(entries)
     })
 end
 
+-- Per-module enable switch on the sidebar row itself, so a module can be turned on
+-- or off without opening its page.
+--
+-- EllesmereUI has no API for this -- rows are built from _addonInfoByFolder and the
+-- only right-edge controls it knows about are its own power / sync / download
+-- icons -- so we attach ours to the row frame it exposes via _sidebarButtons. Three
+-- things this has to work around:
+--   * the row is a Button that selects the module on click, so ours sits several
+--     frame levels above it to receive its own clicks;
+--   * rows are created once per CreateMainFrame and only repositioned afterwards,
+--     so attaching once per row is enough (guarded by row._itruliaEnable);
+--   * EllesmereUI clamps the row label against btn._dlIcon, which exists (hidden)
+--     on every row, so the right edge is already reserved and long display names
+--     will not run under the switch.
+--
+-- A combined row switches every member at once: the switch reads as on when ANY of
+-- them is on, and a click sets them all to the same state. The members still own
+-- their own enabled flags, editable individually from their tabs.
+function ItruliaQoL:AttachEUISidebarSwitches(entries)
+    local EUI = self.EUI
+    local rows = EUI._sidebarButtons
+
+    if not rows then
+        return
+    end
+
+    for _, entry in ipairs(entries) do
+        local members = entry.members
+        local row = members and members[1] and rows[entry.key]
+
+        if row and not row._itruliaEnable then
+            local btn = CreateFrame("Button", nil, row)
+
+            -- Same icon, size and slot EllesmereUI uses for its own power toggle.
+            btn:SetSize(13, 13)
+            btn:SetPoint("RIGHT", row, "RIGHT", -18, 0)
+            btn:SetFrameLevel(row:GetFrameLevel() + 5)
+
+            local tex = btn:CreateTexture(nil, "OVERLAY")
+            tex:SetAllPoints()
+            tex:SetTexture(EUI.ICONS_PATH .. "power.png")
+
+            -- On when ANY member is on, so a combined row reads as enabled even if
+            -- only one of its modules is.
+            local function anyOn()
+                for _, member in ipairs(members) do
+                    if member.module.db and member.module.db.enabled then
+                        return true
+                    end
+                end
+
+                return false
+            end
+
+            -- Icon alpha plus the row label: a module that is off greys its name, the
+            -- way EllesmereUI dims an addon that is not installed. Its NAV_* colours
+            -- are file-locals, so the alphas are copied from EllesmereUI.lua's
+            -- "Sidebar nav states" block -- all 1,1,1 with alpha 1 (selected), 0.6
+            -- (enabled), 0.11 (disabled), 0.86 (hover enabled), 0.39 (hover disabled).
+            --
+            -- We cannot simply set row._loaded = false and let EllesmereUI paint it:
+            -- the row's OnClick is gated on _loaded, so the row would stop opening and
+            -- there would be no way back in to re-enable the module.
+            local function paint(hovered)
+                local on = anyOn()
+
+                tex:SetVertexColor(1, 1, 1, on and 1 or 0.5)
+
+                local label = row._label
+
+                if not label then
+                    return
+                end
+
+                if not on then
+                    label:SetTextColor(1, 1, 1, hovered and 0.39 or 0.11)
+                elseif hovered then
+                    label:SetTextColor(1, 1, 1, 0.86)
+                elseif EUI.GetActiveModule and EUI:GetActiveModule() == entry.key then
+                    label:SetTextColor(1, 1, 1, 1)
+                else
+                    label:SetTextColor(1, 1, 1, 0.6)
+                end
+            end
+
+            row._itruliaRepaint = paint
+
+            -- EllesmereUI's own hover scripts recolour the label from _loaded, which
+            -- is always true for our rows, so wrap them and restore our state after.
+            local rowEnter, rowLeave = row:GetScript("OnEnter"), row:GetScript("OnLeave")
+
+            row:SetScript("OnEnter", function(self2, ...)
+                if rowEnter then
+                    rowEnter(self2, ...)
+                end
+
+                paint(true)
+            end)
+
+            row:SetScript("OnLeave", function(self2, ...)
+                if rowLeave then
+                    rowLeave(self2, ...)
+                end
+
+                paint(false)
+            end)
+
+            paint()
+
+            -- Wrapped, not passed directly: OnShow hands the frame to its handler,
+            -- which would arrive as a truthy `hovered`.
+            btn:SetScript("OnShow", function()
+                paint()
+            end)
+
+            btn:SetScript("OnClick", function()
+                -- Every member follows the row: on when any was off, off otherwise.
+                local enable = not anyOn()
+
+                for _, member in ipairs(members) do
+                    local db = member.module.db
+
+                    if db then
+                        db.enabled = enable
+
+                        if member.module.RefreshConfig then
+                            member.module:RefreshConfig()
+                        end
+                    end
+                end
+
+                paint()
+
+                -- Keep the members' own Enable toggles in step if the page is open.
+                if EUI.GetActiveModule and EUI:GetActiveModule() == entry.key and EUI.RefreshPage then
+                    EUI:RefreshPage(true)
+                end
+            end)
+
+            -- Hover previews the action, red to turn off and green to turn on,
+            -- matching EllesmereUI's own power icon.
+            btn:SetScript("OnEnter", function(self2)
+                local on = anyOn()
+
+                if on then
+                    tex:SetVertexColor(0.824, 0.212, 0.212, 1)
+                else
+                    tex:SetVertexColor(0.212, 0.824, 0.325, 1)
+                end
+
+                if EUI.ShowWidgetTooltip then
+                    EUI.ShowWidgetTooltip(self2,
+                        (on and "Disable " or "Enable ") .. entry.display)
+                end
+            end)
+
+            btn:SetScript("OnLeave", function()
+                paint()
+
+                if EUI.HideWidgetTooltip then
+                    EUI.HideWidgetTooltip()
+                end
+            end)
+
+            row._itruliaEnable = btn
+        end
+    end
+end
+
+-- Repaint every row we own. EllesmereUI recolours labels from its own state in
+-- RefreshSidebarStates (on each panel open) and UpdateSidebarHighlight (on each
+-- module switch), so the disabled grey has to be reapplied after both.
+function ItruliaQoL:RefreshEUISidebarRows(entries)
+    local rows = self.EUI._sidebarButtons
+
+    if not rows then
+        return
+    end
+
+    for _, entry in ipairs(entries) do
+        local row = rows[entry.key]
+
+        if row and row._itruliaRepaint then
+            row._itruliaRepaint()
+        end
+    end
+end
+
 -- RegisterModule whitelists callers by their "AddOns/<folder>/" path via
 -- debugstack. From a loadstring chunk the caller reads as "[string ...]", so the
 -- guard falls through. (Same approach as NaowhUI_EUI.) Compiled once and reused
@@ -1150,13 +1372,18 @@ function ItruliaQoL:RegisterEUI(parentOptions)
 
     -- Keys are namespaced so they can never collide with a real addon folder in
     -- EllesmereUI's roster. `build` takes (pageName, parent, y).
-    local function addEntry(key, display, pages, build, description)
+    -- `members` is the list of { key = , module = } this row fronts -- one entry for
+    -- a normal module row, several for a combined one. It is what gives the row its
+    -- enable switch (see AttachEUISidebarSwitches); rows without it (General,
+    -- Profiles) get none.
+    local function addEntry(key, display, pages, build, description, members)
         entries[#entries + 1] = {
             key = addonName .. "_" .. key,
             display = display,
             pages = pages,
             build = build,
             description = description,
+            members = members,
         }
     end
 
@@ -1206,6 +1433,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
 
                     if member and member.GetEUIOptions then
                         parts[#parts + 1] = {
+                            key = memberKey,
                             module = member,
                             display = displayFor(memberKey),
                         }
@@ -1227,16 +1455,25 @@ function ItruliaQoL:RegisterEUI(parentOptions)
                             local module = moduleByPage[pageName] or parts[1].module
 
                             return ItruliaQoL:BuildEUIModulePage(module, parent, y, true)
-                        end, combined.description)
+                        end, combined.description, parts)
                 end
             end
         else
             local module = self:GetModule(key, true)
 
             if module and module.GetEUIOptions then
-                addEntry(key, displayFor(key), { PAGE_SETTINGS }, function(_, parent, y)
-                    return ItruliaQoL:BuildEUIModulePage(module, parent, y, true)
-                end, descriptionFor(key))
+                -- Modules with nothing to turn off opt out of the row's enable
+                -- switch by setting EUINoEnableSwitch; no members means no switch.
+                local members
+
+                if not module.EUINoEnableSwitch then
+                    members = { { key = key, module = module } }
+                end
+
+                addEntry(key, displayFor(key), module.EUIPages or { PAGE_SETTINGS },
+                    function(pageName, parent, y)
+                        return ItruliaQoL:BuildEUIModulePage(module, parent, y, true, pageName)
+                    end, descriptionFor(key), members)
             end
         end
     end
@@ -1250,6 +1487,32 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     end)
 
     self:InjectEUISidebar(entries)
+
+    -- Attach the row switches as soon as the panel opens rather than waiting for a
+    -- page to be built. The rows only exist once CreateMainFrame has run, and that
+    -- is reachable only from these three, each of which also runs
+    -- RefreshSidebarStates before returning -- so a post-hook on them is the
+    -- earliest point at which every row is present. Attaching is idempotent, so
+    -- firing on every open (and on Toggle's close) costs nothing.
+    if not self._euiSwitchHooked then
+        self._euiSwitchHooked = true
+
+        for _, name in ipairs({ "Show", "Toggle", "ShowModule" }) do
+            if EUI[name] then
+                hooksecurefunc(EUI, name, function()
+                    ItruliaQoL:AttachEUISidebarSwitches(entries)
+                    ItruliaQoL:RefreshEUISidebarRows(entries)
+                end)
+            end
+        end
+
+        -- SelectModule recolours the outgoing and incoming labels itself.
+        if EUI.SelectModule then
+            hooksecurefunc(EUI, "SelectModule", function()
+                ItruliaQoL:RefreshEUISidebarRows(entries)
+            end)
+        end
+    end
 
     for _, entry in ipairs(entries) do
         local build = entry.build
