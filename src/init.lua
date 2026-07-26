@@ -239,12 +239,14 @@ function ItruliaQoL:ToggleTestMode(enabled)
     end
 end
 
+local EUI_SLASH_ENABLED = false
+
 ItruliaQoL:RegisterChatCommand("itrulia", "MySlashProcessorFunc")
 function ItruliaQoL:MySlashProcessorFunc(input)
     if not input or input == "" or input == "config" or input == "c" then
         if self.E then
             self.E:ToggleOptions(addonName)
-        elseif self.EUI and self.EUI.ShowModule then
+        elseif EUI_SLASH_ENABLED and self.EUI and self.EUI.ShowModule then
             self.EUI:ShowModule(addonName)
         else
             self.CD:Open(addonName)

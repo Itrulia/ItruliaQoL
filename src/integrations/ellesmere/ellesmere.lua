@@ -29,7 +29,22 @@ end
 -- side effects (e.g. resetting the combat timer on a colour change). Manual
 -- options.eui.lua lists use this for appearance changes; the enable toggle
 -- still calls the module's RefreshConfig to set up / tear down.
+-- Never restyle a disabled module. The indicators' FontStrings are shown by
+-- default and are only ever hidden from their OnEvent handler, which
+-- RefreshConfig unwires while the module is off -- so they sit there visible but
+-- empty. A single UpdateStyles fills the text in and it stays on screen for
+-- good, which reads as the module having enabled itself even though db.enabled
+-- is still false. EllesmereUI reaches this from every options row's apply() and
+-- from ApplySavedPositions at login (which applies positions for every
+-- registered element, hidden or not), so it only surfaces under EllesmereUI.
+-- `== false` rather than `not`: a module without the field must still restyle.
 function ItruliaQoL:ApplyModuleStyles(moduleName)
+    local module = self:GetModule(moduleName, true)
+
+    if module and module.db and module.db.enabled == false then
+        return
+    end
+
     local frame = _G[addonName .. moduleName]
 
     if frame and frame.UpdateStyles then
@@ -908,15 +923,19 @@ function ItruliaQoL:CreateEUIMover(module, frame, moduleName)
 
                 return { point = p.point, relPoint = p.relPoint or p.point, x = p.x, y = p.y }
             end,
+            -- Both gated on enabled for the reason described on
+            -- ApplyModuleStyles: EllesmereUI calls applyPos for every registered
+            -- element at login regardless of isHidden, and restyling a disabled
+            -- module is what puts it on screen.
             clearPos = function()
                 module.db.point = module:GetDefaults().point
 
-                if frame.UpdateStyles then
+                if module.db.enabled ~= false and frame.UpdateStyles then
                     frame:UpdateStyles()
                 end
             end,
             applyPos = function()
-                if frame.UpdateStyles then
+                if module.db.enabled ~= false and frame.UpdateStyles then
                     frame:UpdateStyles()
                 end
             end,
