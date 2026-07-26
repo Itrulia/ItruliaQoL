@@ -15,17 +15,6 @@ function CharacterIndicator:GetEUIOptions()
                 text = "Creates an indicator that is always on during combat indicating where you are",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return CharacterIndicator.db.enabled
-                end,
-                set = function(value)
-                    CharacterIndicator.db.enabled = value
-                    CharacterIndicator:RefreshConfig()
-                end,
-            },
-            {
                 type = "input",
                 label = "Display text",
                 get = function()

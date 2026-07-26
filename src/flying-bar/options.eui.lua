@@ -67,17 +67,6 @@ function FlyingBar:GetEUIOptions()
                 text = "Dragonflying bar",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return FlyingBar.db.enabled
-                end,
-                set = function(value)
-                    FlyingBar.db.enabled = value
-                    FlyingBar:RefreshConfig()
-                end,
-            },
-            {
                 type = "slider",
                 label = "Width",
                 min = 10,

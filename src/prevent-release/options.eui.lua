@@ -12,17 +12,6 @@ function PreventRelease:GetEUIOptions()
             {
                 text = "Disable release button unless you hold down ctrl",
             },
-            {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return PreventRelease.db.enabled
-                end,
-                set = function(value)
-                    PreventRelease.db.enabled = value
-                    PreventRelease:RefreshConfig()
-                end,
-            },
         },
     }
 end

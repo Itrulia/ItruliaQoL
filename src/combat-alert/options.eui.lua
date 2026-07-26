@@ -15,17 +15,6 @@ function CombatAlert:GetEUIOptions()
                 text = "Shows an alert when entering or leaving combat",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return CombatAlert.db.enabled
-                end,
-                set = function(value)
-                    CombatAlert.db.enabled = value
-                    CombatAlert:RefreshConfig()
-                end,
-            },
-            {
                 type = "input",
                 label = "Combat starts text",
                 get = function()

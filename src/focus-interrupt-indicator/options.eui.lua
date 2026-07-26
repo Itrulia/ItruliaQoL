@@ -16,17 +16,6 @@ function FocusInterruptIndicator:GetEUIOptions()
                 text = "Shows an alert when your focus casts an interruptible spell and your interrupt is ready.",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return FocusInterruptIndicator.db.enabled
-                end,
-                set = function(value)
-                    FocusInterruptIndicator.db.enabled = value
-                    FocusInterruptIndicator:RefreshConfig()
-                end,
-            },
-            {
                 type = "input",
                 label = "Display text",
                 get = function()

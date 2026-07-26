@@ -39,17 +39,6 @@ function FocusTargetMarker:GetEUIOptions()
             },
             {
                 type = "toggle",
-                label = "Enable",
-                get = function()
-                    return FocusTargetMarker.db.enabled
-                end,
-                set = function(value)
-                    FocusTargetMarker.db.enabled = value
-                    FocusTargetMarker:RefreshConfig()
-                end,
-            },
-            {
-                type = "toggle",
                 label = "Announce on ready check",
                 get = function()
                     return FocusTargetMarker.db.announce

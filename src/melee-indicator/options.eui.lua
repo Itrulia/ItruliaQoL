@@ -15,17 +15,6 @@ function MeleeIndicator:GetEUIOptions()
                 text = "Creates an indicator that shows up when you not in melee range as a melee spec",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return MeleeIndicator.db.enabled
-                end,
-                set = function(value)
-                    MeleeIndicator.db.enabled = value
-                    MeleeIndicator:RefreshConfig()
-                end,
-            },
-            {
                 type = "input",
                 label = "Display text",
                 get = function()

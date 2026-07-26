@@ -433,11 +433,19 @@ end
 function ItruliaQoL:EUIFontRows(f, apply, exclude)
     exclude = exclude or {}
 
+    local slug = f.fontOutline == "OUTLINESLUG"
+
     local rows = {}
     local function add(key, row)
-        if not exclude[key] then
-            rows[#rows + 1] = row
+        if exclude[key] then
+            return
         end
+
+        if slug and (key == "shadowX" or key == "shadowY" or key == "shadowColor") then
+            return
+        end
+
+        rows[#rows + 1] = row
     end
 
     add("size", {
@@ -459,6 +467,8 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
         type = "select",
         label = "Outline",
         values = self.OutlineSettings,
+        -- Gates the shadow rows above, so the page has to rebuild after a change.
+        refresh = true,
         get = function()
             return f.fontOutline or "NONE"
         end,
@@ -733,6 +743,14 @@ function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHea
         end
 
         rows = rest
+    end
+
+    -- Modules whose only setting was the enable flag have nothing left to draw once
+    -- that moved to the sidebar switch, so say so rather than showing a blank page.
+    if #rows == 0 then
+        _, h = W:DualRow(parent, y, { text = "Nothing to configure -- use the switch on the sidebar row to turn this on or off." })
+
+        return math.abs(y - h)
     end
 
     y = self:RenderEUIList(W, parent, y, rows)

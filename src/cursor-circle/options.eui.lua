@@ -16,17 +16,6 @@ function CursorCircle:GetEUIOptions()
             },
             {
                 type = "toggle",
-                label = "Enable",
-                get = function()
-                    return CursorCircle.db.enabled
-                end,
-                set = function(value)
-                    CursorCircle.db.enabled = value
-                    CursorCircle:RefreshConfig()
-                end,
-            },
-            {
-                type = "toggle",
                 label = "Only during combat",
                 get = function()
                     return CursorCircle.db.onlyDuringCombat

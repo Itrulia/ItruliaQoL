@@ -16,17 +16,6 @@ function NoTargetIndicator:GetEUIOptions()
             },
             {
                 type = "toggle",
-                label = "Enable",
-                get = function()
-                    return NoTargetIndicator.db.enabled
-                end,
-                set = function(value)
-                    NoTargetIndicator.db.enabled = value
-                    NoTargetIndicator:RefreshConfig()
-                end,
-            },
-            {
-                type = "toggle",
                 label = "Include friendly target as valid target",
                 get = function()
                     return NoTargetIndicator.db.friendlyisValidTarget

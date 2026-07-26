@@ -15,17 +15,6 @@ function StealthIndicator:GetEUIOptions()
                 text = "Shows an indicator text when stealthed (not invisible)",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return StealthIndicator.db.enabled
-                end,
-                set = function(value)
-                    StealthIndicator.db.enabled = value
-                    StealthIndicator:RefreshConfig()
-                end,
-            },
-            {
                 type = "input",
                 label = "Display text",
                 get = function()

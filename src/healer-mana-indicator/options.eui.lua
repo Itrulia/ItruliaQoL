@@ -16,18 +16,6 @@ function HealerManaIndicator:GetEUIOptions()
             },
             {
                 type = "toggle",
-                label = "Enable",
-                refresh = true,
-                get = function()
-                    return HealerManaIndicator.db.enabled
-                end,
-                set = function(value)
-                    HealerManaIndicator.db.enabled = value
-                    HealerManaIndicator:RefreshConfig()
-                end,
-            },
-            {
-                type = "toggle",
                 label = "Enable in dungeons",
                 disabled = function()
                     return not HealerManaIndicator.db.enabled

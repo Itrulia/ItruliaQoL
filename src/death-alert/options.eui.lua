@@ -244,17 +244,6 @@ function DeathAlert:GetEUIOptions(pageName)
         name = "Death Alert",
         rows = {
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return DeathAlert.db.enabled
-                end,
-                set = function(value)
-                    DeathAlert.db.enabled = value
-                    DeathAlert:RefreshConfig()
-                end,
-            },
-            {
                 type = "input",
                 label = "Suffix",
                 get = function()

@@ -53,6 +53,10 @@ ItruliaQoL.JustifyHSettings = {
 }
 
 function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
+    local function shadowHidden()
+        return fontObject.fontOutline == "OUTLINESLUG"
+    end
+
     return ItruliaQoL:MergeDeep({
         fontSize = {
             order = 10,
@@ -130,6 +134,7 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             name =  "",
             width = "full",
             order = 49,
+            hidden = shadowHidden,
         },
         fontShadowXOffset = {
             order = 50,
@@ -149,9 +154,7 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                     onChange()
                 end
             end,
-            disabled = function()
-                return not fontObject.fontOutline == "OUTLINESLUG"
-            end
+            hidden = shadowHidden
         },
         fontShadowYOffset = {
             order = 60,
@@ -171,9 +174,7 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                     onChange()
                 end
             end,
-            disabled = function()
-                return not fontObject.fontOutline == "OUTLINESLUG"
-            end
+            hidden = shadowHidden
         },
         fontShadowColor = {
             order = 70,
@@ -197,9 +198,7 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
                     onChange()
                 end
             end,
-            disabled = function()
-                return not fontObject.fontOutline == "OUTLINESLUG"
-            end
+            hidden = shadowHidden
         },
         spacer2 = {
             type = "description",

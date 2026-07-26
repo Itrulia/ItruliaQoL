@@ -16,17 +16,6 @@ function MovementAlert:GetEUIOptions()
                 text = "Displays a text when your most important movement ability is on cooldown or time spiral is active",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return MovementAlert.db.enabled
-                end,
-                set = function(value)
-                    MovementAlert.db.enabled = value
-                    MovementAlert:RefreshConfig()
-                end,
-            },
-            {
                 type = "color",
                 label = "Color",
                 hasAlpha = true,

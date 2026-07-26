@@ -15,17 +15,6 @@ function CombatTimer:GetEUIOptions()
                 text = "Shows a combat timer",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return CombatTimer.db.enabled
-                end,
-                set = function(value)
-                    CombatTimer.db.enabled = value
-                    CombatTimer:RefreshConfig()
-                end,
-            },
-            {
                 type = "select",
                 label = "Time format",
                 values = {

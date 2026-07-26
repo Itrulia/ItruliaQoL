@@ -17,17 +17,6 @@ function PotionAlert:GetEUIOptions()
             },
             {
                 type = "toggle",
-                label = "Enable",
-                get = function()
-                    return PotionAlert.db.enabled
-                end,
-                set = function(value)
-                    PotionAlert.db.enabled = value
-                    PotionAlert:RefreshConfig()
-                end,
-            },
-            {
-                type = "toggle",
                 label = "Enable in m0/m+",
                 get = function()
                     return PotionAlert.db.enabledInDungeons

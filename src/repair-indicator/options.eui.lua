@@ -15,17 +15,6 @@ function RepairIndicator:GetEUIOptions()
                 text = "Displays a text when one of your items is broken or about to be",
             },
             {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return RepairIndicator.db.enabled
-                end,
-                set = function(value)
-                    RepairIndicator.db.enabled = value
-                    RepairIndicator:RefreshConfig()
-                end,
-            },
-            {
                 type = "input",
                 label = "Display text",
                 get = function()
