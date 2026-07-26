@@ -595,50 +595,116 @@ hooksecurefunc("StaticPopup_Show", function(which)
     end
 end)
 
--- Page layout
-local PAGE_GENERAL    = "General"
-local PAGE_INDICATORS = "Indicators"
-local PAGE_ALERTS     = "Alerts"
-local PAGE_UTILITY    = "Utility"
-local PAGE_PROFILES   = "Profiles"
-local PAGE_IMPEXP     = "Import / Export"
+-- Sidebar layout
+--
+-- Every module gets its own row under an "Itrulia QoL" group header, matching
+-- how EllesmereUI lists its own suite, so a module is one click away instead of
+-- being buried on an arbitrary Indicators/Alerts/Utility page. Each row owns a
+-- single page; the panel header already names the module, so pages don't need
+-- distinct names beyond the two on the Profiles row.
+local GROUP_KEY   = "itrulia"
+local GROUP_LABEL = "Itrulia QoL"
 
-local PAGE_ORDER = {
-    PAGE_GENERAL, PAGE_INDICATORS, PAGE_ALERTS, PAGE_UTILITY, PAGE_PROFILES, PAGE_IMPEXP,
+local PAGE_GENERAL  = "General"
+local PAGE_SETTINGS = "Settings"
+local PAGE_PROFILES = "Profiles"
+local PAGE_IMPEXP   = "Import / Export"
+
+-- Modules whose settings share one sidebar row instead of getting one each. Each
+-- member becomes a tab on that row, and the row is emitted where its first member
+-- would have appeared, so the surrounding order is untouched. The row needs its
+-- own `description`: it is shown per row rather than per tab, so the members'
+-- individual blurbs are not rendered anywhere.
+local COMBINED_ROWS = {
+    {
+        key = "PetIndicators",
+        display = "Pet Indicators",
+        members = { "PetMissingIndicator", "PetPassiveIndicator" },
+        description = "Missing/Passive pet text indicators.",
+    },
+    {
+        key = "LFGImprovements",
+        display = "LFG Improvements",
+        members = { "AutoAcceptRole", "GroupJoinedReminder" },
+        description = "Group Finder helpers: automatic role confirmation and a reminder of the key you joined.",
+    },
 }
 
--- Which page each module group lands on. Unknown modules default to Utility.
-local MODULE_PAGE = {
-    FocusInterruptIndicator = PAGE_INDICATORS,
-    FocusTargetMarker       = PAGE_INDICATORS,
-    MeleeIndicator          = PAGE_INDICATORS,
-    NoTargetIndicator       = PAGE_INDICATORS,
-    PetMissingIndicator     = PAGE_INDICATORS,
-    PetPassiveIndicator     = PAGE_INDICATORS,
-    StealthIndicator        = PAGE_INDICATORS,
-    HealerManaIndicator     = PAGE_INDICATORS,
-    CharacterIndicator      = PAGE_INDICATORS,
+local COMBINED_BY_MODULE = {}
 
-    DeathAlert          = PAGE_ALERTS,
-    CombatAlert         = PAGE_ALERTS,
-    PotionAlert         = PAGE_ALERTS,
-    CombatTimer         = PAGE_ALERTS,
-    MovementAlert       = PAGE_ALERTS,
-    RepairIndicator     = PAGE_ALERTS,
-    GroupJoinedReminder = PAGE_ALERTS,
-
-    AutoAcceptRole   = PAGE_UTILITY,
-    CursorCircle     = PAGE_UTILITY,
-    FlyingBar        = PAGE_UTILITY,
-    PreventRelease   = PAGE_UTILITY,
-    DungeonTeleports = PAGE_UTILITY,
-    MacroFactory     = PAGE_UTILITY,
-}
+for _, row in ipairs(COMBINED_ROWS) do
+    for _, key in ipairs(row.members) do
+        COMBINED_BY_MODULE[key] = row
+    end
+end
 
 -- Top-level parentOptions.args keys that are not modules.
 local RESERVED = {
     all = true, enable = true, description = true, profiles = true, importExport = true,
 }
+
+-- Addon-wide settings, from general/options.eui.lua.
+function ItruliaQoL:BuildEUIGeneralPage(parent, yOffset)
+    local W = self.EUI.Widgets
+    local y = yOffset
+    local _, h
+
+    _, h = W:Spacer(parent, y, 8)
+    y = y - h
+    _, h = W:SectionHeader(parent, "GENERAL", y)
+    y = y - h
+
+    local spec = self.GetGeneralEUIOptions and self:GetGeneralEUIOptions()
+
+    if spec and spec.rows then
+        y = self:RenderEUIList(W, parent, y, spec.rows)
+    end
+
+    return math.abs(y)
+end
+
+-- One module's settings, from its own options.eui.lua. No section header for the
+-- module name -- it is already the panel title and the selected sidebar row.
+--
+-- `descriptionInHeader` drops the leading plain-text row: every module's list
+-- opens with one describing the module, and when that text is the panel header
+-- instead (see descriptionFor in RegisterEUI) printing it again wastes the top of
+-- the page. Combined rows pass it too, so their tabs stay clean -- but note that
+-- config.description is per row rather than per page, so a combined row's header
+-- carries one shared blurb and the members' individual ones are not shown.
+function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHeader)
+    local W = self.EUI.Widgets
+    local y = yOffset
+    local _, h
+
+    _, h = W:Spacer(parent, y, 8)
+    y = y - h
+
+    local spec = module.GetEUIOptions and module:GetEUIOptions()
+
+    if not spec then
+        _, h = W:DualRow(parent, y, { text = "This module has no EllesmereUI settings yet." })
+
+        return math.abs(y - h)
+    end
+
+    local rows = spec.rows or {}
+    local first = rows[1]
+
+    if descriptionInHeader and first and first.text and not (first.type or first.rows or first.header) then
+        local rest = {}
+
+        for i = 2, #rows do
+            rest[#rest + 1] = rows[i]
+        end
+
+        rows = rest
+    end
+
+    y = self:RenderEUIList(W, parent, y, rows)
+
+    return math.abs(y)
+end
 
 -- Profiles page (built directly against AceDB rather than translated)
 function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset)
@@ -897,7 +963,7 @@ function ItruliaQoL:CreateEUIMover(module, frame, moduleName)
         EUI.MakeUnlockElement({
             key = frame:GetName(),
             label = moduleName,
-            group = "Itrulia",
+            group = GROUP_LABEL,
             order = 1,
             isHidden = function()
                 return not module.db.enabled
@@ -948,7 +1014,11 @@ end
 -- EllesmereUI's config sidebar is built from a hardcoded roster; add our entry
 -- to the extension hooks it reads (mirrors NaowhUI_EUI). Safe to call once at
 -- login: the sidebar is built lazily on first panel open.
-function ItruliaQoL:InjectEUISidebar()
+-- `entries` is the ordered list of { key = , display = } rows to show under our
+-- group header. Each key is a synthetic folder name (never a real addon folder),
+-- so it must be marked alwaysLoaded: EllesmereUI otherwise greys the row and
+-- offers a power toggle for an addon that does not exist.
+function ItruliaQoL:InjectEUISidebar(entries)
     local EUI = self.EUI
 
     if not EUI then
@@ -956,32 +1026,84 @@ function ItruliaQoL:InjectEUISidebar()
     end
 
     EUI._addonInfoByFolder = EUI._addonInfoByFolder or {}
-    EUI._addonInfoByFolder[addonName] = EUI._addonInfoByFolder[addonName] or {
-        folder = addonName,
-        display = "Itrulia QoL",
-        search_name = "Itrulia QoL Itrulia",
-        alwaysLoaded = true,
-    }
-
     EUI._syncExempt = EUI._syncExempt or {}
-    EUI._syncExempt[addonName] = true
+
+    local members = {}
+
+    for _, entry in ipairs(entries) do
+        EUI._addonInfoByFolder[entry.key] = EUI._addonInfoByFolder[entry.key] or {
+            folder = entry.key,
+            display = entry.display,
+            search_name = entry.display .. " Itrulia QoL Itrulia",
+            alwaysLoaded = true,
+        }
+
+        EUI._syncExempt[entry.key] = true
+        members[#members + 1] = entry.key
+    end
 
     EUI.ADDON_GROUPS = EUI.ADDON_GROUPS or {}
 
+    -- Member order is authoritative for the sidebar, so on a repeat call replace
+    -- the list rather than bailing -- otherwise a changed module set keeps the
+    -- stale rows.
     for _, group in ipairs(EUI.ADDON_GROUPS) do
-        if group.key == "itrulia" then
+        if group.key == GROUP_KEY then
+            group.members = members
+
             return
         end
     end
 
-    table.insert(EUI.ADDON_GROUPS, 1, {
-        key = "itrulia",
-        label = "Itrulia",
-        members = { addonName },
+    -- Appended, not prepended: we are a companion rather than part of the suite,
+    -- and this group is long enough that putting it first would push EllesmereUI's
+    -- own addons down the list.
+    table.insert(EUI.ADDON_GROUPS, {
+        key = GROUP_KEY,
+        label = GROUP_LABEL,
+        members = members,
     })
 end
 
--- Build and register the EllesmereUI category. Called from init.lua's
+-- RegisterModule whitelists callers by their "AddOns/<folder>/" path via
+-- debugstack. From a loadstring chunk the caller reads as "[string ...]", so the
+-- guard falls through. (Same approach as NaowhUI_EUI.) Compiled once and reused
+-- for every row; it reads the pending registration back out of a global.
+local euiRegisterChunk = loadstring([[
+    local r = _G.__ItruliaQoL_pendingReg
+    if r and EllesmereUI and EllesmereUI.RegisterModule then
+        EllesmereUI:RegisterModule(r.key, r.config)
+    end
+]], "ItruliaQoL-register")
+
+-- Never assume registration worked. RegisterModule returns silently when the
+-- caller isn't whitelisted, so a clean pcall proves nothing -- check the registry
+-- itself (_modules is EllesmereUI's read-only alias). Without this a rejected
+-- registration is indistinguishable from a working one until you notice the
+-- sidebar row selects nothing.
+function ItruliaQoL:RegisterEUIModule(key, config)
+    local EUI = self.EUI
+    local ok, err = false, nil
+
+    _G.__ItruliaQoL_pendingReg = { key = key, config = config }
+
+    if euiRegisterChunk then
+        ok, err = pcall(euiRegisterChunk)
+    end
+
+    _G.__ItruliaQoL_pendingReg = nil
+
+    if not ok then
+        ok, err = pcall(EUI.RegisterModule, EUI, key, config)
+    end
+
+    if not (EUI._modules and EUI._modules[key]) then
+        self:Print("|cffff0000EllesmereUI registration failed for|r", key,
+            err or "caller rejected by EllesmereUI:RegisterModule")
+    end
+end
+
+-- Build and register the EllesmereUI rows. Called from init.lua's
 -- RegisterOptions with the fully-built AceConfig `parentOptions`.
 function ItruliaQoL:RegisterEUI(parentOptions)
     local EUI = self.EUI
@@ -1004,143 +1126,162 @@ function ItruliaQoL:RegisterEUI(parentOptions)
 
     self._euiRegistered = true
 
-    -- Bucket module groups onto pages.
-    local perPage = {}
+    -- One sidebar row per module, in the AceConfig tree's own order.
+    local moduleKeys = {}
 
     for key, e in pairs(parentOptions.args) do
         if type(e) == "table" and e.type == "group" and not RESERVED[key] then
-            local page = MODULE_PAGE[key] or PAGE_UTILITY
-            perPage[page] = perPage[page] or {}
-            table.insert(perPage[page], key)
+            moduleKeys[#moduleKeys + 1] = key
         end
     end
 
-    for _, list in pairs(perPage) do
-        table.sort(list, function(a, b)
-            local ea, eb = parentOptions.args[a], parentOptions.args[b]
-            local oa, ob = ea.order or 100, eb.order or 100
+    table.sort(moduleKeys, function(a, b)
+        local ea, eb = parentOptions.args[a], parentOptions.args[b]
+        local oa, ob = ea.order or 100, eb.order or 100
 
-            if oa == ob then
-                return tostring(resolve(ea.name)) < tostring(resolve(eb.name))
-            end
+        if oa == ob then
+            return tostring(resolve(ea.name)) < tostring(resolve(eb.name))
+        end
 
-            return oa < ob
-        end)
+        return oa < ob
+    end)
+
+    local entries = {}
+
+    -- Keys are namespaced so they can never collide with a real addon folder in
+    -- EllesmereUI's roster. `build` takes (pageName, parent, y).
+    local function addEntry(key, display, pages, build, description)
+        entries[#entries + 1] = {
+            key = addonName .. "_" .. key,
+            display = display,
+            pages = pages,
+            build = build,
+            description = description,
+        }
     end
 
-    local function buildModulePage(page)
-        return function(parent, yOffset)
-            local W = EUI.Widgets
-            local y = yOffset
-            local _, h
-            _, h = W:Spacer(parent, y, 8)
-            y = y - h
+    -- Each module's own blurb, reused as the panel header description so it does
+    -- not have to be repeated as the first row of the page. Read from the
+    -- AceConfig tree rather than GetEUIOptions, which would mean calling into
+    -- every module at login just to build the sidebar.
+    local function descriptionFor(key)
+        local grp = parentOptions.args[key]
+        local desc = grp and grp.args and grp.args.description
+        local text = desc and resolve(desc.name)
 
-            local list = perPage[page] or {}
+        if not text then
+            return nil
+        end
 
-            if #list == 0 then
-                _, h = W:DualRow(parent, y, { text = "No settings on this page." })
-                y = y - h
-            end
+        -- The AceConfig strings pad themselves with trailing newlines for ElvUI's
+        -- layout; the header does its own spacing.
+        return (tostring(text):gsub("%s+$", ""))
+    end
 
-            for _, key in ipairs(list) do
-                local grp = parentOptions.args[key]
-                local module = ItruliaQoL:GetModule(key, true)
-                local spec = module and module.GetEUIOptions and module:GetEUIOptions()
+    addEntry("General", "General", { PAGE_GENERAL }, function(_, parent, y)
+        return ItruliaQoL:BuildEUIGeneralPage(parent, y)
+    end, "Quality-of-life indicators, alerts and helpers. Move things with EllesmereUI's unlock mode.")
 
-                if spec then
-                    -- Manual list (options.eui.lua).
-                    _, h = W:SectionHeader(parent, spec.name or resolve(grp.name) or key, y)
-                    y = y - h
-                    y = ItruliaQoL:RenderEUIList(W, parent, y, spec.rows or {})
+    local function displayFor(key)
+        local grp = parentOptions.args[key]
+
+        return tostring(resolve(grp and grp.name) or key)
+    end
+
+    local emittedCombined = {}
+
+    for _, key in ipairs(moduleKeys) do
+        local combined = COMBINED_BY_MODULE[key]
+
+        -- Skip modules with no hand-authored list -- they would get a sidebar row
+        -- that opens an empty page. DungeonTeleports is the only one today.
+        if combined then
+            if not emittedCombined[combined.key] then
+                emittedCombined[combined.key] = true
+
+                local parts = {}
+
+                for _, memberKey in ipairs(combined.members) do
+                    local member = self:GetModule(memberKey, true)
+
+                    if member and member.GetEUIOptions then
+                        parts[#parts + 1] = {
+                            module = member,
+                            display = displayFor(memberKey),
+                        }
+                    end
                 end
 
-                _, h = W:Spacer(parent, y, 12)
-                y = y - h
-            end
+                if #parts > 0 then
+                    -- One tab per member, labelled with its own name, so each keeps
+                    -- a page to itself instead of sharing one long scroll.
+                    local pages, moduleByPage = {}, {}
 
-            return math.abs(y)
+                    for _, part in ipairs(parts) do
+                        pages[#pages + 1] = part.display
+                        moduleByPage[part.display] = part.module
+                    end
+
+                    addEntry(combined.key, combined.display, pages,
+                        function(pageName, parent, y)
+                            local module = moduleByPage[pageName] or parts[1].module
+
+                            return ItruliaQoL:BuildEUIModulePage(module, parent, y, true)
+                        end, combined.description)
+                end
+            end
+        else
+            local module = self:GetModule(key, true)
+
+            if module and module.GetEUIOptions then
+                addEntry(key, displayFor(key), { PAGE_SETTINGS }, function(_, parent, y)
+                    return ItruliaQoL:BuildEUIModulePage(module, parent, y, true)
+                end, descriptionFor(key))
+            end
         end
     end
 
-    local PAGES = {
-        [PAGE_GENERAL] = function(parent, yOffset)
-            local W = EUI.Widgets
-            local y = yOffset
-            local _, h
-            _, h = W:Spacer(parent, y, 8)
-            y = y - h
-            _, h = W:SectionHeader(parent, "GENERAL", y)
-            y = y - h
-
-            -- Hand-authored, from general/options.eui.lua.
-            local spec = ItruliaQoL.GetGeneralEUIOptions and ItruliaQoL:GetGeneralEUIOptions()
-
-            if spec and spec.rows then
-                y = ItruliaQoL:RenderEUIList(W, parent, y, spec.rows)
-            end
-
-            return math.abs(y)
-        end,
-        [PAGE_INDICATORS] = buildModulePage(PAGE_INDICATORS),
-        [PAGE_ALERTS]     = buildModulePage(PAGE_ALERTS),
-        [PAGE_UTILITY]    = buildModulePage(PAGE_UTILITY),
-        [PAGE_PROFILES]   = function(parent, yOffset)
-            return ItruliaQoL:BuildEUIProfilesPage(parent, yOffset)
-        end,
-        [PAGE_IMPEXP]     = function(parent, yOffset)
-            return ItruliaQoL:BuildEUIImportExportPage(parent, yOffset)
-        end,
-    }
-
-    self:InjectEUISidebar()
-
-    local config = {
-        title = "Itrulia QoL",
-        description = "|cffffbf33BETA:|r this integration is a work in progress. Quality-of-life indicators, alerts and helpers. Move things with EllesmereUI's unlock mode.",
-        pages = PAGE_ORDER,
-        buildPage = function(pageName, parent, yOffset)
-            local fn = PAGES[pageName]
-            local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, yOffset)
-            local y = yOffset - noticeH
-
-            return (fn and fn(parent, y)) or math.abs(y)
-        end,
-        onReset = function()
-            ItruliaQoL.db:ResetProfile()
-            ItruliaQoL:RefreshModules()
-
-            if EUI.RefreshPage then
-                EUI:RefreshPage()
-            end
-        end,
-    }
-
-    -- RegisterModule whitelists callers by their "AddOns/<folder>/" path via
-    -- debugstack. From a loadstring chunk the caller reads as "[string ...]", so
-    -- the guard falls through. (Same approach as NaowhUI_EUI.)
-    _G.__ItruliaQoL_pendingReg = { key = addonName, config = config }
-
-    local trampoline, err = loadstring([[
-        local r = _G.__ItruliaQoL_pendingReg
-        if r and EllesmereUI and EllesmereUI.RegisterModule then
-            EllesmereUI:RegisterModule(r.key, r.config)
+    addEntry("Profiles", "Profiles", { PAGE_PROFILES, PAGE_IMPEXP }, function(pageName, parent, y)
+        if pageName == PAGE_IMPEXP then
+            return ItruliaQoL:BuildEUIImportExportPage(parent, y)
         end
-    ]], "ItruliaQoL-register")
-    local ok = false
 
-    if trampoline then
-        ok, err = pcall(trampoline)
-    end
+        return ItruliaQoL:BuildEUIProfilesPage(parent, y)
+    end)
 
-    _G.__ItruliaQoL_pendingReg = nil
+    self:InjectEUISidebar(entries)
 
-    if not ok then
-        ok, err = pcall(EUI.RegisterModule, EUI, addonName, config)
-    end
+    for _, entry in ipairs(entries) do
+        local build = entry.build
 
-    if not (EUI._modules and EUI._modules[addonName]) then
-        self:Print("|cffff0000EllesmereUI registration failed:|r", err or "caller rejected by EllesmereUI:RegisterModule")
+        -- onReset wipes the whole profile, so it only belongs on the General row.
+        -- EllesmereUI labels the footer button "Reset <row>", which on a module
+        -- row would read as resetting that module alone.
+        local onReset
+
+        if entry.key == addonName .. "_General" then
+            onReset = function()
+                ItruliaQoL.db:ResetProfile()
+                ItruliaQoL:RefreshModules()
+
+                if EUI.RefreshPage then
+                    EUI:RefreshPage()
+                end
+            end
+        end
+
+        self:RegisterEUIModule(entry.key, {
+            title = GROUP_LABEL .. " - " .. entry.display,
+            description = "|cffffbf33BETA:|r " .. (entry.description or ""),
+            pages = entry.pages,
+            buildPage = function(pageName, parent, yOffset)
+                local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, yOffset)
+                local y = yOffset - noticeH
+
+                return build(pageName, parent, y) or math.abs(y)
+            end,
+            onReset = onReset,
+        })
     end
 
     -- Test mode follows unlock mode (the EllesmereUI equivalent of hooking ElvUI's ToggleMovers).

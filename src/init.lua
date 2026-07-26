@@ -247,7 +247,9 @@ function ItruliaQoL:MySlashProcessorFunc(input)
         if self.E then
             self.E:ToggleOptions(addonName)
         elseif EUI_SLASH_ENABLED and self.EUI and self.EUI.ShowModule then
-            self.EUI:ShowModule(addonName)
+            -- Each module is its own EllesmereUI row now, so open the General one
+            -- (see integrations/ellesmere/ellesmere.lua's addEntry keys).
+            self.EUI:ShowModule(addonName .. "_General")
         else
             self.CD:Open(addonName)
         end
