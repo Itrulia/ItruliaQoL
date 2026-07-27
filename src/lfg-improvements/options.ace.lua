@@ -11,7 +11,7 @@ function LFGImprovements:GetOptions(onChange)
         args = {
             description = {
                 type = "description",
-                name = "Group Finder helpers: automatic role confirmation and a reminder of the key you joined\n\n",
+                name = "Group Finder helpers: automatic role confirmation, a reminder of the key you joined and automatic difficulty selection\n\n",
                 width = "full",
                 order = 1,
             },
@@ -57,6 +57,58 @@ function LFGImprovements:GetOptions(onChange)
                 end,
                 set = function(_, value)
                     LFGImprovements.db.groupJoinedReminder.enabled = value
+                    LFGImprovements:RefreshConfig()
+                end,
+            },
+            autoDungeonDifficulty = {
+                order = 30,
+                type = "select",
+                style = "dropdown",
+                name = "Automatically set the dungeon difficulty",
+                values = function()
+                    return (LFGImprovements:GetDifficultyOptions("dungeon"))
+                end,
+                sorting = function()
+                    local _, order = LFGImprovements:GetDifficultyOptions("dungeon")
+                    return order
+                end,
+                disabled = function()
+                    return not LFGImprovements.db.enabled
+                end,
+                get = function()
+                    return LFGImprovements:GetDifficulty("dungeon")
+                end,
+                set = function(_, value)
+                    LFGImprovements:SaveDifficulty("dungeon", value)
+                    LFGImprovements:RefreshConfig()
+                end,
+            },
+            spacer = {
+                type = "description",
+                name = "",
+                width = "full",
+                order = 31,
+            },
+            autoRaidDifficulty = {
+                order = 40,
+                type = "select",
+                style = "dropdown",
+                name = "Automatically set the raid difficulty",
+                values = function()
+                    return (LFGImprovements:GetDifficultyOptions("raid"))
+                end,
+                sorting = function()
+                    local _, order = LFGImprovements:GetDifficultyOptions("raid")
+                    return order
+                end,
+                disabled = function()
+                    return not LFGImprovements.db.enabled
+                end,
+                get = function()
+                    return LFGImprovements:GetDifficulty("raid")
+                end,
+                set = function(_, value)
+                    LFGImprovements:SaveDifficulty("raid", value)
                     LFGImprovements:RefreshConfig()
                 end,
             },

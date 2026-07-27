@@ -112,6 +112,37 @@ function ItruliaQoL:OnDragonRidingChange(onEvent)
     return mountFrame
 end
 
+local chatLinkHandlers = {}
+local chatLinkHooked = false
+
+-- garrmission links are one of the few link types the chat frame renders for addons,
+-- clicking one runs through SetItemRef and the default handler ignores unknown payloads
+function ItruliaQoL:RegisterChatLink(handlerName, handler)
+    chatLinkHandlers[handlerName] = handler
+
+    if chatLinkHooked then
+        return
+    end
+
+    chatLinkHooked = true
+
+    hooksecurefunc("SetItemRef", function(link)
+        local name, payload = link:match("^garrmission:" .. addonName .. ":([^:]+):?(.*)$")
+        if not name then
+            return
+        end
+
+        local registered = chatLinkHandlers[name]
+        if registered then
+            registered(payload)
+        end
+    end)
+end
+
+function ItruliaQoL:ChatLink(handlerName, payload, text)
+    return ("|Hgarrmission:%s:%s:%s|h|cff00ccff[%s]|r|h"):format(addonName, handlerName, payload or "", text)
+end
+
 function ItruliaQoL:UnitTokenFromGUID(guid)
     if not guid or hasanysecretvalues(guid) then
         return nil

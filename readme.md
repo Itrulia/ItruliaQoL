@@ -26,6 +26,7 @@ Non combat related:
 - Make the cooldown manager accessible via `/cd`, `/cdm` or `/wa`
 - Automatically accept role calls when signing up to a group
 - Remind you what m+ group you joined
+- Automatically set your dungeon & raid difficulty when leaving an instance or reaching max level (disabled by default)
 - Display a circle around your cursor (disabled by default)
 - Dragonriding bar (disabled by default)
 

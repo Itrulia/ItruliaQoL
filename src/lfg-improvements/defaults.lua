@@ -22,5 +22,11 @@ function LFGImprovements:GetDefaults()
         groupJoinedReminder = {
             enabled = migrateOldModules(profile.GroupJoinedReminder, true),
         },
+        autoDungeonDifficulty = {
+            difficulty = nil,
+        },
+        autoRaidDifficulty = {
+            difficulty = nil,
+        },
     }
 end

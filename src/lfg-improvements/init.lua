@@ -4,6 +4,26 @@ local moduleName = "LFGImprovements"
 local LFGImprovements = ItruliaQoL:NewModule(moduleName)
 
 local function OnEvent(self, event, ...)
+    if event == "PLAYER_ENTERING_WORLD" then
+        local initialLoginOrReload = select(1, ...) or select(2, ...)
+        local inInstance = IsInInstance()
+        local leftInstance = self.wasInInstance and not inInstance
+        self.wasInInstance = inInstance
+
+        if leftInstance or (initialLoginOrReload and not inInstance) then
+            -- the group and instance state is still settling right after the loading screen, so give it a moment before asking for a change
+            C_Timer.After(1, function()
+                LFGImprovements:ApplyDifficulties()
+            end)
+        end
+    end
+
+    if event == "PLAYER_LEVEL_UP" then
+        if UnitLevel("player") == GetMaxLevelForPlayerExpansion() then
+            LFGImprovements:ApplyDifficulties()
+        end
+    end
+
     if LFGImprovements.db.groupJoinedReminder.enabled then
         if event == "GROUP_LEFT" then
             self.groupName = nil
@@ -47,10 +67,7 @@ local function OnEvent(self, event, ...)
 end
 
 function LFGImprovements:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f.groupName = nil
-
-    return f
+    return CreateFrame("frame", name, parent or UIParent)
 end
 
 function LFGImprovements:EnsureFrame()
@@ -61,23 +78,36 @@ function LFGImprovements:EnsureFrame()
     local f = self:GenerateFrame(addonName .. moduleName)
     self.frame = f
 
+    f.groupName = nil
+    f.wasInInstance = IsInInstance()
+
     f:RegisterEvent("GROUP_LEFT")
     f:RegisterEvent("LFG_LIST_JOINED_GROUP")
     f:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
+    f:RegisterEvent("PLAYER_ENTERING_WORLD")
+    f:RegisterEvent("PLAYER_LEVEL_UP")
 
     return f
 end
 
-function LFGImprovements:OnInitialize()
+function LFGImprovements:LoadDB()
     local profile = ItruliaQoL.db.profile
     profile.LFGImprovements = profile.LFGImprovements or self:GetDefaults()
-    self.db = profile.LFGImprovements
+    local db = profile.LFGImprovements
+
+    -- Migration
+    db.autoDungeonDifficulty = db.autoDungeonDifficulty or self:GetDefaults().autoDungeonDifficulty
+    db.autoRaidDifficulty = db.autoRaidDifficulty or self:GetDefaults().autoRaidDifficulty
+
+    return db
+end
+
+function LFGImprovements:OnInitialize()
+    self.db = self:LoadDB()
 end
 
 function LFGImprovements:RefreshConfig()
-    local profile = ItruliaQoL.db.profile
-    profile.LFGImprovements = profile.LFGImprovements or self:GetDefaults()
-    self.db = profile.LFGImprovements
+    self.db = self:LoadDB()
 
     if self.db.enabled then
         self:EnsureFrame():SetScript("OnEvent", OnEvent)
