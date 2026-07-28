@@ -6,7 +6,7 @@ local FriendlyNameplates = ItruliaQoL:GetModule(moduleName)
 
 function FriendlyNameplates:GetDefaults()
     return {
-        enabled = true,
+        enabled = false,
         font = {
             fontFamily = "Expressway",
             fontSize = 14,
