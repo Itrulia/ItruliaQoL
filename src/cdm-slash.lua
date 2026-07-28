@@ -22,28 +22,7 @@ function frame:toggleCDM()
 	end
 end
 
-function frame:closeCDM()
-	if InCombatLockdown() or not CooldownViewerSettings then 
-        return 
-    end
-
-	CooldownViewerSettings:Hide()
-end
-
 function CDMSlash:OnEnable() 
-    frame:SetScript("OnKeyDown", function(self, key) 
-        if InCombatLockdown() then
-            return
-        end
-
-        if key == "ESCAPE" and CooldownViewerSettings:IsShown() then
-            frame:closeCDM()
-            self:SetPropagateKeyboardInput(false)
-        else
-            self:SetPropagateKeyboardInput(true)
-        end
-    end)
-
     SLASH_CDMSC2 = "/cdm"
 
     function SlashCmdList.CDMSC(msg, editbox)
