@@ -7,15 +7,34 @@ local E = ItruliaQoL.E
 
 local HealerManaIndicator = ItruliaQoL:NewModule(moduleName)
 
-local function OnEvent(self, event, ...)
+local function IsGroupUnit(unit)
+    return unit == "player"
+        or (unit ~= nil and (strmatch(unit, "^party%d+$") ~= nil or strmatch(unit, "^raid%d+$") ~= nil))
+end
+
+local function OnEvent(self, event, unit, powerType)
     if ItruliaQoL.testMode then
         self:ClearTexts()
         self:UpdateManaText(1, "player", 69)
         self:UpdateManaText(2, "player", 50)
-    else
-        self:UpdateManaTexts()
+        self:UpdateStyles()
+
+        return
     end
 
+    -- power events fire for every unit in the world, so only refresh the text of
+    -- the healer that actually changed and never touch anchors or fonts here
+    if event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" or event == "UNIT_DISPLAYPOWER" then
+        if event ~= "UNIT_DISPLAYPOWER" and powerType ~= "MANA" then
+            return
+        end
+
+        self:UpdateManaValue(unit)
+
+        return
+    end
+
+    self:UpdateManaTexts()
     self:UpdateStyles()
 end
 
@@ -25,6 +44,7 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
     f:SetSize(150, 28)
 
     f.texts = {}
+    f.healers = {}
 
     function f:IsHealer(unit)
         return UnitExists(unit)
@@ -115,6 +135,8 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
     end
 
     function f:ClearTexts()
+        wipe(self.healers)
+
         for _, text in ipairs(self.texts) do
             text:SetText(" ")
             text:Hide()
@@ -133,26 +155,49 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
         text:Show()
     end
 
-    function f:UpdateManaTexts()
-        self:ClearTexts()
-        local index = 1
+    function f:IsActive()
+        if ItruliaQoL:InRaid() then
+            return HealerManaIndicator.db.enableInRaids
+        elseif ItruliaQoL:InDungeon() then
+            return HealerManaIndicator.db.enableInDungeons
+        end
 
-        if not ItruliaQoL:InRaid() and not ItruliaQoL:InDungeon() then
+        return false
+    end
+
+    function f:UpdateManaValue(unit)
+        if not IsGroupUnit(unit) or #self.healers == 0 then
             return
         end
 
-        if ItruliaQoL:InRaid() and not HealerManaIndicator.db.enableInRaids then
-            return
-        elseif ItruliaQoL:InDungeon() and not HealerManaIndicator.db.enableInDungeons then
-            return
-        end
+        for index, healer in ipairs(self.healers) do
+            if UnitIsUnit(unit, healer) then
+                self:UpdateManaText(index, healer)
 
-        for _, unit in ipairs(ItruliaQoL:GetGroupUnits()) do
-            if self:IsHealer(unit) then
-                self:UpdateManaText(index, unit)
-
-                index = index + 1
+                return
             end
+        end
+    end
+
+    function f:UpdateManaTexts()
+        wipe(self.healers)
+
+        if self:IsActive() then
+            for _, unit in ipairs(ItruliaQoL:GetGroupUnits()) do
+                if self:IsHealer(unit) then
+                    self.healers[#self.healers + 1] = unit
+                end
+            end
+        end
+
+        for index, unit in ipairs(self.healers) do
+            self:UpdateManaText(index, unit)
+        end
+
+        for index = #self.healers + 1, #self.texts do
+            local text = self.texts[index]
+            text:SetText(" ")
+            text:Hide()
         end
     end
 
