@@ -4,6 +4,7 @@
 	<Script file="macros/general.lua"/>
 	<Script file="macros/priest.lua"/>
 	<Script file="macros/death-knight.lua"/>
+	<Script file="macros/warrior.lua"/>
 
 	<Script file="defaults.lua"/>
 	<Script file="options.ace.lua"/>
