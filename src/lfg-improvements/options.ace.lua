@@ -11,7 +11,7 @@ function LFGImprovements:GetOptions(onChange)
         args = {
             description = {
                 type = "description",
-                name = "Group Finder helpers: automatic role confirmation, a reminder of the key you joined and automatic difficulty selection\n\n",
+                name = "Group Finder helpers: automatic role confirmation, a reminder of the key you joined, automatic loot rolls and automatic difficulty selection\n\n",
                 width = "full",
                 order = 1,
             },
@@ -64,7 +64,7 @@ function LFGImprovements:GetOptions(onChange)
                 order = 30,
                 type = "select",
                 style = "dropdown",
-                name = "Automatically set the dungeon difficulty",
+                name = "Auto dungeon difficulty",
                 values = function()
                     return (LFGImprovements:GetDifficultyOptions("dungeon"))
                 end,
@@ -93,7 +93,7 @@ function LFGImprovements:GetOptions(onChange)
                 order = 40,
                 type = "select",
                 style = "dropdown",
-                name = "Automatically set the raid difficulty",
+                name = "Auto raid difficulty",
                 values = function()
                     return (LFGImprovements:GetDifficultyOptions("raid"))
                 end,
@@ -109,6 +109,23 @@ function LFGImprovements:GetOptions(onChange)
                 end,
                 set = function(_, value)
                     LFGImprovements:SaveDifficulty("raid", value)
+                    LFGImprovements:RefreshConfig()
+                end,
+            },
+            autoLootRoll = {
+                order = 50,
+                type = "toggle",
+                width = "full",
+                name = "Auto transmog/greed",
+                desc = "Stays out of the way while RCLootCouncil is handling the loot for the group.",
+                disabled = function()
+                    return not LFGImprovements.db.enabled
+                end,
+                get = function()
+                    return LFGImprovements.db.autoLootRoll.enabled
+                end,
+                set = function(_, value)
+                    LFGImprovements.db.autoLootRoll.enabled = value
                     LFGImprovements:RefreshConfig()
                 end,
             },

@@ -24,6 +24,19 @@ local function OnEvent(self, event, ...)
         end
     end
 
+    if LFGImprovements.db.autoLootRoll.enabled then
+        if event == "PLAYER_ENTERING_WORLD" then
+            if ItruliaQoL:InRaid() and LFGImprovements.db.autoLootRoll.enabled then
+                LFGImprovements:RemindAutoLootRoll()
+            end
+        end
+
+        if event == "START_LOOT_ROLL" then
+            local rollId = ...
+            LFGImprovements:AutoRollLoot(rollId)
+        end
+    end
+
     if LFGImprovements.db.groupJoinedReminder.enabled then
         if event == "GROUP_LEFT" then
             self.groupName = nil
@@ -86,6 +99,7 @@ function LFGImprovements:EnsureFrame()
     f:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
     f:RegisterEvent("PLAYER_ENTERING_WORLD")
     f:RegisterEvent("PLAYER_LEVEL_UP")
+    f:RegisterEvent("START_LOOT_ROLL")
 
     return f
 end
@@ -96,6 +110,7 @@ function LFGImprovements:LoadDB()
     local db = profile.LFGImprovements
 
     -- Migration
+    db.autoLootRoll = db.autoLootRoll or self:GetDefaults().autoLootRoll
     db.autoDungeonDifficulty = db.autoDungeonDifficulty or self:GetDefaults().autoDungeonDifficulty
     db.autoRaidDifficulty = db.autoRaidDifficulty or self:GetDefaults().autoRaidDifficulty
 
