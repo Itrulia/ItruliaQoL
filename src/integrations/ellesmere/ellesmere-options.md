@@ -71,6 +71,7 @@ Each entry in `rows` is one of the following tables.
 { text   = "Some help text." }       -- a plain, non-interactive line
 { header = "Font", rows = { ... } }  -- a titled sub-list (nested rows)
 { pair   = { <row>, <row> } }        -- two controls on one row, half width each
+{ type   = "empty" }                 -- a blank half, only inside a `pair`
 ```
 
 `pair` takes any two control rows (not just toggles) and puts them side by side:
@@ -84,6 +85,14 @@ Each entry in `rows` is one of the following tables.
 
 Each half gets half the row width, and EllesmereUI **truncates** labels rather than
 wrapping them, so keep paired labels short and put the detail in `tooltip`.
+
+Pair a control with `{ type = "empty" }` to give it half a row without a partner —
+an odd control at the end of a paired block, say. Without it a lone control gets
+the full row width, so its control sits at the far right and breaks the column the
+rows above it line up on.
+
+Three controls to a row (EllesmereUI's `TripleRow`) is not supported: a third of
+the row cannot hold a label and a dropdown at usable widths.
 
 ### Controls
 
@@ -104,6 +113,8 @@ Field reference:
 | `label`    | control label (left side of the row) |
 | `tooltip`  | hover tooltip string |
 | `disabled` | `function() return <bool> end` — greys out and locks the control |
+| `disabledTooltip` | why it is greyed out: a requirement noun EllesmereUI wraps into "This option requires X to be enabled", or a full sentence with `rawTooltip = true` |
+| `rawTooltip` | `true` to show `disabledTooltip` verbatim instead of wrapping it |
 | `min/max/step` | slider range |
 | `values`   | select options: `{ key = "Display", ... }` |
 | `order`    | select display order: `{ "key1", "key2", ... }` (defaults to sorted-by-label) |
@@ -112,6 +123,31 @@ Field reference:
 | `get`      | reader — see below |
 | `set`/`func` | writer / button action — see below |
 | `refresh`  | `true` to re-render the page after this edit — see below |
+| `cog`      | `{ title =, rows = { <row>, ... } }` — secondary settings behind a cogwheel — see below |
+
+### `cog` — secondary settings behind a cogwheel
+
+Any control row can carry a `cog`, which puts a small cogwheel left of its control
+that opens a popup with further settings — how EllesmereUI keeps detail settings
+(offsets, a font's size) off the page instead of spending a row on each:
+
+```lua
+{ type = "select", label = "Font", values = ..., order = ..., get = ..., set = ...,
+  cog = {
+      title = "Font Settings",
+      rows = {
+          { type = "slider", label = "Size", min = 1, max = 68, step = 1,
+            get = function() return M.db.font.fontSize end,
+            set = function(v) M.db.font.fontSize = v; apply() end },
+      },
+  } },
+```
+
+Cog rows are the same specs as page rows (`toggle`, `slider`, `select`, `color`,
+`input`, `execute`) with the same `get`/`set` closures — only `icons` has no cog
+equivalent. On a `pair`, each half can carry its own `cog`. Use it for settings
+that are secondary to the row's own control; anything a user reaches for often
+belongs on the page.
 
 ### Icon grid (`icons`)
 
@@ -219,21 +255,39 @@ interaction.
 ## Shared helpers (`ellesmere.lua`)
 
 - **`ItruliaQoL:EUIFontRows(fontObj, apply)`** → the full font block as a list of
-  rows (Size, Font, Outline, Justify, Shadow X/Y/Colour, Frame Strata, Frame
-  Level). Drop it into a `{ header = "Font", rows = ... }` group:
+  rows: Font, Outline and Frame Strata, two to a row, each with the rest on its
+  cogwheel (Size and Justify, Shadow X/Y/Colour, Frame Level). Drop it into a
+  `{ header = "Font", rows = ... }` group:
   ```lua
   { header = "Font", rows = ItruliaQoL:EUIFontRows(CombatTimer.db.font, apply) },
   ```
+  A fourth argument, `lead`, is a list of rows to put in front of the dropdowns,
+  joining the same two-to-a-row flow instead of sitting above it — for a module
+  whose own text settings belong with the font ones (Death Alert leads with its
+  colour, so the page is Color | Font, Outline | Frame Strata and needs no
+  section header):
+  ```lua
+  rows = ItruliaQoL:EUIFontRows(DeathAlert.db.font, apply, nil, { colorRow }),
+  ```
+  `exclude` still keys every setting individually (`size`, `justify`, `shadowX`,
+  …) even where it is no longer its own row, and a cog setting falls back to a
+  full row if the row hosting its cog is the excluded one. A slug outline greys the
+  shadow settings out with an explanation rather than removing them, so the
+  cogwheel stays put as the outline changes.
 - **`ItruliaQoL:EUIFontFamilyRow(fontObj, apply)`** → just the font-family
   dropdown row (font **name** label + a per-font preview, EllesmereUI-style). Use
-  it when you want a reduced font block:
+  it when you want a reduced font block; add the size as its `cog` (see **`cog`**
+  above) to match how the full block presents it:
   ```lua
-  { header = "Font", rows = {
+  local fontRow = ItruliaQoL:EUIFontFamilyRow(M.db.font, apply)
+  fontRow.cog = { title = "Font Settings", rows = {
       { type = "slider", label = "Size", min = 1, max = 68, step = 1,
         get = function() return M.db.font.fontSize end,
         set = function(v) M.db.font.fontSize = v; apply() end },
-      ItruliaQoL:EUIFontFamilyRow(M.db.font, apply),
-  } },
+  } }
+
+  -- ...
+  { header = "Font", rows = { fontRow } },
   ```
 - **`ItruliaQoL:EUIFontValues()`** → `(values, order)` for a font-family dropdown,
   if you need to build the select row by hand.
@@ -421,6 +475,12 @@ end
 Always return a valid list for the no-argument case — other hosts may call without
 one. Tabs lay out in a single non-wrapping row, so keep the names short and the
 count to roughly six or fewer.
+
+A module that declares no `EUIPages` still gets one tab, named for it by
+`ellesmere.lua`: **Display** for a module that draws something (it defines
+`PreparePreview` — see **The preview**), **Settings** for a pure event listener
+that has no display to name. Keep "Display" as the first page name when adding
+`EUIPages` to a module that had none, so its tab does not appear to rename itself.
 
 The content header sits *below* the tab bar, so each tab gets its own preview and
 `PreparePreview` is told which tab is open — see **The preview** above.

@@ -9,63 +9,77 @@ function MovementAlert:GetEUIOptions(pageName)
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
     if pageName == MovementAlert.pageTimeSpiral then
+        local function spiralOff()
+            return not MovementAlert.db.showTimeSpiral
+        end
+
         return {
             name = "Movement Alert",
             rows = {
                 {
-                    type = "toggle",
-                    label = "Enable",
-                    refresh = true,
-                    get = function()
-                        return MovementAlert.db.showTimeSpiral
-                    end,
-                    set = function(value)
-                        MovementAlert.db.showTimeSpiral = value
-                        apply()
-                    end,
+                    pair = {
+                        {
+                            type = "toggle",
+                            label = "Enable",
+                            refresh = true,
+                            get = function()
+                                return MovementAlert.db.showTimeSpiral
+                            end,
+                            set = function(value)
+                                MovementAlert.db.showTimeSpiral = value
+                                apply()
+                            end,
+                        },
+                        {
+                            type = "color",
+                            label = "Display",
+                            hasAlpha = true,
+                            disabled = spiralOff,
+                            disabledTooltip = "Time spiral",
+                            get = function()
+                                local c = MovementAlert.db.timeSpiralColor
+                                return c.r, c.g, c.b, c.a
+                            end,
+                            set = function(r, g, b, a)
+                                MovementAlert.db.timeSpiralColor = {
+                                    r = r,
+                                    g = g,
+                                    b = b,
+                                    a = a,
+                                }
+                                apply()
+                            end,
+                            cog = {
+                                title = "Alert Text",
+                                rows = {
+                                    {
+                                        type = "input",
+                                        label = "Text",
+                                        width = 120,
+                                        disabled = spiralOff,
+                                        disabledTooltip = "Time spiral",
+                                        get = function()
+                                            return MovementAlert.db.timeSpiralText or ""
+                                        end,
+                                        set = function(value)
+                                            MovementAlert.db.timeSpiralText = value
+                                            apply()
+                                        end,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 {
-                    type = "input",
-                    label = "Time spiral text",
-                    disabled = function()
-                        return not MovementAlert.db.showTimeSpiral
-                    end,
-                    get = function()
-                        return MovementAlert.db.timeSpiralText
-                    end,
-                    set = function(value)
-                        MovementAlert.db.timeSpiralText = value
-                        apply()
-                    end,
-                },
-                {
-                    type = "color",
-                    label = "Time spiral color",
-                    hasAlpha = true,
-                    disabled = function()
-                        return not MovementAlert.db.showTimeSpiral
-                    end,
-                    get = function()
-                        local c = MovementAlert.db.timeSpiralColor
-                        return c.r, c.g, c.b, c.a
-                    end,
-                    set = function(r, g, b, a)
-                        MovementAlert.db.timeSpiralColor = {
-                            r = r,
-                            g = g,
-                            b = b,
-                            a = a,
-                        }
-                        apply()
-                    end,
+                    header = "Sound",
                 },
                 {
                     type = "toggle",
                     label = "Play sound when time spiral becomes active",
                     refresh = true,
-                    disabled = function()
-                        return not MovementAlert.db.showTimeSpiral
-                    end,
+                    disabled = spiralOff,
+                    disabledTooltip = "Time spiral",
                     get = function()
                         return MovementAlert.db.timeSpiralPlaySound
                     end,
@@ -76,7 +90,7 @@ function MovementAlert:GetEUIOptions(pageName)
                 },
                 ItruliaQoL:EUISoundRow({
                     disabled = function()
-                        return not MovementAlert.db.showTimeSpiral or not MovementAlert.db.timeSpiralPlaySound
+                        return spiralOff() or not MovementAlert.db.timeSpiralPlaySound
                     end,
                     get = function()
                         return MovementAlert.db.timeSpiralSound
@@ -87,12 +101,16 @@ function MovementAlert:GetEUIOptions(pageName)
                     end,
                 }),
                 {
+                    header = "Text-to-Speech",
+                },
+                {
                     type = "toggle",
                     label = "Play TTS when time spiral becomes active",
                     refresh = true,
                     disabled = function()
-                        return not MovementAlert.db.showTimeSpiral or MovementAlert.db.timeSpiralPlaySound
+                        return spiralOff() or MovementAlert.db.timeSpiralPlaySound
                     end,
+                    disabledTooltip = "Time spiral",
                     get = function()
                         return MovementAlert.db.timeSpiralPlayTTS
                     end,
@@ -105,7 +123,7 @@ function MovementAlert:GetEUIOptions(pageName)
                     type = "input",
                     label = "TTS Message",
                     disabled = function()
-                        return not MovementAlert.db.showTimeSpiral or MovementAlert.db.timeSpiralPlaySound or not MovementAlert.db.timeSpiralPlayTTS
+                        return spiralOff() or MovementAlert.db.timeSpiralPlaySound or not MovementAlert.db.timeSpiralPlayTTS
                     end,
                     get = function()
                         return MovementAlert.db.timeSpiralTTS
@@ -122,7 +140,7 @@ function MovementAlert:GetEUIOptions(pageName)
                     max = 100,
                     step = 1,
                     disabled = function()
-                        return not MovementAlert.db.showTimeSpiral or MovementAlert.db.timeSpiralPlaySound or not MovementAlert.db.timeSpiralPlayTTS
+                        return spiralOff() or MovementAlert.db.timeSpiralPlaySound or not MovementAlert.db.timeSpiralPlayTTS
                     end,
                     get = function()
                         return MovementAlert.db.timeSpiralTTSVolume
@@ -136,48 +154,46 @@ function MovementAlert:GetEUIOptions(pageName)
     end
 
     -- pageDisplay, and the fallback for any caller that passes no page name
-    return {
-        name = "Movement Alert",
-        rows = {
-            {
-                text = "Displays a text when your most important movement ability is on cooldown or time spiral is active",
-            },
-            {
-                type = "color",
-                label = "Color",
-                hasAlpha = true,
-                get = function()
-                    local c = MovementAlert.db.color
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(r, g, b, a)
-                    MovementAlert.db.color = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a,
-                    }
-                    apply()
-                end,
-            },
-            {
-                type = "slider",
-                label = "Decimal precision",
-                min = 0,
-                max = 1,
-                step = 1,
-                get = function()
-                    return MovementAlert.db.precision
-                end,
-                set = function(value)
-                    MovementAlert.db.precision = value
-                    apply()
-                end,
-            },
-            {
-                header = "Font",
-                rows = ItruliaQoL:EUIFontRows(MovementAlert.db.font, apply),
+    local displayRow = {
+        type = "color",
+        label = "Display",
+        hasAlpha = true,
+        get = function()
+            local c = MovementAlert.db.color
+            return c.r, c.g, c.b, c.a
+        end,
+        set = function(r, g, b, a)
+            MovementAlert.db.color = {
+                r = r,
+                g = g,
+                b = b,
+                a = a,
+            }
+            apply()
+        end,
+        cog = {
+            title = "Timer Text",
+            rows = {
+                {
+                    type = "slider",
+                    label = "Decimal precision",
+                    min = 0,
+                    max = 1,
+                    step = 1,
+                    get = function()
+                        return MovementAlert.db.precision
+                    end,
+                    set = function(value)
+                        MovementAlert.db.precision = value
+                        apply()
+                    end,
+                },
             },
         },
+    }
+
+    return {
+        name = "Movement Alert",
+        rows = ItruliaQoL:EUIFontRows(MovementAlert.db.font, apply, nil, { displayRow }),
     }
 end

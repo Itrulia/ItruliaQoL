@@ -6,74 +6,84 @@ local CombatAlert = ItruliaQoL:GetModule(moduleName)
 function CombatAlert:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
-    return {
-        name = "Combat Alert",
-        rows = {
-            {
-                text = "Shows an alert when entering or leaving combat",
-            },
-            {
-                type = "input",
-                label = "Combat starts text",
-                get = function()
-                    return CombatAlert.db.combatStartsText
-                end,
-                set = function(value)
-                    CombatAlert.db.combatStartsText = value
-                    apply()
-                end,
-            },
-            {
-                type = "color",
-                label = "Combat starts color",
-                hasAlpha = true,
-                get = function()
-                    local c = CombatAlert.db.combatStartsColor
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(r, g, b, a)
-                    CombatAlert.db.combatStartsColor = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a,
-                    }
-                    apply()
-                end,
-            },
-            {
-                type = "input",
-                label = "Combat ends text",
-                get = function()
-                    return CombatAlert.db.combatEndsText
-                end,
-                set = function(value)
-                    CombatAlert.db.combatEndsText = value
-                    apply()
-                end,
-            },
-            {
-                type = "color",
-                label = "Combat ends color",
-                hasAlpha = true,
-                get = function()
-                    local c = CombatAlert.db.combatEndsColor
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(r, g, b, a)
-                    CombatAlert.db.combatEndsColor = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a,
-                    }
-                    apply()
-                end,
-            },
-            {
-                header = "Font",
-                rows = ItruliaQoL:EUIFontRows(CombatAlert.db.font, apply),
+    -- Both alerts are a colour swatch with their text on a cogwheel, leading the
+    -- font settings so the two share a row there instead of taking a full-width
+    -- line each. The inputs never return nil: the cog popup's refresh feeds them
+    -- straight into an EditBox.
+    local startsRow = {
+        type = "color",
+        label = "Combat starts",
+        hasAlpha = true,
+        get = function()
+            local c = CombatAlert.db.combatStartsColor
+            return c.r, c.g, c.b, c.a
+        end,
+        set = function(r, g, b, a)
+            CombatAlert.db.combatStartsColor = {
+                r = r,
+                g = g,
+                b = b,
+                a = a,
+            }
+            apply()
+        end,
+        cog = {
+            title = "Combat Starts",
+            rows = {
+                {
+                    type = "input",
+                    label = "Text",
+                    width = 120,
+                    get = function()
+                        return CombatAlert.db.combatStartsText or ""
+                    end,
+                    set = function(value)
+                        CombatAlert.db.combatStartsText = value
+                        apply()
+                    end,
+                },
             },
         },
+    }
+
+    local endsRow = {
+        type = "color",
+        label = "Combat ends",
+        hasAlpha = true,
+        get = function()
+            local c = CombatAlert.db.combatEndsColor
+            return c.r, c.g, c.b, c.a
+        end,
+        set = function(r, g, b, a)
+            CombatAlert.db.combatEndsColor = {
+                r = r,
+                g = g,
+                b = b,
+                a = a,
+            }
+            apply()
+        end,
+        cog = {
+            title = "Combat Ends",
+            rows = {
+                {
+                    type = "input",
+                    label = "Text",
+                    width = 120,
+                    get = function()
+                        return CombatAlert.db.combatEndsText or ""
+                    end,
+                    set = function(value)
+                        CombatAlert.db.combatEndsText = value
+                        apply()
+                    end,
+                },
+            },
+        },
+    }
+
+    return {
+        name = "Combat Alert",
+        rows = ItruliaQoL:EUIFontRows(CombatAlert.db.font, apply, nil, { startsRow, endsRow }),
     }
 end

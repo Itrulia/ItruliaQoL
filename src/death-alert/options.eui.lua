@@ -226,56 +226,58 @@ function DeathAlert:GetEUIOptions(pageName)
         }
     end
 
-    return {
-        name = "Death Alert",
-        rows = {
-            {
-                type = "input",
-                label = "Suffix",
-                get = function()
-                    return DeathAlert.db.displayText
-                end,
-                set = function(value)
-                    DeathAlert.db.displayText = value
-                    apply()
-                end,
-            },
-            {
-                type = "color",
-                label = "Color",
-                hasAlpha = true,
-                get = function()
-                    local c = DeathAlert.db.color
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(r, g, b, a)
-                    DeathAlert.db.color = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a,
-                    }
-                    apply()
-                end,
-            },
-            {
-                type = "slider",
-                label = "Display duration",
-                min = 1,
-                max = 10,
-                step = 1,
-                get = function()
-                    return DeathAlert.db.messageDuration
-                end,
-                set = function(value)
-                    DeathAlert.db.messageDuration = value
-                    apply()
-                end,
-            },
-            {
-                header = "Font",
-                rows = ItruliaQoL:EUIFontRows(DeathAlert.db.font, apply),
+    local displayRow = {
+        type = "color",
+        label = "Display",
+        hasAlpha = true,
+        get = function()
+            local c = DeathAlert.db.color
+            return c.r, c.g, c.b, c.a
+        end,
+        set = function(r, g, b, a)
+            DeathAlert.db.color = {
+                r = r,
+                g = g,
+                b = b,
+                a = a,
+            }
+            apply()
+        end,
+        cog = {
+            title = "Alert Text",
+            rows = {
+                {
+                    type = "input",
+                    label = "Suffix",
+                    width = 120,
+                    get = function()
+                        return DeathAlert.db.displayText or ""
+                    end,
+                    set = function(value)
+                        DeathAlert.db.displayText = value
+                        apply()
+                    end,
+                },
+                {
+                    type = "slider",
+                    label = "Display duration",
+                    min = 1,
+                    max = 10,
+                    step = 1,
+                    get = function()
+                        return DeathAlert.db.messageDuration
+                    end,
+                    set = function(value)
+                        DeathAlert.db.messageDuration = value
+                        apply()
+                    end,
+                },
             },
         },
+    }
+
+    return {
+        name = "Death Alert",
+        rows = ItruliaQoL:EUIFontRows(DeathAlert.db.font, apply, nil, { displayRow }),
     }
 end

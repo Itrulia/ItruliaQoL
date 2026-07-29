@@ -78,6 +78,158 @@ local function selectOrder(values)
     return order
 end
 
+-- Translates one of our row specs into BuildCogPopup's own vocabulary, which
+-- names a few fields differently (dropdown/colorpicker/button, `action`,
+-- `inputWidth`).
+local function cogPopupRow(item)
+    if item.type == "execute" then
+        return { type = "button", label = item.label, action = item.func }
+    end
+
+    local vals = item.values
+    local t = item.type
+
+    if t == "select" then
+        t = "dropdown"
+    elseif t == "color" then
+        t = "colorpicker"
+    end
+
+    return {
+        type = t,
+        label = item.label,
+        tooltip = item.tooltip,
+        hasAlpha = item.hasAlpha,
+        min = item.min,
+        max = item.max,
+        step = item.step,
+        values = vals,
+        order = vals and (item.order or selectOrder(vals)) or nil,
+        disabled = item.disabled,
+        disabledTooltip = item.disabledTooltip,
+        rawTooltip = item.rawTooltip,
+        inputWidth = item.width,
+        get = item.get,
+        set = item.set,
+    }
+end
+
+-- EllesmereUI's cog popup dims a disabled colour row's swatch but, unlike its
+-- other row types, leaves the label at full alpha -- so a greyed-out colour still
+-- reads as active next to the rows above it. Dim it ourselves, finding the label
+-- by its text the way EllesmereUI's own BuildCursorAnchorRow does. `colorRows` is
+-- the popup's colour rows that have a `disabled`.
+local LABEL_ALPHA, LABEL_ALPHA_DISABLED = 0.6, 0.25
+
+local function dimDisabledCogLabels(popup, colorRows)
+    local EUI = ItruliaQoL.EUI
+
+    for _, row in ipairs(colorRows) do
+        if not row._cogLabel then
+            local text = (EUI.L and EUI.L(row.label)) or row.label
+
+            for i = 1, popup:GetNumRegions() do
+                local reg = select(i, popup:GetRegions())
+
+                if reg and reg.GetText and reg:GetText() == text then
+                    row._cogLabel = reg
+                    break
+                end
+            end
+        end
+
+        if row._cogLabel then
+            row._cogLabel:SetAlpha(row.disabled() and LABEL_ALPHA_DISABLED or LABEL_ALPHA)
+        end
+    end
+end
+
+-- Inline cogwheel on a settings row: a small cog left of the row's control that
+-- opens a popup with secondary settings, the way EllesmereUI keeps offsets and
+-- other detail settings off the page instead of spending a full row on each.
+-- `cog` is { title = "Popup Title", rows = { <row>, ... }, icon = <texture?> },
+-- its rows using the same specs as the page itself.
+local function attachEUICog(region, cog)
+    local EUI = ItruliaQoL.EUI
+
+    if not region or not cog or not cog.rows or #cog.rows == 0 then
+        return
+    end
+
+    if not (EUI and EUI.BuildCogPopup) then
+        return
+    end
+
+    local rows = {}
+    local colorRows = {}
+
+    for i, row in ipairs(cog.rows) do
+        rows[i] = cogPopupRow(row)
+
+        if row.type == "color" and row.disabled then
+            colorRows[#colorRows + 1] = row
+        end
+    end
+
+    local _, cogShow = EUI.BuildCogPopup({ title = cog.title, rows = rows })
+
+    -- The popup is built on first open, so its labels can only be dimmed from
+    -- there. Chain into its own refresh as well, so an edit inside the popup that
+    -- flips a colour row's `disabled` keeps the label in step.
+    local function show(anchorBtn)
+        cogShow(anchorBtn)
+
+        local popup = cogShow._popupFrame
+
+        if not popup or #colorRows == 0 then
+            return
+        end
+
+        if not popup.itruliaQoLDimHooked then
+            popup.itruliaQoLDimHooked = true
+
+            local refresh = popup._refresh
+            popup._refresh = function(...)
+                refresh(...)
+                dimDisabledCogLabels(popup, colorRows)
+            end
+        end
+
+        dimDisabledCogLabels(popup, colorRows)
+    end
+
+    -- Chain off `_lastInline` so several inline extras on one row stack leftwards,
+    -- which is the convention EllesmereUI's own pages follow.
+    local anchor = region._lastInline or region._control
+
+    local btn = CreateFrame("Button", nil, region)
+    btn:SetSize(26, 26)
+
+    if anchor then
+        btn:SetPoint("RIGHT", anchor, "LEFT", -8, 0)
+    else
+        btn:SetPoint("RIGHT", region, "RIGHT", -20, 0)
+    end
+
+    region._lastInline = btn
+    btn:SetFrameLevel(region:GetFrameLevel() + 5)
+    btn:SetAlpha(0.4)
+
+    local tex = btn:CreateTexture(nil, "OVERLAY")
+    tex:SetAllPoints()
+    tex:SetTexture(cog.icon or EUI.COGS_ICON)
+
+    btn:SetScript("OnEnter", function(self)
+        self:SetAlpha(0.7)
+    end)
+    btn:SetScript("OnLeave", function(self)
+        self:SetAlpha(0.4)
+    end)
+    btn:SetScript("OnClick", function(self)
+        show(self)
+    end)
+end
+
 -- Manual settings list (options.eui.lua).
 --
 -- A module can hand-author its EllesmereUI settings by defining
@@ -90,6 +242,7 @@ end
 --   { text   = "Some help text" }                             -- plain label row
 --   { rows   = { ... }, header = "optional" }                 -- nested sub-list
 --   { pair   = { <row>, <row> } }                             -- two controls, half width each
+--   { type = "empty" }                                        -- a blank half in a pair
 --   { type = "toggle",  label=, tooltip=, disabled=, get=, set= }
 --   { type = "slider",  label=, min=, max=, step=, disabled=, get=, set= }
 --   { type = "select",  label=, values=, order=, disabled=, get=, set= }
@@ -98,8 +251,16 @@ end
 --   { type = "execute", label=, disabled=, func= }
 --   { type = "icons",   items = { { icon=, label=, tooltip=, onClick=, desaturated= }, ... } }
 --
--- `disabled` is a function returning a bool. `get`/`set` read/write the module
--- db directly and call the module's own apply (e.g. self:RefreshConfig()).
+-- Any control row may also carry
+--   cog = { title = "Popup Title", rows = { <row>, ... } }
+-- to put secondary settings behind a cogwheel next to its control instead of on
+-- rows of their own (see attachEUICog).
+--
+-- `disabled` is a function returning a bool. `disabledTooltip` explains why (a
+-- requirement noun that EllesmereUI wraps into "This option requires X to be
+-- enabled", or a full sentence of your own with `rawTooltip = true`). `get`/`set`
+-- read/write the module db directly and call the module's own apply (e.g.
+-- self:RefreshConfig()).
 function ItruliaQoL:RenderEUIList(W, parent, y, rows)
     local _, h
 
@@ -133,12 +294,20 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
             return { text = item.text }
         end
 
+        -- A blank half, so an odd control still gets half the row rather than
+        -- stretching its control across the full width.
+        if item.type == "empty" then
+            return { type = "spacer" }
+        end
+
         if item.type == "toggle" then
             return {
                 type = "toggle",
                 text = item.label,
                 tooltip = item.tooltip,
                 disabled = item.disabled,
+                disabledTooltip = item.disabledTooltip,
+                rawTooltip = item.rawTooltip,
                 getValue = item.get,
                 setValue = wrap(item.set, item.refresh),
             }
@@ -159,6 +328,8 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 max = item.max,
                 step = item.step,
                 disabled = item.disabled,
+                disabledTooltip = item.disabledTooltip,
+                rawTooltip = item.rawTooltip,
                 getValue = function()
                     local v = getV and getV()
 
@@ -182,6 +353,8 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 values = vals,
                 order = item.order or selectOrder(vals),
                 disabled = item.disabled,
+                disabledTooltip = item.disabledTooltip,
+                rawTooltip = item.rawTooltip,
                 getValue = item.get,
                 setValue = wrap(item.set, item.refresh),
             }
@@ -204,6 +377,8 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 tooltip = item.tooltip,
                 inputWidth = item.width or 180,
                 disabled = item.disabled,
+                disabledTooltip = item.disabledTooltip,
+                rawTooltip = item.rawTooltip,
                 getValue = item.get,
                 setValue = wrap(item.set, item.refresh),
             }
@@ -214,6 +389,8 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 type = "button",
                 text = item.label,
                 disabled = item.disabled,
+                disabledTooltip = item.disabledTooltip,
+                rawTooltip = item.rawTooltip,
                 onClick = wrap(item.func, item.refresh),
             }
         end
@@ -221,10 +398,14 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
         return nil
     end
 
+    local row
+
     for _, item in ipairs(rows) do
         if item.pair then
             -- Two controls sharing one row, each getting half the width.
-            _, h = W:DualRow(parent, y, halfConfig(item.pair[1]), halfConfig(item.pair[2]))
+            row, h = W:DualRow(parent, y, halfConfig(item.pair[1]), halfConfig(item.pair[2]))
+            attachEUICog(row._leftRegion, item.pair[1] and item.pair[1].cog)
+            attachEUICog(row._rightRegion, item.pair[2] and item.pair[2].cog)
             y = y - h
         elseif item.rows then
             if item.header then
@@ -247,7 +428,8 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
             local cfg = halfConfig(item)
 
             if cfg then
-                _, h = W:DualRow(parent, y, cfg)
+                row, h = W:DualRow(parent, y, cfg)
+                attachEUICog(row._leftRegion, item.cog)
                 y = y - h
             end
         end
@@ -419,8 +601,9 @@ function ItruliaQoL:RestoreEUIPreview(module, pageName)
     end
 end
 
--- Prominent "still being built" banner. Drawn from buildPage rather than from a
--- single page, so it shows no matter which page the user lands on. Returns
+-- Prominent "still being built" banner, shown on the General page only (see
+-- `betaNotice` in addEntry): it is about the integration as a whole, so a copy
+-- above every module's settings would just be a row they scroll past. Returns
 -- (frame, height) so it slots into the same `y = y - h` flow as everything else.
 function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     local EUI = self.EUI
@@ -443,7 +626,7 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     title:SetFont(fontPath, 16, "OUTLINE")
     title:SetTextColor(1, 0.75, 0.2, 1)
     title:SetPoint("TOPLEFT", frame, "TOPLEFT", PAD_X, -PAD_Y)
-    title:SetText("BETA -- WORK IN PROGRESS")
+    title:SetText("BETA")
 
     local body = frame:CreateFontString(nil, "OVERLAY")
     body:SetFont(fontPath, 12, "")
@@ -452,9 +635,50 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     body:SetWidth(availW - PAD_X * 2)
     body:SetJustifyH("LEFT")
     body:SetWordWrap(true)
-    body:SetText("The EllesmereUI integration is still being built. Settings may be incomplete, move between pages, or not apply until it is finished. The ElvUI and standalone config panels are the complete ones for now.")
+    body:SetText("The EllesmereUI integration is still being built. The ElvUI and standalone config panels are the complete ones for now (although uglier).")
 
-    local height = PAD_Y + title:GetStringHeight() + 6 + body:GetStringHeight() + PAD_Y + 8
+    -- Where to take a problem. Amber rather than the body's white, because this is
+    -- the line that saves the EllesmereUI Discord a support request that is not
+    -- theirs to answer.
+    local support = frame:CreateFontString(nil, "OVERLAY")
+    support:SetFont(fontPath, 12, "")
+    support:SetTextColor(1, 0.85, 0.5, 0.9)
+    support:SetPoint("TOPLEFT", body, "BOTTOMLEFT", 0, -8)
+    support:SetWidth(availW - PAD_X * 2)
+    support:SetJustifyH("LEFT")
+    support:SetWordWrap(true)
+    support:SetText("Itrulia QoL is an inofficial module and not part of EllesmereUI. Please do not ask about it in the EllesmereUI Discord -- message Itrulia on Discord directly instead.")
+
+    -- Straight to the complete panel, styled like EllesmereUI's own "Unlock Mode"
+    -- footer link: accent text that brightens on hover. The EllesmereUI panel is
+    -- closed first -- AceConfigDialog would otherwise open behind it -- and the
+    -- open is deferred a frame so it does not run inside the panel's own hide.
+    local ar, ag, ab = EUI.GetAccentColor()
+
+    local linkText = frame:CreateFontString(nil, "OVERLAY")
+    linkText:SetFont(fontPath, 12, "")
+    linkText:SetTextColor(ar, ag, ab, 0.9)
+    linkText:SetPoint("TOPLEFT", support, "BOTTOMLEFT", 0, -8)
+    linkText:SetText("Open the standalone config >")
+
+    local link = CreateFrame("Button", nil, frame)
+    link:SetPoint("TOPLEFT", linkText, "TOPLEFT", -2, 2)
+    link:SetPoint("BOTTOMRIGHT", linkText, "BOTTOMRIGHT", 2, -2)
+    link:SetFrameLevel(frame:GetFrameLevel() + 5)
+    link:SetScript("OnEnter", function()
+        linkText:SetTextColor(ar + (1 - ar) * 0.25, ag + (1 - ag) * 0.25, ab + (1 - ab) * 0.25, 1)
+    end)
+    link:SetScript("OnLeave", function()
+        linkText:SetTextColor(ar, ag, ab, 0.9)
+    end)
+    link:SetScript("OnClick", function()
+        C_Timer.After(0, function()
+            ItruliaQoL.CD:Open(addonName)
+        end)
+    end)
+
+    local height = PAD_Y + title:GetStringHeight() + 6 + body:GetStringHeight()
+        + 8 + support:GetStringHeight() + 8 + linkText:GetStringHeight() + PAD_Y + 8
     PP.Size(frame, availW, height)
     PP.CreateBorder(frame, 0.95, 0.65, 0.15, 1, 1)
 
@@ -610,10 +834,28 @@ end
 -- `apply` runs after each change (e.g. the module's RefreshConfig). `exclude` is
 -- an optional set of row keys to skip:
 --   size, font, outline, justify, shadowX, shadowY, shadowColor, strata, level
-function ItruliaQoL:EUIFontRows(f, apply, exclude)
+--
+-- The block is the three dropdowns -- Font, Outline, Frame Strata -- two to a row,
+-- with everything else on their cogwheels: size and justify on Font's, the shadow
+-- settings on Outline's, the frame level on Frame Strata's, the way EllesmereUI
+-- keeps a picker's detail settings next to it rather than below it. `exclude`
+-- still keys every setting individually, and a cog row falls back to a row of its
+-- own when its host is the one excluded.
+--
+-- `lead` is an optional list of rows to put in front of the dropdowns, joining the
+-- same two-to-a-row flow rather than sitting above it -- for a module whose own
+-- text settings (a colour, say) belong with the font ones.
+function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
     exclude = exclude or {}
 
-    local slug = f.fontOutline == "OUTLINESLUG"
+    -- A slug outline draws its own backdrop, so the shadow settings do nothing.
+    -- They stay on the Outline cog, greyed out with that explanation, rather than
+    -- the cog itself coming and going as the outline changes.
+    local function slug()
+        return f.fontOutline == "OUTLINESLUG"
+    end
+
+    local SLUG_TIP = "A slug outline draws its own backdrop, so a text shadow has no effect."
 
     local rows = {}
     local function add(key, row)
@@ -621,14 +863,28 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
             return
         end
 
-        if slug and (key == "shadowX" or key == "shadowY" or key == "shadowColor") then
-            return
-        end
-
         rows[#rows + 1] = row
     end
 
-    add("size", {
+    -- The cog spec for `specs` ({ key, row } pairs), dropping excluded rows and
+    -- returning nil when nothing is left to put behind the cog.
+    local function cogSpec(title, specs)
+        local cogRows = {}
+
+        for _, spec in ipairs(specs) do
+            if not exclude[spec[1]] then
+                cogRows[#cogRows + 1] = spec[2]
+            end
+        end
+
+        if #cogRows == 0 then
+            return nil
+        end
+
+        return { title = title, rows = cogRows }
+    end
+
+    local sizeRow = {
         type = "slider",
         label = "Size",
         min = 1,
@@ -641,23 +897,8 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
             f.fontSize = v
             apply()
         end,
-    })
-    add("font", self:EUIFontFamilyRow(f, apply))
-    add("outline", {
-        type = "select",
-        label = "Outline",
-        values = self.OutlineSettings,
-        -- Gates the shadow rows above, so the page has to rebuild after a change.
-        refresh = true,
-        get = function()
-            return f.fontOutline or "NONE"
-        end,
-        set = function(v)
-            f.fontOutline = (v ~= "NONE") and v or nil
-            apply()
-        end,
-    })
-    add("justify", {
+    }
+    local justifyRow = {
         type = "select",
         label = "Justify",
         values = self.JustifyHSettings,
@@ -668,13 +909,16 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
             f.justifyH = v
             apply()
         end,
-    })
-    add("shadowX", {
+    }
+    local shadowXRow = {
         type = "slider",
         label = "Shadow X Offset",
         min = -5,
         max = 5,
         step = 1,
+        disabled = slug,
+        disabledTooltip = SLUG_TIP,
+        rawTooltip = true,
         get = function()
             return f.fontShadowXOffset
         end,
@@ -682,13 +926,16 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
             f.fontShadowXOffset = v
             apply()
         end,
-    })
-    add("shadowY", {
+    }
+    local shadowYRow = {
         type = "slider",
         label = "Shadow Y Offset",
         min = -5,
         max = 5,
         step = 1,
+        disabled = slug,
+        disabledTooltip = SLUG_TIP,
+        rawTooltip = true,
         get = function()
             return f.fontShadowYOffset
         end,
@@ -696,11 +943,14 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
             f.fontShadowYOffset = v
             apply()
         end,
-    })
-    add("shadowColor", {
+    }
+    local shadowColorRow = {
         type = "color",
         label = "Shadow Color",
         hasAlpha = true,
+        disabled = slug,
+        disabledTooltip = SLUG_TIP,
+        rawTooltip = true,
         get = function()
             local c = f.fontShadowColor
             return c.r, c.g, c.b, c.a
@@ -709,20 +959,62 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
             f.fontShadowColor = { r = r, g = g, b = b, a = a }
             apply()
         end,
-    })
-    add("strata", {
-        type = "select",
-        label = "Frame Strata",
-        values = self.FrameStrataSettings,
-        get = function()
-            return f.frameStrata or "BACKGROUND"
-        end,
-        set = function(v)
-            f.frameStrata = v
-            apply()
-        end,
-    })
-    add("level", {
+    }
+
+    -- The dropdowns, paired up at the tail of this function; everything they host
+    -- lives on their cogwheels. Any `lead` rows join the same flow, ahead of them.
+    local pickers = {}
+
+    for _, row in ipairs(lead or {}) do
+        pickers[#pickers + 1] = row
+    end
+
+    -- Font: the family dropdown, with size and justify on its cogwheel.
+    if exclude.font then
+        add("size", sizeRow)
+        add("justify", justifyRow)
+    else
+        local fontRow = self:EUIFontFamilyRow(f, apply)
+        fontRow.cog = cogSpec("Font Settings", {
+            { "size", sizeRow },
+            { "justify", justifyRow },
+        })
+
+        pickers[#pickers + 1] = fontRow
+    end
+
+    -- Outline: the mode dropdown, with the shadow settings on its cogwheel.
+    local shadowSpecs = {
+        { "shadowX", shadowXRow },
+        { "shadowY", shadowYRow },
+        { "shadowColor", shadowColorRow },
+    }
+
+    if exclude.outline then
+        for _, spec in ipairs(shadowSpecs) do
+            add(spec[1], spec[2])
+        end
+    else
+        local outlineRow = {
+            type = "select",
+            label = "Outline",
+            values = self.OutlineSettings,
+            get = function()
+                return f.fontOutline or "NONE"
+            end,
+            set = function(v)
+                f.fontOutline = (v ~= "NONE") and v or nil
+                apply()
+            end,
+        }
+
+        outlineRow.cog = cogSpec("Shadow Settings", shadowSpecs)
+
+        pickers[#pickers + 1] = outlineRow
+    end
+
+    -- Frame Strata: the strata dropdown, with the level on its cogwheel.
+    local levelRow = {
         type = "slider",
         label = "Frame Level",
         min = 1,
@@ -735,7 +1027,39 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude)
             f.frameLevel = v
             apply()
         end,
-    })
+    }
+
+    if exclude.strata then
+        add("level", levelRow)
+    else
+        local strataRow = {
+            type = "select",
+            label = "Frame Strata",
+            values = self.FrameStrataSettings,
+            get = function()
+                return f.frameStrata or "BACKGROUND"
+            end,
+            set = function(v)
+                f.frameStrata = v
+                apply()
+            end,
+        }
+
+        strataRow.cog = cogSpec("Frame Settings", { { "level", levelRow } })
+
+        pickers[#pickers + 1] = strataRow
+    end
+
+    -- The pickers go first, two to a row, above whatever fell back to a row of its
+    -- own. An odd one out keeps its half rather than stretching over the full row.
+    local at = 1
+
+    for i = 1, #pickers, 2 do
+        local left, right = pickers[i], pickers[i + 1]
+
+        table.insert(rows, at, { pair = { left, right or { type = "empty" } } })
+        at = at + 1
+    end
 
     return rows
 end
@@ -830,9 +1154,19 @@ local GROUP_KEY   = "itrulia"
 local GROUP_LABEL = "Itrulia QoL"
 
 local PAGE_GENERAL  = "General"
+local PAGE_DISPLAY  = "Display"
 local PAGE_SETTINGS = "Settings"
 local PAGE_PROFILES = "Profiles"
 local PAGE_IMPEXP   = "Import / Export"
+
+-- The single tab of a module that doesn't declare EUIPages. A module that draws
+-- something calls that tab "Display", matching the first tab of the modules that
+-- do declare pages; one that only listens for events (FocusTargetMarker,
+-- PreventRelease) has no display to name, so its tab stays "Settings".
+-- PreparePreview is the same draws-something flag the preview header keys off.
+local function defaultPage(module)
+    return module.PreparePreview and PAGE_DISPLAY or PAGE_SETTINGS
+end
 
 -- Modules whose settings share one sidebar row instead of getting one each. Each
 -- member becomes a tab on that row, and the row is emitted where its first member
@@ -1297,6 +1631,31 @@ function ItruliaQoL:InjectEUISidebar(entries)
     })
 end
 
+-- "(Inofficial Module)" beside our sidebar group header, so the group reads as a
+-- companion addon rather than part of the EllesmereUI suite.
+--
+-- EllesmereUI's group rows carry only their own accent-coloured label, so the note
+-- is a second FontString anchored to it, smaller and grey. The row is built once
+-- per CreateMainFrame (kept in _sidebarGroupButtons, keyed by group), so attaching
+-- once is enough -- guarded by _itruliaNote, since this runs on every panel open.
+function ItruliaQoL:AttachEUISidebarGroupNote()
+    local EUI = self.EUI
+    local headers = EUI and EUI._sidebarGroupButtons
+    local header = headers and headers[GROUP_KEY]
+
+    if not header or header._itruliaNote or not header._label then
+        return
+    end
+
+    local note = header:CreateFontString(nil, "OVERLAY")
+    note:SetFont((EUI.GetFontPath and EUI.GetFontPath()) or STANDARD_TEXT_FONT, 11, "")
+    note:SetTextColor(1, 1, 1, 0.35)
+    note:SetText("(Inofficial Module)")
+    note:SetPoint("LEFT", header._label, "RIGHT", 6, -1)
+
+    header._itruliaNote = note
+end
+
 -- Per-module enable switch on the sidebar row itself, so a module can be turned on
 -- or off without opening its page.
 --
@@ -1586,6 +1945,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
             description = description,
             members = members,
             previewFor = previewFor,
+            betaNotice = key == "General",
         }
     end
 
@@ -1674,7 +2034,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
                     members = { { key = key, module = module } }
                 end
 
-                addEntry(key, displayFor(key), module.EUIPages or { PAGE_SETTINGS },
+                addEntry(key, displayFor(key), module.EUIPages or { defaultPage(module) },
                     function(pageName, parent, y)
                         return ItruliaQoL:BuildEUIModulePage(module, parent, y, true, pageName)
                     end, descriptionFor(key), members, function()
@@ -1706,6 +2066,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         for _, name in ipairs({ "Show", "Toggle", "ShowModule" }) do
             if EUI[name] then
                 hooksecurefunc(EUI, name, function()
+                    ItruliaQoL:AttachEUISidebarGroupNote()
                     ItruliaQoL:AttachEUISidebarSwitches(entries)
                     ItruliaQoL:RefreshEUISidebarRows(entries)
                 end)
@@ -1759,8 +2120,12 @@ function ItruliaQoL:RegisterEUI(parentOptions)
                     EUI:SetContentHeader(headerBuilder)
                 end
 
-                local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, yOffset)
-                local y = yOffset - noticeH
+                local y = yOffset
+
+                if entry.betaNotice then
+                    local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, y)
+                    y = y - noticeH
+                end
 
                 return build(pageName, parent, y) or math.abs(y)
             end,

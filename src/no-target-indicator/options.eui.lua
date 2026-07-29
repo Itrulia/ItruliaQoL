@@ -6,55 +6,64 @@ local NoTargetIndicator = ItruliaQoL:GetModule(moduleName)
 function NoTargetIndicator:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
-    return {
-        name = "No Target Indicator",
-        rows = {
-            {
-                text = "Shows an indicator text when player doesn't have a target when in combat",
-            },
-            {
-                type = "toggle",
-                label = "Include friendly target as valid target",
-                get = function()
-                    return NoTargetIndicator.db.friendlyisValidTarget
-                end,
-                set = function(value)
-                    NoTargetIndicator.db.friendlyisValidTarget = value
-                end,
-            },
-            {
-                type = "input",
-                label = "Display text",
-                get = function()
-                    return NoTargetIndicator.db.displayText
-                end,
-                set = function(value)
-                    NoTargetIndicator.db.displayText = value
-                    apply()
-                end,
-            },
-            {
-                type = "color",
-                label = "Color",
-                hasAlpha = true,
-                get = function()
-                    local c = NoTargetIndicator.db.color
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(r, g, b, a)
-                    NoTargetIndicator.db.color = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a,
-                    }
-                    apply()
-                end,
-            },
-            {
-                header = "Font",
-                rows = ItruliaQoL:EUIFontRows(NoTargetIndicator.db.font, apply),
+    local displayRow = {
+        type = "color",
+        label = "Display",
+        hasAlpha = true,
+        get = function()
+            local c = NoTargetIndicator.db.color
+            return c.r, c.g, c.b, c.a
+        end,
+        set = function(r, g, b, a)
+            NoTargetIndicator.db.color = {
+                r = r,
+                g = g,
+                b = b,
+                a = a,
+            }
+            apply()
+        end,
+        cog = {
+            title = "Alert Text",
+            rows = {
+                {
+                    type = "input",
+                    label = "Text",
+                    width = 120,
+                    get = function()
+                        return NoTargetIndicator.db.displayText or ""
+                    end,
+                    set = function(value)
+                        NoTargetIndicator.db.displayText = value
+                        apply()
+                    end,
+                },
             },
         },
+    }
+
+    -- The friendly-target rule keeps a full-width row of its own: its label is far
+    -- too long for a half, and it is a behaviour setting rather than one of the
+    -- appearance pairs below it.
+    local rows = {
+        {
+            type = "toggle",
+            label = "Include friendly target as valid target",
+            get = function()
+                return NoTargetIndicator.db.friendlyisValidTarget
+            end,
+            set = function(value)
+                NoTargetIndicator.db.friendlyisValidTarget = value
+            end,
+        },
+    }
+
+    for _, row in ipairs(ItruliaQoL:EUIFontRows(NoTargetIndicator.db.font, apply, nil, { displayRow })) do
+        rows[#rows + 1] = row
+    end
+
+    return {
+        name = "No Target Indicator",
+        rows = rows,
     }
 end

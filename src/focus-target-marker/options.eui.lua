@@ -33,36 +33,40 @@ function FocusTargetMarker:GetEUIOptions()
                 text = "Creates a macro called FocusTargetMarker which automatically marks your mouseover or target with the configured raid marker",
             },
             {
-                type = "toggle",
-                label = "Announce on ready check",
-                get = function()
-                    return FocusTargetMarker.db.announce
-                end,
-                set = function(value)
-                    FocusTargetMarker.db.announce = value
-                end,
-            },
-            {
-                type = "select",
-                label = "Focus Marker",
-                values = {
-                    [1] = RaidMarkerString(1),
-                    [2] = RaidMarkerString(2),
-                    [3] = RaidMarkerString(3),
-                    [4] = RaidMarkerString(4),
-                    [5] = RaidMarkerString(5),
-                    [6] = RaidMarkerString(6),
-                    [7] = RaidMarkerString(7),
-                    [8] = RaidMarkerString(8),
+                pair = {
+                    {
+                        type = "select",
+                        label = "Marker",
+                        values = {
+                            [1] = RaidMarkerString(1),
+                            [2] = RaidMarkerString(2),
+                            [3] = RaidMarkerString(3),
+                            [4] = RaidMarkerString(4),
+                            [5] = RaidMarkerString(5),
+                            [6] = RaidMarkerString(6),
+                            [7] = RaidMarkerString(7),
+                            [8] = RaidMarkerString(8),
+                        },
+                        order = { 1, 2, 3, 4, 5, 6, 7, 8 },
+                        get = function()
+                            return FocusTargetMarker.db.marker
+                        end,
+                        set = function(value)
+                            FocusTargetMarker.db.marker = value
+                            FocusTargetMarker:RefreshConfig()
+                        end,
+                    },
+                    {
+                        type = "toggle",
+                        label = "Announce on ready check",
+                        get = function()
+                            return FocusTargetMarker.db.announce
+                        end,
+                        set = function(value)
+                            FocusTargetMarker.db.announce = value
+                        end,
+                    },
                 },
-                order = { 1, 2, 3, 4, 5, 6, 7, 8 },
-                get = function()
-                    return FocusTargetMarker.db.marker
-                end,
-                set = function(value)
-                    FocusTargetMarker.db.marker = value
-                    FocusTargetMarker:RefreshConfig()
-                end,
             },
         },
     }

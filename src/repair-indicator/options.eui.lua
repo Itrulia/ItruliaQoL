@@ -6,45 +6,44 @@ local RepairIndicator = ItruliaQoL:GetModule(moduleName)
 function RepairIndicator:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
-    return {
-        name = "Repair Indicator",
-        rows = {
-            {
-                text = "Displays a text when one of your items is broken or about to be",
-            },
-            {
-                type = "input",
-                label = "Display text",
-                get = function()
-                    return RepairIndicator.db.displayText
-                end,
-                set = function(value)
-                    RepairIndicator.db.displayText = value
-                    apply()
-                end,
-            },
-            {
-                type = "color",
-                label = "Color",
-                hasAlpha = true,
-                get = function()
-                    local c = RepairIndicator.db.color
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(r, g, b, a)
-                    RepairIndicator.db.color = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a,
-                    }
-                    apply()
-                end,
-            },
-            {
-                header = "Font",
-                rows = ItruliaQoL:EUIFontRows(RepairIndicator.db.font, apply),
+    local displayRow = {
+        type = "color",
+        label = "Display",
+        hasAlpha = true,
+        get = function()
+            local c = RepairIndicator.db.color
+            return c.r, c.g, c.b, c.a
+        end,
+        set = function(r, g, b, a)
+            RepairIndicator.db.color = {
+                r = r,
+                g = g,
+                b = b,
+                a = a,
+            }
+            apply()
+        end,
+        cog = {
+            title = "Alert Text",
+            rows = {
+                {
+                    type = "input",
+                    label = "Text",
+                    width = 120,
+                    get = function()
+                        return RepairIndicator.db.displayText or ""
+                    end,
+                    set = function(value)
+                        RepairIndicator.db.displayText = value
+                        apply()
+                    end,
+                },
             },
         },
+    }
+
+    return {
+        name = "Repair Indicator",
+        rows = ItruliaQoL:EUIFontRows(RepairIndicator.db.font, apply, nil, { displayRow }),
     }
 end
