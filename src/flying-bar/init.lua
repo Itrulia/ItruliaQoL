@@ -72,8 +72,8 @@ local function OnUpdate(self)
     end
 end
 
-local function OnEvent(self)
-    local canGlide = select(2, C_PlayerInfo.GetGlidingInfo())
+function OnEvent(self)
+    local canGlide = ItruliaQoL:CanGlide()
     self:SetAlphaFromBoolean(canGlide, 1, 0)
 
     if canGlide then
@@ -262,6 +262,7 @@ function FlyingBar:EnsureFrame()
     f:RegisterEvent('SPELL_UPDATE_CHARGES')
     f:RegisterEvent('PLAYER_ENTERING_WORLD')
     f:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
+    f:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
     f:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
     f:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
 

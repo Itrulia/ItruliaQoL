@@ -101,12 +101,24 @@ function ItruliaQoL:GetGroupUnits()
     return units
 end
 
+function ItruliaQoL:CanGlide()
+    local canGlide = select(2, C_PlayerInfo.GetGlidingInfo())
+
+    if not canGlide then
+        return false
+    end
+
+    -- can glide is slow
+    return IsMounted() or UnitInVehicle("player") or GetShapeshiftFormID() ~= nil
+end
+
 function ItruliaQoL:OnDragonRidingChange(onEvent)
     local mountFrame = CreateFrame("frame", nil, UIParent)
     mountFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     mountFrame:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
+    mountFrame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
     mountFrame:SetScript("OnEvent", function() 
-        onEvent(select(2, C_PlayerInfo.GetGlidingInfo()))
+        onEvent(ItruliaQoL:CanGlide())
     end)
 
     return mountFrame
