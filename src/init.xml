@@ -32,6 +32,7 @@
 	<Include file="prevent-release\init.xml"/>
 	<Include file="friendly-nameplates\init.xml"/>
 	<Include file="macro-factory\init.xml"/>
+	<Include file="raid-frame-manager\init.xml"/>
 
 	<Script file="cdm-slash.lua"/>
 </Ui>

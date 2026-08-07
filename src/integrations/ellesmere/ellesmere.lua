@@ -78,12 +78,44 @@ local function selectOrder(values)
     return order
 end
 
+-- `refresh = true` on a row re-renders the page after its edit, so controls it
+-- gates (their `disabled`/values depend on this one) update immediately.
+--
+-- `rebuild = true` is for the edits that change the row *set* itself -- adding
+-- or removing a pull timer, say. EllesmereUI's plain RefreshPage takes a fast
+-- path that only re-reads DB values through the widgets already on the page, so
+-- rows that should appear or disappear never do; only a forced refresh tears the
+-- page down and calls GetEUIOptions again.
+--
+-- Used for the page's own rows and for cog popup rows alike: a setting behind a
+-- cogwheel gates page rows just as often as a page row does (RaidFrameManager's
+-- "Only in a raid", which disables the "Only in a group" toggle it hangs off).
+local function wrapPageRefresh(fn, refresh, rebuild)
+    if not (refresh or rebuild) or not fn then
+        return fn
+    end
+
+    return function(...)
+        fn(...)
+
+        local EUI = ItruliaQoL.EUI
+
+        if EUI and EUI.RefreshPage then
+            EUI:RefreshPage(rebuild and true or nil)
+        end
+    end
+end
+
 -- Translates one of our row specs into BuildCogPopup's own vocabulary, which
 -- names a few fields differently (dropdown/colorpicker/button, `action`,
 -- `inputWidth`).
 local function cogPopupRow(item)
     if item.type == "execute" then
-        return { type = "button", label = item.label, action = item.func }
+        return {
+            type = "button",
+            label = item.label,
+            action = wrapPageRefresh(item.func, item.refresh, item.rebuild),
+        }
     end
 
     local vals = item.values
@@ -110,7 +142,7 @@ local function cogPopupRow(item)
         rawTooltip = item.rawTooltip,
         inputWidth = item.width,
         get = item.get,
-        set = item.set,
+        set = wrapPageRefresh(item.set, item.refresh, item.rebuild),
     }
 end
 
@@ -149,6 +181,13 @@ end
 -- other detail settings off the page instead of spending a full row on each.
 -- `cog` is { title = "Popup Title", rows = { <row>, ... }, icon = <texture?> },
 -- its rows using the same specs as the page itself.
+--
+-- A cog may also carry `disabled` (a function) and `disabledTooltip` (a full
+-- sentence, shown verbatim), for settings that only mean anything while the row
+-- they hang off is on -- there is no point opening a popup whose every row would
+-- be greyed out. The cog dims, stops opening, and explains itself on hover.
+local COG_ALPHA, COG_ALPHA_HOVER, COG_ALPHA_DISABLED = 0.4, 0.7, 0.15
+
 local function attachEUICog(region, cog)
     local EUI = ItruliaQoL.EUI
 
@@ -213,19 +252,52 @@ local function attachEUICog(region, cog)
 
     region._lastInline = btn
     btn:SetFrameLevel(region:GetFrameLevel() + 5)
-    btn:SetAlpha(0.4)
 
     local tex = btn:CreateTexture(nil, "OVERLAY")
     tex:SetAllPoints()
     tex:SetTexture(cog.icon or EUI.COGS_ICON)
 
+    local function disabled()
+        return cog.disabled and cog.disabled() and true or false
+    end
+
+    -- Through EllesmereUI's widget refresh list, so a page row that gates this cog
+    -- (its `refresh = true` edit re-reads every widget) dims it in the same pass.
+    local function updateState()
+        btn:SetAlpha(disabled() and COG_ALPHA_DISABLED or COG_ALPHA)
+    end
+
+    if cog.disabled and EUI.RegisterWidgetRefresh then
+        EUI.RegisterWidgetRefresh(updateState)
+    end
+
+    updateState()
+
+    -- EllesmereUI's own tooltip rather than GameTooltip, so it carries the panel's
+    -- styling and rides its scale slider the way every other disabled control does.
     btn:SetScript("OnEnter", function(self)
-        self:SetAlpha(0.7)
+        if disabled() then
+            if cog.disabledTooltip and EUI.ShowWidgetTooltip then
+                EUI.ShowWidgetTooltip(self, cog.disabledTooltip)
+            end
+
+            return
+        end
+
+        self:SetAlpha(COG_ALPHA_HOVER)
     end)
-    btn:SetScript("OnLeave", function(self)
-        self:SetAlpha(0.4)
+    btn:SetScript("OnLeave", function()
+        if EUI.HideWidgetTooltip then
+            EUI.HideWidgetTooltip()
+        end
+
+        updateState()
     end)
     btn:SetScript("OnClick", function(self)
+        if disabled() then
+            return
+        end
+
         show(self)
     end)
 end
@@ -264,23 +336,6 @@ end
 function ItruliaQoL:RenderEUIList(W, parent, y, rows)
     local _, h
 
-    -- `refresh = true` on a row re-renders the page after its edit, so controls
-    -- it gates (their `disabled`/values depend on this one) update immediately.
-    local function wrap(fn, refresh)
-        if not refresh or not fn then
-            return fn
-        end
-
-        return function(...)
-            fn(...)
-
-            local EUI = ItruliaQoL.EUI
-            if EUI and EUI.RefreshPage then
-                EUI:RefreshPage()
-            end
-        end
-    end
-
     -- Translate one row spec into a DualRow half config. EllesmereUI's DualRow takes
     -- a left and a right config, so the same translation serves a full-width row
     -- (left only) and a `pair` (both halves) -- see the `pair` branch below.
@@ -309,7 +364,7 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 disabledTooltip = item.disabledTooltip,
                 rawTooltip = item.rawTooltip,
                 getValue = item.get,
-                setValue = wrap(item.set, item.refresh),
+                setValue = wrapPageRefresh(item.set, item.refresh, item.rebuild),
             }
         end
 
@@ -356,7 +411,7 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 disabledTooltip = item.disabledTooltip,
                 rawTooltip = item.rawTooltip,
                 getValue = item.get,
-                setValue = wrap(item.set, item.refresh),
+                setValue = wrapPageRefresh(item.set, item.refresh, item.rebuild),
             }
         end
 
@@ -380,7 +435,7 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 disabledTooltip = item.disabledTooltip,
                 rawTooltip = item.rawTooltip,
                 getValue = item.get,
-                setValue = wrap(item.set, item.refresh),
+                setValue = wrapPageRefresh(item.set, item.refresh, item.rebuild),
             }
         end
 
@@ -391,7 +446,7 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
                 disabled = item.disabled,
                 disabledTooltip = item.disabledTooltip,
                 rawTooltip = item.rawTooltip,
-                onClick = wrap(item.func, item.refresh),
+                onClick = wrapPageRefresh(item.func, item.refresh, item.rebuild),
             }
         end
 

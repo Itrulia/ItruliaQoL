@@ -192,3 +192,43 @@ function ItruliaQoL:UnitTokenFromGUID(guid)
 
     return nil
 end
+
+function ItruliaQoL:CreateBorder(frame, r, g, b, a)
+    local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    border:SetPoint("TOPLEFT", frame, 0, 0)
+    border:SetPoint("BOTTOMRIGHT", frame, 0, 0)
+    border:SetBackdrop({
+        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
+        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
+        edgeSize = 1,
+    })
+    border:SetBackdropBorderColor(r or 0, g or 0, b or 0, a or 1)
+    border:SetBackdropColor(0, 0, 0, 0)
+    border:SetFrameStrata(frame:GetFrameStrata())
+    border:SetFrameLevel(frame:GetFrameLevel() + 2)
+
+    function border:SetBorderColor(r2, g2, b2, a2)
+        self:SetBackdropBorderColor(r2, g2, b2, a2 or 1)
+    end
+
+    return border
+end
+
+function ItruliaQoL:CreateBackground(frame, r, g, b, a)
+    local background = CreateFrame("Frame", "$parent_Background", frame, "BackdropTemplate")
+    background:SetAllPoints()
+    background:SetFrameStrata(frame:GetFrameStrata())
+    background:SetFrameLevel(math.max(frame:GetFrameLevel() - 1, 0))
+    background:SetBackdrop({
+        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
+        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
+        edgeSize = 1,
+    })
+    background:SetBackdropColor(r or 0, g or 0, b or 0, a or 0.35)
+
+    function background:SetColor(r2, g2, b2, a2)
+        self:SetBackdropColor(r2, g2, b2, a2 or 1)
+    end
+
+    return background
+end

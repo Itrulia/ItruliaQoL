@@ -27,6 +27,7 @@ Non combat related:
 - Automatically accept role calls when signing up to a group
 - Remind you what m+ group you joined
 - Automatically set your dungeon & raid difficulty when leaving an instance or reaching max level (disabled by default)
+- Replace the Blizzard raid frame manager with a movable bar of group actions and your own pull timers (disabled by default)
 - Display a circle around your cursor (disabled by default)
 - Dragonriding bar (disabled by default)
 

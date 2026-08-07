@@ -97,12 +97,12 @@ the row cannot hold a label and a dropdown at usable widths.
 ### Controls
 
 ```lua
-{ type = "toggle",  label=, tooltip=, disabled=, refresh=, get=, set= }
+{ type = "toggle",  label=, tooltip=, disabled=, refresh=, rebuild=, get=, set= }
 { type = "slider",  label=, tooltip=, min=, max=, step=, disabled=, get=, set= }
-{ type = "select",  label=, tooltip=, values=, order=, disabled=, refresh=, get=, set= }
+{ type = "select",  label=, tooltip=, values=, order=, disabled=, refresh=, rebuild=, get=, set= }
 { type = "color",   label=, hasAlpha=, get=, set= }
-{ type = "input",   label=, tooltip=, width=, disabled=, refresh=, get=, set= }
-{ type = "execute", label=, disabled=, refresh=, func= }
+{ type = "input",   label=, tooltip=, width=, disabled=, refresh=, rebuild=, get=, set= }
+{ type = "execute", label=, disabled=, refresh=, rebuild=, func= }
 { type = "icons",   items = { <icon>, <icon>, ... } }   -- grid of icon buttons
 ```
 
@@ -122,7 +122,8 @@ Field reference:
 | `width`    | input box width in px (default 180) |
 | `get`      | reader — see below |
 | `set`/`func` | writer / button action — see below |
-| `refresh`  | `true` to re-render the page after this edit — see below |
+| `refresh`  | `true` to re-read the page's values after this edit — see below |
+| `rebuild`  | `true` to rebuild the page after this edit, for edits that add or remove rows — see below |
 | `cog`      | `{ title =, rows = { <row>, ... } }` — secondary settings behind a cogwheel — see below |
 
 ### `cog` — secondary settings behind a cogwheel
@@ -148,6 +149,44 @@ Cog rows are the same specs as page rows (`toggle`, `slider`, `select`, `color`,
 equivalent. On a `pair`, each half can carry its own `cog`. Use it for settings
 that are secondary to the row's own control; anything a user reaches for often
 belongs on the page.
+
+`icon` swaps the cogwheel for another texture, following what EllesmereUI's own
+pages put on each kind of setting — a plain cog is only the default, not the rule:
+
+| cog contents | `icon` |
+|--------------|--------|
+| a direction, or an X/Y offset | `ItruliaQoL.EUI.DIRECTIONS_ICON` (HealerManaIndicator's Growth) |
+| a size or extent — padding, a text size | `ItruliaQoL.EUI.RESIZE_ICON` (RaidFrameManager's Padding) |
+| anything else | omit it |
+
+Guard the lookup with `ItruliaQoL.EUI and ...`, since the list is built whether or
+not EllesmereUI is loaded:
+
+```lua
+cog = {
+    title = "Padding",
+    icon = ItruliaQoL.EUI and ItruliaQoL.EUI.RESIZE_ICON,
+    rows = { ... },
+},
+```
+
+A cog can also be gated as a whole, for settings that mean nothing while the row
+they hang off is switched off — there is no point opening a popup whose every row
+would be greyed out. Give it `disabled` (a function) and `disabledTooltip` (a full
+sentence, shown verbatim), and the cogwheel dims, stops opening, and explains
+itself on hover:
+
+```lua
+{ type = "toggle", label = "Only in a group", refresh = true, get = ..., set = ...,
+  cog = {
+      title = "Group Visibility",
+      disabled = function() return not M.db.onlyInGroup end,
+      disabledTooltip = "Only in a group has to be on before the bar can be limited to raids.",
+      rows = { ... },
+  } },
+```
+
+The gating row needs `refresh = true` for the cog to dim in the same edit.
 
 ### Icon grid (`icons`)
 
@@ -249,6 +288,25 @@ ItruliaQoL:EUISoundRow({
 `refresh` is honoured on `toggle`, `select`, `input`, and `execute`. Don't put it
 on `slider`/`color` — those write continuously and rebuilding mid-drag breaks the
 interaction.
+
+It works the same on a row inside a `cog` popup, so a setting behind a cogwheel
+can gate rows on the page it sits on.
+
+### `rebuild` — when the row *set* changes
+
+`refresh` re-reads the values of the widgets already on the page; it cannot make a
+row appear or disappear. An edit that changes **which rows exist** — a user-editable
+list, where adding an entry means adding its own Remove row (RaidFrameManager's pull
+timers) — needs `rebuild = true` instead, which tears the page down and calls
+`GetEUIOptions` again:
+
+```lua
+{ type = "execute", label = "Remove 10 s", rebuild = true,
+  func = function() M:RemovePullTimer(10); apply() end },
+```
+
+Same set of row types as `refresh`, and the same caveat about sliders and colours.
+Prefer `refresh` where it is enough: a rebuild reallocates every widget on the page.
 
 ---
 
