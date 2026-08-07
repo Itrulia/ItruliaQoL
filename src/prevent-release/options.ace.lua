@@ -29,6 +29,22 @@ function PreventRelease:GetOptions(onChange)
                     PreventRelease:RefreshConfig()
                 end,
             },
+            raidOnly = {
+                order = 3,
+                type = "toggle",
+                width = "full",
+                name = "Only in a raid",
+                disabled = function()
+                    return not PreventRelease.db.enabled
+                end,
+                get = function()
+                    return PreventRelease.db.raidOnly
+                end,
+                set = function(_, value)
+                    PreventRelease.db.raidOnly = value
+                    PreventRelease:RefreshConfig()
+                end,
+            },
         }
     }
 end

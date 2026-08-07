@@ -10,6 +10,17 @@ function PreventRelease:GetEUIOptions()
             {
                 text = "Disable release button unless you hold down ctrl",
             },
+            {
+                type = "toggle",
+                label = "Only in a raid",
+                get = function()
+                    return PreventRelease.db.raidOnly
+                end,
+                set = function(value)
+                    PreventRelease.db.raidOnly = value
+                    PreventRelease:RefreshConfig()
+                end,
+            },
         },
     }
 end

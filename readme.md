@@ -23,6 +23,7 @@ Combat related:
 
 Non combat related:
 - Turn your mythic+ season best dungeons into clickable teleport buttons
+- List any keystone in your group with a movable button, then set the title yourself since only Blizzard's group finder may write it (disabled by default)
 - Make the cooldown manager accessible via `/cd`, `/cdm` or `/wa`
 - Automatically accept role calls when signing up to a group
 - Remind you what m+ group you joined

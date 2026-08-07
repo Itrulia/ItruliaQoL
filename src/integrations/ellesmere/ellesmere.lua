@@ -2019,7 +2019,10 @@ function ItruliaQoL:RegisterEUI(parentOptions)
 
     self._euiRegistered = true
 
-    -- One sidebar row per module, in the AceConfig tree's own order.
+    -- One sidebar row per module, alphabetical by the name the row shows. The
+    -- AceConfig `order` fields are ignored here on purpose: they group the
+    -- standalone/ElvUI tree by theme, which reads as arbitrary in a flat sidebar
+    -- long enough to need scrolling.
     local moduleKeys = {}
 
     for key, e in pairs(parentOptions.args) do
@@ -2028,15 +2031,31 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         end
     end
 
-    table.sort(moduleKeys, function(a, b)
-        local ea, eb = parentOptions.args[a], parentOptions.args[b]
-        local oa, ob = ea.order or 100, eb.order or 100
+    local function displayFor(key)
+        local grp = parentOptions.args[key]
 
-        if oa == ob then
-            return tostring(resolve(ea.name)) < tostring(resolve(eb.name))
+        return tostring(resolve(grp and grp.name) or key)
+    end
+
+    -- A module sharing a combined row sorts under that row's name rather than its
+    -- own, so the row lands in one predictable place instead of wherever its
+    -- first member happens to fall.
+    local function sidebarName(key)
+        local combined = COMBINED_BY_MODULE[key]
+
+        return combined and combined.display or displayFor(key)
+    end
+
+    table.sort(moduleKeys, function(a, b)
+        local na, nb = sidebarName(a), sidebarName(b)
+
+        -- Equal names means two members of one combined row. It is emitted once
+        -- either way, so this only needs to be stable.
+        if na == nb then
+            return a < b
         end
 
-        return oa < ob
+        return na < nb
     end)
 
     local entries = {}
@@ -2084,12 +2103,6 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     addEntry("General", "General", { PAGE_GENERAL }, function(_, parent, y)
         return ItruliaQoL:BuildEUIGeneralPage(parent, y)
     end, "Quality-of-life indicators, alerts and helpers. Move things with EllesmereUI's unlock mode.")
-
-    local function displayFor(key)
-        local grp = parentOptions.args[key]
-
-        return tostring(resolve(grp and grp.name) or key)
-    end
 
     local emittedCombined = {}
 

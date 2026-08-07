@@ -26,6 +26,7 @@
 	<Include file="character-indicator\init.xml"/>
 
 	<Include file="lfg-improvements\init.xml"/>
+	<Include file="keystone-lister\init.xml"/>
 	<Include file="dungeon-teleports\init.xml"/>
 	<Include file="cursor-circle\init.xml"/>
 	<Include file="flying-bar\init.xml"/>

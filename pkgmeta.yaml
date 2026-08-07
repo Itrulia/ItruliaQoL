@@ -16,6 +16,7 @@ externals:
   libs/LibEditMode:
     url: https://github.com/p3lim-wow/LibEditMode
     tag: latest
+  libs/LibKeystone: https://github.com/BigWigsMods/LibKeystone.git/LibKeystone
   libs/LibSharedMedia-3.0: https://repos.curseforge.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
   libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
   libs/TaintLess:

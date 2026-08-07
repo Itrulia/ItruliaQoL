@@ -7,5 +7,6 @@ local PreventRelease = ItruliaQoL:GetModule(moduleName)
 function PreventRelease:GetDefaults()
     return {
         enabled = false,
+        raidOnly = false,
     }
 end
