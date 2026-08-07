@@ -1711,6 +1711,65 @@ function ItruliaQoL:AttachEUISidebarGroupNote()
     header._itruliaNote = note
 end
 
+-- Bring our sidebar group into view, for when the panel is opened at one of our
+-- rows (`/itrulia`, `/itrulia eui`). The group is appended after EllesmereUI's own
+-- suite (see InjectEUISidebar), so it starts below the fold -- the panel would open
+-- with its content on our page but the sidebar scrolled to somebody else's rows.
+--
+-- The sidebar's smooth-scroll target and its thumb updater are both file-locals in
+-- EllesmereUI, so the scroll is set directly and the thumb refreshed through the
+-- OnScrollRangeChanged script that updater is installed as. Setting the offset
+-- outright is safe here: the wheel handler only follows its own target while its
+-- animation is running, and opening the panel never leaves it running.
+--
+-- Deferred a frame because on a cold open the rows are anchored during the same
+-- call that gets us here (CreateMainFrame -> RefreshSidebarStates), and their
+-- GetTop() only means anything once the layout has run.
+local SIDEBAR_SCROLL_MARGIN = 6
+
+function ItruliaQoL:ScrollEUISidebarToGroup()
+    local EUI = self.EUI
+
+    if not EUI then
+        return
+    end
+
+    C_Timer.After(0, function()
+        local sf = EUI._addonScrollFrame
+        local child = EUI._addonScrollChild
+        local headers = EUI._sidebarGroupButtons
+        local header = headers and headers[GROUP_KEY]
+
+        -- Hidden means the sidebar search has filtered our group out; whatever the
+        -- player is searching for owns the scroll position in that case.
+        if not (sf and child and header and header:IsShown()) then
+            return
+        end
+
+        local childTop, headerTop = child:GetTop(), header:GetTop()
+
+        if not (childTop and headerTop) then
+            return
+        end
+
+        local maxScroll = EUI.SafeScrollRange and EUI.SafeScrollRange(sf) or 0
+
+        if maxScroll <= 0 then
+            return
+        end
+
+        local target = math.max(0, math.min(maxScroll, childTop - headerTop - SIDEBAR_SCROLL_MARGIN))
+
+        sf:SetVerticalScroll(target)
+
+        local refreshThumb = sf:GetScript("OnScrollRangeChanged")
+
+        if refreshThumb then
+            refreshThumb(sf)
+        end
+    end)
+end
+
 -- Per-module enable switch on the sidebar row itself, so a module can be turned on
 -- or off without opening its page.
 --

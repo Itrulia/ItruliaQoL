@@ -49,7 +49,7 @@ function RaidFrameManager:GetOptions(onChange)
         args = {
             description = {
                 type = "description",
-                name = "Replaces Blizzard's raid frame manager with a movable bar of group actions and your own pull timers. The bar hides itself in combat, where none of its buttons can be pressed anyway\n\n",
+                name = "Replaces Blizzard's raid frame manager with a movable bar of group actions and your own pull timers. The bar hides itself in combat, and while you are in a group without lead or assist, where none of its buttons can be pressed anyway\n\n",
                 width = "full",
                 order = 1,
             },

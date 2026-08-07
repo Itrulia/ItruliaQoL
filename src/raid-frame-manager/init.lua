@@ -12,8 +12,8 @@ RaidFrameManager.orientations = {
     VERTICAL = "Vertical",
 }
 
-local function ChatLocked()
-    return C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown()
+function RaidFrameManager:HasPermission()
+    return not IsInGroup() or UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")
 end
 
 function RaidFrameManager:CanUse(spec)
@@ -21,11 +21,7 @@ function RaidFrameManager:CanUse(spec)
         return false
     end
 
-    if not IsInGroup() then
-        return true
-    end
-
-    return UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")
+    return self:HasPermission()
 end
 
 function RaidFrameManager:GetUnusableReason(spec)
@@ -73,7 +69,7 @@ RaidFrameManager.actions = {
 }
 
 function RaidFrameManager:StartPull(seconds)
-    if ChatLocked() then
+    if ItruliaQoL:IsChatLocked() then
         ItruliaQoL:Print("|cffff0000Can't start a pull timer in combat.|r")
 
         return
@@ -83,7 +79,7 @@ function RaidFrameManager:StartPull(seconds)
 end
 
 function RaidFrameManager:StopPull()
-    if ChatLocked() then
+    if ItruliaQoL:IsChatLocked() then
         return
     end
 
@@ -403,8 +399,9 @@ function RaidFrameManager:GenerateFrame(name, parent)
         end
 
         local hiddenByCombat = PlayerIsInCombat() and not ItruliaQoL.testMode
+        local wanted = RaidFrameManager:HasPermission() and RaidFrameManager:InWantedGroup()
 
-        self:SetShown(not hiddenByCombat and (ItruliaQoL.testMode or RaidFrameManager:InWantedGroup()))
+        self:SetShown(not hiddenByCombat and (ItruliaQoL.testMode or wanted))
         self:UpdateMouseover()
     end
 

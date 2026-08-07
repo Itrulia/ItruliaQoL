@@ -45,6 +45,14 @@ Modules can be enabled and disabled at will.
 
 Alternative you can also use the slash command `/itrulia` and it will take you to the correct place.
 
+You can also ask for a specific panel:
+
+- `/itrulia elvui` - the **ElvUI** options
+- `/itrulia eui` - the **EllesmereUI** options
+- `/itrulia standalone` - the standalone options
+
+If the requested UI isn't installed, the standalone options open instead.
+
 ## AI Use
 
 The logo was AI generate due to the fact that nearly every new addon on curseforge has an AI generated icon. I wanted to honor this trend.

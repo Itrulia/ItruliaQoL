@@ -8,7 +8,7 @@ function RaidFrameManager:GetDefaults()
         enabled = false,
         onlyInGroup = true,
         onlyInRaid = true,
-        mouseover = true,
+        mouseover = false,
         mouseoverAlpha = 1,
         mouseoverFadeAlpha = 0,
         showTooltips = false,

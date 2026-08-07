@@ -239,26 +239,105 @@ function ItruliaQoL:ToggleTestMode(enabled)
     end
 end
 
-local EUI_SLASH_ENABLED = false
 
-ItruliaQoL:RegisterChatCommand("itrulia", "MySlashProcessorFunc")
-function ItruliaQoL:MySlashProcessorFunc(input)
-    if not input or input == "" or input == "config" or input == "c" then
-        if self.E then
+-- The three config hosts, each a { available, open } pair, so the automatic pick
+-- and the explicit subcommands go through the same code.
+local HOSTS = {
+    elvui = {
+        label = "ElvUI",
+        available = function(self)
+            return self.E and self.E.ToggleOptions and true or false
+        end,
+        open = function(self)
             self.E:ToggleOptions(addonName)
-        elseif EUI_SLASH_ENABLED and self.EUI and self.EUI.ShowModule then
+        end,
+    },
+    eui = {
+        label = "EllesmereUI",
+        available = function(self)
+            return self.EUI and self.EUI.ShowModule and true or false
+        end,
+        open = function(self)
             -- Each module is its own EllesmereUI row now, so open the General one
             -- (see integrations/ellesmere/ellesmere.lua's addEntry keys).
             self.EUI:ShowModule(addonName .. "_General")
-        else
+
+            -- Our group sits below EllesmereUI's own suite, so the row we just
+            -- selected is off screen until the sidebar is scrolled to it.
+            if self.ScrollEUISidebarToGroup then
+                self:ScrollEUISidebarToGroup()
+            end
+        end,
+    },
+    standalone = {
+        label = "standalone",
+        available = function()
+            return true
+        end,
+        open = function(self)
             self.CD:Open(addonName)
+        end,
+    },
+}
+
+local HOST_ALIASES = {
+    elv = "elvui",
+    elvui = "elvui",
+    tukui = "elvui",
+    eui = "eui",
+    ellesmere = "eui",
+    ellesmereui = "eui",
+    standalone = "standalone",
+    ace = "standalone",
+    blizzard = "standalone",
+}
+
+local AUTO_ORDER = { "elvui", "eui", "standalone" }
+
+function ItruliaQoL:OpenConfig(host)
+    if host then
+        local spec = HOSTS[host]
+
+        if not spec.available(self) then
+            self:Print("|cffff0000" .. spec.label .. " is not available.|r Opening the standalone config instead.")
+            HOSTS.standalone.open(self)
+
+            return
         end
-    elseif input == "test" or input == "t" then
+
+        spec.open(self)
+
+        return
+    end
+
+    for _, key in ipairs(AUTO_ORDER) do
+        local spec = HOSTS[key]
+
+        if spec.available(self) then
+            spec.open(self)
+
+            return
+        end
+    end
+end
+
+ItruliaQoL:RegisterChatCommand("itrulia", "MySlashProcessorFunc")
+function ItruliaQoL:MySlashProcessorFunc(input)
+    local arg = input and input:lower():match("^%s*(%S*)") or ""
+
+    if arg == "" or arg == "config" or arg == "c" then
+        self:OpenConfig()
+    elseif HOST_ALIASES[arg] then
+        self:OpenConfig(HOST_ALIASES[arg])
+    elseif arg == "test" or arg == "t" then
         self:ToggleTestMode(not ItruliaQoL.testMode)
     else
         self:Print("AddOn commands:")
         self:Print("/itrulia")
         self:Print("/itrulia config")
+        self:Print("/itrulia elvui")
+        self:Print("/itrulia eui")
+        self:Print("/itrulia standalone")
         self:Print("/itrulia help")
         self:Print("/itrulia test")
     end

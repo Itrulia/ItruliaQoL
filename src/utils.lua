@@ -193,6 +193,10 @@ function ItruliaQoL:UnitTokenFromGUID(guid)
     return nil
 end
 
+function ItruliaQoL:IsChatLocked()
+    return C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown()
+end
+
 function ItruliaQoL:CreateBorder(frame, r, g, b, a)
     local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     border:SetPoint("TOPLEFT", frame, 0, 0)
