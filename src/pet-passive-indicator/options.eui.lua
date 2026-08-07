@@ -6,56 +6,59 @@ local PetPassiveIndicator = ItruliaQoL:GetModule(moduleName)
 function PetPassiveIndicator:GetEUIOptions()
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
 
-    return {
-        name = "Pet Passive",
-        rows = {
-            {
-                text = "Displays a text when you have a pet and it's set to passive",
-            },
-            {
-                type = "toggle",
-                label = "Enable",
-                get = function()
-                    return PetPassiveIndicator.db.enabled
-                end,
-                set = function(value)
-                    PetPassiveIndicator.db.enabled = value
-                    PetPassiveIndicator:RefreshConfig()
-                end,
-            },
-            {
-                type = "input",
-                label = "Display text",
-                get = function()
-                    return PetPassiveIndicator.db.displayText
-                end,
-                set = function(value)
-                    PetPassiveIndicator.db.displayText = value
-                    apply()
-                end,
-            },
-            {
-                type = "color",
-                label = "Color",
-                hasAlpha = true,
-                get = function()
-                    local c = PetPassiveIndicator.db.color
-                    return c.r, c.g, c.b, c.a
-                end,
-                set = function(r, g, b, a)
-                    PetPassiveIndicator.db.color = {
-                        r = r,
-                        g = g,
-                        b = b,
-                        a = a,
-                    }
-                    apply()
-                end,
-            },
-            {
-                header = "Font",
-                rows = ItruliaQoL:EUIFontRows(PetPassiveIndicator.db.font, apply),
+    -- The row's own Enable, because the sidebar switch on a combined row sets both
+    -- pet indicators at once. It leads the font settings alongside the colour, so
+    -- the page opens on one row of the two things per indicator worth reaching for.
+    local enableRow = {
+        type = "toggle",
+        label = "Enable",
+        get = function()
+            return PetPassiveIndicator.db.enabled
+        end,
+        set = function(value)
+            PetPassiveIndicator.db.enabled = value
+            PetPassiveIndicator:RefreshConfig()
+        end,
+    }
+
+    local displayRow = {
+        type = "color",
+        label = "Display",
+        hasAlpha = true,
+        get = function()
+            local c = PetPassiveIndicator.db.color
+            return c.r, c.g, c.b, c.a
+        end,
+        set = function(r, g, b, a)
+            PetPassiveIndicator.db.color = {
+                r = r,
+                g = g,
+                b = b,
+                a = a,
+            }
+            apply()
+        end,
+        cog = {
+            title = "Alert Text",
+            rows = {
+                {
+                    type = "input",
+                    label = "Text",
+                    width = 120,
+                    get = function()
+                        return PetPassiveIndicator.db.displayText or ""
+                    end,
+                    set = function(value)
+                        PetPassiveIndicator.db.displayText = value
+                        apply()
+                    end,
+                },
             },
         },
+    }
+
+    return {
+        name = "Pet Passive",
+        rows = ItruliaQoL:EUIFontRows(PetPassiveIndicator.db.font, apply, nil, { enableRow, displayRow }),
     }
 end

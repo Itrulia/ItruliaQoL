@@ -34,10 +34,14 @@ CombatTimer.timeFormats = {
     },
 }
 
+
 local function OnUpdate(self)
     if self.combatStart then
         local elapsed = math.max(GetTime() - self.combatStart, 0)
-        self.text:SetText(self:FormatTime(elapsed))
+        local text = self:FormatTime(elapsed)
+        self.text:SetText(text)
+        self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+
         self.text:Show()
     else
         self.text:Hide()
