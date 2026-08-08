@@ -1208,6 +1208,21 @@ end)
 local GROUP_KEY   = "itrulia"
 local GROUP_LABEL = "Itrulia QoL"
 
+-- The on-screen form of the name, in the addon's own colours (the same escape
+-- sequence as `## Title` in the .toc, so it reads the way the addon does in the
+-- AddOns list). Used for the two places EllesmereUI renders it as a FontString:
+-- the sidebar group heading and the panel header above each of our pages.
+--
+-- Embedded |cff codes win over SetTextColor, which is the point for the sidebar
+-- heading: EllesmereUI tints group labels with its accent colour (and re-applies
+-- it from an accent callback), leaving "Itrulia QoL" indistinguishable from its
+-- own groups.
+--
+-- Plain GROUP_LABEL stays the name wherever the string is not rendered text --
+-- the unlock-mode group, which EllesmereUI also keys movers by, and the sidebar
+-- search text, which is matched against the player's plain-text query.
+local GROUP_LABEL_COLORED = "|cffe9e9edItrulia|r |cff9184d9QoL|r"
+
 local PAGE_GENERAL  = "General"
 local PAGE_DISPLAY  = "Display"
 local PAGE_SETTINGS = "Settings"
@@ -1681,7 +1696,7 @@ function ItruliaQoL:InjectEUISidebar(entries)
     -- own addons down the list.
     table.insert(EUI.ADDON_GROUPS, {
         key = GROUP_KEY,
-        label = GROUP_LABEL,
+        label = GROUP_LABEL_COLORED,
         members = members,
     })
 end
@@ -1693,10 +1708,14 @@ end
 -- is a second FontString anchored to it, smaller and grey. The row is built once
 -- per CreateMainFrame (kept in _sidebarGroupButtons, keyed by group), so attaching
 -- once is enough -- guarded by _itruliaNote, since this runs on every panel open.
-function ItruliaQoL:AttachEUISidebarGroupNote()
+--
+-- `groupKey` defaults to our own group so existing callers need not pass it; the
+-- companion addons (ItruliaEUI) hand in theirs, since the note belongs on every
+-- group we inject and the frame-level guard keeps them independent.
+function ItruliaQoL:AttachEUISidebarGroupNote(groupKey)
     local EUI = self.EUI
     local headers = EUI and EUI._sidebarGroupButtons
-    local header = headers and headers[GROUP_KEY]
+    local header = headers and headers[groupKey or GROUP_KEY]
 
     if not header or header._itruliaNote or not header._label then
         return
@@ -2228,7 +2247,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         end
 
         self:RegisterEUIModule(entry.key, {
-            title = GROUP_LABEL .. " - " .. entry.display,
+            title = GROUP_LABEL_COLORED .. " - " .. entry.display,
             description = "|cffffbf33BETA:|r " .. (entry.description or ""),
             pages = entry.pages,
             buildPage = function(pageName, parent, yOffset)
