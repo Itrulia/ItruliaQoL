@@ -358,6 +358,29 @@ elseif not ItruliaQoL.EUI then
     end)
 end
 
+StaticPopupDialogs["ITRULIAQOL_CONFIRM_OVERWRITE"] = {
+  text = "This will replace every setting in your current profile. Continue?",
+  button1 = YES,
+  button2 = NO,
+
+  OnAccept = function(self)
+    local ok, err = ItruliaQoL:ImportIntoCurrentProfile(self.data)
+
+    if not ok then
+      ItruliaQoL:Print("|cffff0000Import failed:|r", err)
+    else
+      ItruliaQoL:Print("|cff00ff00Profile imported.|r")
+    end
+
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
+  end,
+
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
 StaticPopupDialogs["ITRULIAQOL_IMPORT_NEW_PROFILE"] = {
   text = "Enter a name for the new profile:",
   button1 = ACCEPT,
@@ -375,6 +398,8 @@ StaticPopupDialogs["ITRULIAQOL_IMPORT_NEW_PROFILE"] = {
     else
       ItruliaQoL:Print("|cff00ff00Profile created:|r", profileName)
     end
+
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
   end,
 
   OnShow = function(self)

@@ -1343,10 +1343,12 @@ function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHea
 end
 
 -- Profiles page (built directly against AceDB rather than translated)
-function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset)
+function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
+    addon = addon or self
+
     local EUI = self.EUI
     local W = EUI.Widgets
-    local db = self.db
+    local db = addon.db
     local y = yOffset
     local _, h
 
@@ -1442,21 +1444,21 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset)
                 values = ov,
                 order = sortedKeys(ov),
                 getValue = function()
-                    return self._euiCopyFrom
+                    return addon._euiCopyFrom
                 end,
                 setValue = function(v)
-                    self._euiCopyFrom = v
+                    addon._euiCopyFrom = v
                 end,
             },
             {
                 type = "button",
                 text = "Copy",
                 onClick = function()
-                    local from = self._euiCopyFrom
+                    local from = addon._euiCopyFrom
 
                     if from and from ~= db:GetCurrentProfile() then
                         db:CopyProfile(from)
-                        self:RefreshModules()
+                        addon:RefreshModules()
                         refresh()
                     end
                 end,
@@ -1474,22 +1476,22 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset)
                 values = ov,
                 order = sortedKeys(ov),
                 getValue = function()
-                    return self._euiDeleteSel
+                    return addon._euiDeleteSel
                 end,
                 setValue = function(v)
-                    self._euiDeleteSel = v
+                    addon._euiDeleteSel = v
                 end,
             },
             {
                 type = "button",
                 text = "Delete",
                 onClick = function()
-                    local target = self._euiDeleteSel
+                    local target = addon._euiDeleteSel
 
                     if target and target ~= db:GetCurrentProfile() then
                         ShowConfirmPopup("Delete profile '" .. target .. "'? This cannot be undone.", function()
                             db:DeleteProfile(target)
-                            self._euiDeleteSel = nil
+                            addon._euiDeleteSel = nil
                             refresh()
                         end)
                     end
@@ -1505,7 +1507,7 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset)
         onClick = function()
             ShowConfirmPopup("Reset the current profile to defaults?", function()
                 db:ResetProfile()
-                self:RefreshModules()
+                addon:RefreshModules()
                 refresh()
             end)
         end,
@@ -1516,7 +1518,14 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset)
 end
 
 -- Import / Export page
-function ItruliaQoL:BuildEUIImportExportPage(parent, yOffset)
+--
+-- `addon` is whose profile is exported and imported, defaulting to ItruliaQoL.
+-- Each addon owns its own profile-string functions (the serialization is not
+-- shared -- see the copies in ItruliaEUI's src/init.lua), so all this page needs
+-- is the three methods below and a Print to report the outcome.
+function ItruliaQoL:BuildEUIImportExportPage(parent, yOffset, addon)
+    addon = addon or self
+
     local EUI = self.EUI
     local W = EUI.Widgets
     local y = yOffset
@@ -1531,7 +1540,7 @@ function ItruliaQoL:BuildEUIImportExportPage(parent, yOffset)
     y = y - h
 
     _, h = W:WideButton(parent, "Export Current Profile", y, function()
-        ShowInputPopup("Copy your profile export string:", ItruliaQoL:ExportCurrentProfile(), nil)
+        ShowInputPopup("Copy your profile export string:", addon:ExportCurrentProfile(), nil)
     end)
     y = y - h
 
@@ -1541,16 +1550,16 @@ function ItruliaQoL:BuildEUIImportExportPage(parent, yOffset)
                 return
             end
 
-            local ok, err = ItruliaQoL:ImportIntoCurrentProfile(str)
+            local ok, err = addon:ImportIntoCurrentProfile(str)
 
             if ok then
-                ItruliaQoL:Print("|cff00ff00Profile imported.|r")
+                addon:Print("|cff00ff00Profile imported.|r")
 
                 if EUI.RefreshPage then
                     EUI:RefreshPage()
                 end
             else
-                ItruliaQoL:Print("|cffff0000Import failed:|r", err)
+                addon:Print("|cffff0000Import failed:|r", err)
             end
         end)
     end)
@@ -1569,16 +1578,16 @@ function ItruliaQoL:BuildEUIImportExportPage(parent, yOffset)
                     return
                 end
 
-                local ok, err = ItruliaQoL:ImportAsNewProfile(str, name)
+                local ok, err = addon:ImportAsNewProfile(str, name)
 
                 if ok then
-                    ItruliaQoL:Print("|cff00ff00Profile created:|r", name)
+                    addon:Print("|cff00ff00Profile created:|r", name)
 
                     if EUI.RefreshPage then
                         EUI:RefreshPage()
                     end
                 else
-                    ItruliaQoL:Print("|cffff0000Import failed:|r", err)
+                    addon:Print("|cffff0000Import failed:|r", err)
                 end
             end)
         end)
