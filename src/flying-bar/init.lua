@@ -9,38 +9,6 @@ FlyingBar.vigorSpellId = 372610
 FlyingBar.secondWindSpellId = 425782
 FlyingBar.whirlingSurgeSpellId = 361584
 
-function FlyingBar:CreateBorder(f)
-    local border = CreateFrame("frame", nil, f, "BackdropTemplate")
-    border:SetPoint("TOPLEFT", f, 0, 0)
-    border:SetPoint("BOTTOMRIGHT", f, 0, 0)
-    border:SetBackdrop({
-        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        edgeSize = 1,
-    })
-    border:SetBackdropBorderColor(0,0,0,1)
-    border:SetBackdropColor(0,0,0,0)
-    border:SetFrameStrata(f:GetFrameStrata())
-    border:SetFrameLevel(f:GetFrameLevel() + 2)
-
-    return border
-end
-
-function FlyingBar:CreateBackground(f)
-    local background = CreateFrame("frame", "$parent_Background", f, "BackdropTemplate")
-	background:SetAllPoints()
-    background:SetFrameStrata(f:GetFrameStrata())
-    background:SetFrameLevel(f:GetFrameLevel() - 1)
-    background:SetBackdrop({
-        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        edgeSize = 1,
-    })
-    background:SetBackdropColor(0, 0, 0, 0.35)
-
-    return background
-end
-
 function FlyingBar:CreateTextureBorder(f)
     f:SetClipsChildren(true)
     local border = f:CreateTexture(nil, "OVERLAY")
@@ -98,24 +66,24 @@ function OnEvent(self)
     for i, bar in ipairs(self.vigor) do
         if vigorCharges.currentCharges >= i then
             bar:SetMinMaxValues(0, 1)
-            bar:SetValue(1)
+            bar:SetValue(1, Enum.StatusBarInterpolation.ExponentialEaseOut)
         elseif vigorDuration and i == vigorCharges.currentCharges + 1 then
             bar:SetTimerDuration(vigorDuration, Enum.StatusBarInterpolation.ExponentialEaseOut)
         else
             bar:SetMinMaxValues(0, 1)
-            bar:SetValue(0)
+            bar:SetValue(0, Enum.StatusBarInterpolation.ExponentialEaseOut)
         end
 	end
 
     for i, bar in ipairs(self.secondWind) do
         if secondWindCharges.currentCharges >= i then
             bar:SetMinMaxValues(0, 1)
-            bar:SetValue(1)
+            bar:SetValue(1, Enum.StatusBarInterpolation.ExponentialEaseOut)
         elseif secondWindDuration and i == secondWindCharges.currentCharges + 1 then
-            bar:SetTimerDuration(secondWindDuration)
+            bar:SetTimerDuration(secondWindDuration, Enum.StatusBarInterpolation.ExponentialEaseOut)
         else
             bar:SetMinMaxValues(0, 1)
-            bar:SetValue(0)
+            bar:SetValue(0, Enum.StatusBarInterpolation.ExponentialEaseOut)
         end
 	end
 end
@@ -139,7 +107,7 @@ function FlyingBar:GenerateFrame(name, parent)
     f.surge.cd:SetAllPoints()
     f.surge.cd:SetHideCountdownNumbers(true)
 
-    f.surge.border = FlyingBar:CreateBorder(f.surge)
+    f.surge.border = ItruliaQoL:CreateBorder(f.surge)
 
     f.vigor = CreateFrame("StatusBar", "$parent_Vigor", f)
     f.vigor:SetPoint("TOPLEFT", f.surge, "TOPRIGHT", 1, 0)
@@ -150,8 +118,8 @@ function FlyingBar:GenerateFrame(name, parent)
         bar:SetMinMaxValues(0, 100)
         bar:SetPoint("TOP")
         bar:SetPoint("BOTTOM")
-        bar.border = FlyingBar:CreateBorder(bar)
-        bar.bg = FlyingBar:CreateBackground(bar)
+        bar.border = ItruliaQoL:CreateBorder(bar)
+        bar.bg = ItruliaQoL:CreateBackground(bar)
         bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
 
         if index == 1 then
@@ -167,8 +135,8 @@ function FlyingBar:GenerateFrame(name, parent)
     f.speed:SetPoint("TOPLEFT", f.vigor, "BOTTOMLEFT", 0, -1)
     f.speed:SetPoint("TOPRIGHT", f.vigor, "BOTTOMRIGHT", 0, -1)
     f.speed:SetMinMaxValues(0, 1440)
-    f.speed.border = FlyingBar:CreateBorder(f.speed)
-    f.speed.bg = FlyingBar:CreateBackground(f.speed)
+    f.speed.border = ItruliaQoL:CreateBorder(f.speed)
+    f.speed.bg = ItruliaQoL:CreateBackground(f.speed)
     f.speed.textureBorder = FlyingBar:CreateTextureBorder(f.speed)
     f.speed.tick = f.speed:CreateTexture(nil, "OVERLAY")
     f.speed.tick:SetWidth(1)
@@ -194,8 +162,8 @@ function FlyingBar:GenerateFrame(name, parent)
         bar:SetMinMaxValues(0, 100)
         bar:SetPoint("TOP")
         bar:SetPoint("BOTTOM")
-        bar.border = FlyingBar:CreateBorder(bar)
-        bar.bg = FlyingBar:CreateBackground(bar)
+        bar.border = ItruliaQoL:CreateBorder(bar)
+        bar.bg = ItruliaQoL:CreateBackground(bar)
         bar.textureBorder = FlyingBar:CreateTextureBorder(bar)
 
         if index == 1 then

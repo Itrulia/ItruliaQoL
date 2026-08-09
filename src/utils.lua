@@ -101,6 +101,20 @@ function ItruliaQoL:GetGroupUnits()
     return units
 end
 
+function ItruliaQoL:GetActiveStanceSpell()
+    local numForms = GetNumShapeshiftForms() or 0
+
+    for i = 1, numForms do
+        local _, isActive, _, spellId = GetShapeshiftFormInfo(i)
+
+        if isActive then
+            return spellId
+        end
+    end
+
+    return nil
+end
+
 function ItruliaQoL:CanGlide()
     local canGlide = select(2, C_PlayerInfo.GetGlidingInfo())
 
