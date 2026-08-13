@@ -32,6 +32,7 @@ end
 
 function ItruliaQoL:OnEnable()
 	self:RegisterOptions()
+    self:WatchSharedMedia()
 end
 
 function ItruliaQoL:RefreshModules()
@@ -40,6 +41,55 @@ function ItruliaQoL:RefreshModules()
             module:RefreshConfig()
         end
     end
+end
+
+function ItruliaQoL:RestyleModules()
+    for _, module in self:IterateModules() do
+        if not module.db or module.db.enabled then
+            
+            if module.Restyle then
+                module:Restyle()
+            elseif module.frame and module.frame.UpdateStyles then
+                module.frame:UpdateStyles()
+            end
+        end
+    end
+end
+
+function ItruliaQoL:WatchSharedMedia()
+    local rerenderPending = false
+
+    local mediaTypesToRerender = {
+        font = true,
+        statusbar = true,
+        border = true,
+        background = true,
+    }
+
+    local function batchRerender()
+        if rerenderPending then
+            return
+        end
+
+        rerenderPending = true
+
+        C_Timer.After(0, function()
+            rerenderPending = false
+            self:RestyleModules()
+        end)
+    end
+
+    self.LSM.RegisterCallback(self, "LibSharedMedia_Registered", function(_, mediatype)
+        if mediaTypesToRerender[mediatype] then
+            batchRerender()
+        end
+    end)
+
+    self.LSM.RegisterCallback(self, "LibSharedMedia_SetGlobal", function(_, mediatype)
+        if mediaTypesToRerender[mediatype] then
+            batchRerender()
+        end
+    end)
 end
 
 function ItruliaQoL:ApplyFontSettings()
@@ -178,18 +228,26 @@ function ItruliaQoL:DecodeImportString(str)
   return true, data
 end
 
-function ItruliaQoL:ImportAsNewProfile(str, profileName, override)
+local function finish(callback, ok, err)
+  if callback then
+    callback(ok, err)
+  end
+
+  return ok, err
+end
+
+function ItruliaQoL:ImportAsNewProfile(str, profileName, override, callback)
   if not profileName or profileName == "" then
-    return false, "Invalid profile name"
+    return finish(callback, false, "Invalid profile name")
   end
 
   if self.db.profiles[profileName] and not override then
-    return false, "Profile already exists"
+    return finish(callback, false, "Profile already exists")
   end
 
   local ok, data = self:DecodeImportString(str)
   if not ok then
-    return false, data
+    return finish(callback, false, data)
   end
 
   self.db:SetProfile(profileName)
@@ -205,13 +263,13 @@ function ItruliaQoL:ImportAsNewProfile(str, profileName, override)
 
   self:RefreshModules()
 
-  return true
+  return finish(callback, true)
 end
 
-function ItruliaQoL:ImportIntoCurrentProfile(str)
+function ItruliaQoL:ImportIntoCurrentProfile(str, callback)
   local ok, dataOrErr = self:DecodeImportString(str)
   if not ok then
-    return false, dataOrErr
+    return finish(callback, false, dataOrErr)
   end
 
   local profile = self.db.profile
@@ -226,7 +284,7 @@ function ItruliaQoL:ImportIntoCurrentProfile(str)
 
   self:RefreshModules()
 
-  return true
+  return finish(callback, true)
 end
 
 function ItruliaQoL:ToggleTestMode(enabled)

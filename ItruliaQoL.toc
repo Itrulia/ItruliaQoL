@@ -4,6 +4,7 @@
 ## Title: |cffe9e9edItrulia|r|cff9184d9QoL|r
 ## DefaultState: enabled
 ## Category: Itrulia
+## IconTexture: Interface\AddOns\ItruliaQoL\logo
 ## SavedVariables: ItruliaQoLDB
 ## OptionalDeps: ElvUI, EllesmereUI
 ## X-Wago-ID: rN4kQAGD

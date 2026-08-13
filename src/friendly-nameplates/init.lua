@@ -9,9 +9,16 @@ if ItruliaQoL.EUI or ItruliaQoL.E then
     return
 end
 
+local function ApplyFont()
+    local font = LSM:Fetch("font", FriendlyNameplates.db.font.fontFamily)
+
+    _G.SystemFont_NamePlate:SetFont(font, FriendlyNameplates.db.font.fontSize, FriendlyNameplates.db.font.fontOutline)
+    _G.SystemFont_NamePlate_Outlined:SetFont(font, FriendlyNameplates.db.font.fontSize, FriendlyNameplates.db.font.fontOutline)
+end
+
 local function OnEvent()
-    _G.SystemFont_NamePlate:SetFont(LSM:Fetch("font", FriendlyNameplates.db.font.fontFamily), FriendlyNameplates.db.font.fontSize, FriendlyNameplates.db.font.fontOutline)
-    _G.SystemFont_NamePlate_Outlined:SetFont(LSM:Fetch("font", FriendlyNameplates.db.font.fontFamily), FriendlyNameplates.db.font.fontSize, FriendlyNameplates.db.font.fontOutline)
+    ApplyFont()
+
     SetCVar("nameplateUseClassColorForFriendlyPlayerUnitNames", 1)
     SetCVar("UnitNameFriendlyPlayerName", 1)
     SetCVar("nameplateShowFriendlyPlayers", 1)
@@ -53,6 +60,13 @@ function FriendlyNameplates:RefreshConfig()
         OnEvent(f)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
+    end
+end
+
+-- Only the font, so a late media registration doesn't re-apply the CVars.
+function FriendlyNameplates:Restyle()
+    if self.db and self.db.enabled and self.frame then
+        ApplyFont()
     end
 end
 
