@@ -50,16 +50,16 @@ function DungeonTeleports:OnEnable()
     end
 
     local function onUpdate(self)
-        for j = 1, select("#", self:GetChildren()) do
-            local jFrame = select(j, self:GetChildren())
+        for childIndex = 1, select("#", self:GetChildren()) do
+            local childFrame = select(childIndex, self:GetChildren())
 
-            if jFrame.mapID ~= nil then
-                for k = 1, select("#", jFrame:GetChildren()) do
-                    local kFrame = select(k, jFrame:GetChildren())
+            if childFrame.mapID ~= nil then
+                for k = 1, select("#", childFrame:GetChildren()) do
+                    local kFrame = select(k, childFrame:GetChildren())
 
-                    if kFrame.vMapId ~= jFrame.mapID then
-                        kFrame:SetAttribute("spell", teleportMap[jFrame.mapID])
-                        kFrame.vMapId = jFrame.mapID
+                    if kFrame.vMapId ~= childFrame.mapID then
+                        kFrame:SetAttribute("spell", teleportMap[childFrame.mapID])
+                        kFrame.vMapId = childFrame.mapID
                     end
 
                     break

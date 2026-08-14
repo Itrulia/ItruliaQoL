@@ -78,22 +78,22 @@ local function OnUpdate(self, elapsed)
 end
 
 function MeleeIndicator:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 0)
-    f:SetSize(28, 28)
-    f.meleeSpellId = nil
-    f.meleeSpellName = nil
-    f.meleeSpells = MELEE_SPELLS
+    local frame = CreateFrame("frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 0)
+    PixelUtil.SetSize(frame, 28, 28)
+    frame.meleeSpellId = nil
+    frame.meleeSpellName = nil
+    frame.meleeSpells = MELEE_SPELLS
 
-    f.text = f:CreateFontString(nil, "OVERLAY")
-    f.text:SetPoint("CENTER")
-    f.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
-    f.text:SetText("+")
-    f.text:SetTextColor(1, 0, 0)
-    f.text:SetJustifyH("CENTER")
-    f.text:Hide()
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetPoint("CENTER")
+    frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
+    frame.text:SetText("+")
+    frame.text:SetTextColor(1, 0, 0)
+    frame.text:SetJustifyH("CENTER")
+    frame.text:Hide()
 
-    function f:GetSpellToCheck()
+    function frame:GetSpellToCheck()
         local class = select(2, UnitClass("player"))
         local specId = select(1, GetSpecializationInfo(GetSpecialization()))
         local spells = self.meleeSpells[class]
@@ -115,13 +115,13 @@ function MeleeIndicator:GenerateFrame(name, parent)
         return spellId
     end
 
-    function f:CacheMeleeSpellId()
+    function frame:CacheMeleeSpellId()
         self.meleeSpellId = self:GetSpellToCheck()
         local spellInfo = self.meleeSpellId and C_Spell.GetSpellInfo(self.meleeSpellId)
         self.meleeSpellName = spellInfo and spellInfo.name
     end
 
-    function f:UpdateMeleeIndicator()
+    function frame:UpdateMeleeIndicator()
         local targetExists = UnitExists("target")
         local targetAttackable = UnitCanAttack("player", "target")
 
@@ -162,11 +162,11 @@ function MeleeIndicator:GenerateFrame(name, parent)
         end
     end
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
+                PixelUtil.SetPoint(self, MeleeIndicator.db.point.point, self:GetParent() or UIParent, MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
             end
 
             self:SetFrameStrata(MeleeIndicator.db.font.frameStrata or "BACKGROUND")
@@ -184,11 +184,11 @@ function MeleeIndicator:GenerateFrame(name, parent)
                 self.text:SetShadowOffset(0, 0)
             end
             self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font.fontFamily), MeleeIndicator.db.font.fontSize, MeleeIndicator.db.font.fontOutline)
-            self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
+            PixelUtil.SetSize(self, math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
         end
     end
 
-    return f
+    return frame
 end
 
 function MeleeIndicator:EnsureFrame()
@@ -196,14 +196,14 @@ function MeleeIndicator:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -213,14 +213,14 @@ function MeleeIndicator:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function MeleeIndicator:OnInitialize()
@@ -235,13 +235,13 @@ function MeleeIndicator:RefreshConfig()
     self.db = profile.MeleeIndicator
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:UpdateStyles()
-        f:CacheMeleeSpellId()
-        f:SetScript("OnEvent", OnEvent)
-        f:SetScript("OnUpdate", OnUpdate)
-        OnEvent(f)
+        frame:UpdateStyles()
+        frame:CacheMeleeSpellId()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:SetScript("OnUpdate", OnUpdate)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

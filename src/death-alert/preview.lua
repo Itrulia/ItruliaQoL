@@ -3,8 +3,8 @@ local addonName, ItruliaQoL = ...
 local moduleName = "DeathAlert"
 local DeathAlert = ItruliaQoL:GetModule(moduleName)
 
-function DeathAlert:PreparePreview(f)
-    f.text.anim:Stop()
+function DeathAlert:PreparePreview(frame)
+    frame.text.anim:Stop()
 
     local name = UnitName("player")
     local _, class = UnitClass("player")
@@ -17,7 +17,7 @@ function DeathAlert:PreparePreview(f)
         self.db.color.a
     ):WrapTextInColorCode(self.db.displayText)
 
-    f.text:SetText(classColor:WrapTextInColorCode(name) .. " " .. displayText)
-    f.text:SetAlpha(1)
-    f:UpdateStyles()
+    frame.text:SetText(classColor:WrapTextInColorCode(name) .. " " .. displayText)
+    frame.text:SetAlpha(1)
+    frame:UpdateStyles()
 end

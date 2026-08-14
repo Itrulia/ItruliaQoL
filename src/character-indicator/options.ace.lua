@@ -55,8 +55,8 @@ function CharacterIndicator:GetOptions(onChange)
                         width = 0.4,
                         hasAlpha = true, 
                         get = function()
-                            local c = CharacterIndicator.db.color
-                            return c.r, c.g, c.b, c.a
+                            local color = CharacterIndicator.db.color
+                            return color.r, color.g, color.b, color.a
                         end,
                         set = function(_, r, g, b, a)
                             CharacterIndicator.db.color = {

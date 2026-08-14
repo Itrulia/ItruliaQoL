@@ -11,8 +11,8 @@ function CharacterIndicator:GetEUIOptions()
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = CharacterIndicator.db.color
-            return c.r, c.g, c.b, c.a
+            local color = CharacterIndicator.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             CharacterIndicator.db.color = {

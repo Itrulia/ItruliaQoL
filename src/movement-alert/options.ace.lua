@@ -49,8 +49,8 @@ function MovementAlert:GetOptions(onChange)
                                 width = 0.4,
                                 hasAlpha = true,
                                 get = function()
-                                    local c = MovementAlert.db.color
-                                    return c.r, c.g, c.b, c.a
+                                    local color = MovementAlert.db.color
+                                    return color.r, color.g, color.b, color.a
                                 end,
                                 set = function(_, r, g, b, a)
                                     MovementAlert.db.color = {
@@ -131,8 +131,8 @@ function MovementAlert:GetOptions(onChange)
                         name = "Time spiral color",
                         hasAlpha = true,
                         get = function()
-                            local c = MovementAlert.db.timeSpiralColor
-                            return c.r, c.g, c.b, c.a
+                            local color = MovementAlert.db.timeSpiralColor
+                            return color.r, color.g, color.b, color.a
                         end,
                         set = function(_, r, g, b, a)
                             MovementAlert.db.timeSpiralColor = {

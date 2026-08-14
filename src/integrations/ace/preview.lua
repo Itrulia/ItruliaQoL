@@ -108,8 +108,8 @@ local function Constructor()
     local frame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
     frame:Hide()
     frame:SetBackdrop({
-        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
+        bgFile = [[Interface\Buttons\WHITE8x8]],
+        edgeFile = [[Interface\Buttons\WHITE8x8]],
         edgeSize = 1,
     })
     frame:SetBackdropColor(0, 0, 0, 0.4)
@@ -118,14 +118,14 @@ local function Constructor()
     frame:SetScript("OnShow", Control_OnShow)
 
     local label = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    label:SetPoint("TOPLEFT", 5, -3)
+    PixelUtil.SetPoint(label, "TOPLEFT", label:GetParent() or UIParent, "TOPLEFT", 5, -3)
     label:SetJustifyH("LEFT")
 
     -- Clipped so an oversized preview (a long alert text, a wide bar) stays inside the
     -- box instead of drawing over the rest of the options page.
     local display = CreateFrame("Frame", nil, frame)
-    display:SetPoint("TOPLEFT", 1, -LABEL_HEIGHT)
-    display:SetPoint("BOTTOMRIGHT", -1, 1)
+    PixelUtil.SetPoint(display, "TOPLEFT", display:GetParent() or UIParent, "TOPLEFT", 1, -LABEL_HEIGHT)
+    PixelUtil.SetPoint(display, "BOTTOMRIGHT", display:GetParent() or UIParent, "BOTTOMRIGHT", -1, 1)
     display:SetClipsChildren(true)
 
     local widget = {

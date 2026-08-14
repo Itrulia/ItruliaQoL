@@ -36,21 +36,21 @@ local function OnEvent(self, ...)
 end
 
 function NoTargetIndicator:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 50)
-    f:SetSize(28, 28)
+    local frame = CreateFrame("frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 50)
+    PixelUtil.SetSize(frame, 28, 28)
 
-    f.text = f:CreateFontString(nil, "OVERLAY")
-    f.text:SetPoint("CENTER")
-    f.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
-    f.text:SetTextColor(1, 1, 1)
-    f.text:SetJustifyH("CENTER")
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetPoint("CENTER")
+    frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
+    frame.text:SetTextColor(1, 1, 1)
+    frame.text:SetJustifyH("CENTER")
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(NoTargetIndicator.db.point.point, NoTargetIndicator.db.point.x, NoTargetIndicator.db.point.y)
+                PixelUtil.SetPoint(self, NoTargetIndicator.db.point.point, self:GetParent() or UIParent, NoTargetIndicator.db.point.point, NoTargetIndicator.db.point.x, NoTargetIndicator.db.point.y)
             end
 
             self:SetFrameStrata(NoTargetIndicator.db.font.frameStrata or "BACKGROUND")
@@ -69,11 +69,11 @@ function NoTargetIndicator:GenerateFrame(name, parent)
             end
             self.text:SetFont(LSM:Fetch("font", NoTargetIndicator.db.font.fontFamily), NoTargetIndicator.db.font.fontSize, NoTargetIndicator.db.font.fontOutline)
 
-            self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end
 
-    return f
+    return frame
 end
 
 function NoTargetIndicator:EnsureFrame()
@@ -81,17 +81,17 @@ function NoTargetIndicator:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_TARGET_CHANGED")
-    f:RegisterEvent("PLAYER_REGEN_ENABLED")
-    f:RegisterEvent("PLAYER_REGEN_DISABLED")
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("UNIT_DIED")
+    frame:RegisterEvent("PLAYER_TARGET_CHANGED")
+    frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("UNIT_DIED")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -101,14 +101,14 @@ function NoTargetIndicator:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function NoTargetIndicator:OnInitialize()
@@ -123,11 +123,11 @@ function NoTargetIndicator:RefreshConfig()
     self.db = profile.NoTargetIndicator
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:UpdateStyles()
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

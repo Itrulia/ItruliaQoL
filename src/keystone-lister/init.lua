@@ -329,13 +329,13 @@ local function OnEvent(self, event)
 end
 
 function KeystoneLister:GenerateFrame(name, parent)
-    local f = CreateFrame("Frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 0)
-    f:SetSize(80, 20)
+    local frame = CreateFrame("Frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 0)
+    PixelUtil.SetSize(frame, 80, 20)
 
-    local btn = CreateFrame("Button", "$parent_Button", f)
+    local btn = CreateFrame("Button", "$parent_Button", frame)
     btn:SetAllPoints()
-    f.button = btn
+    frame.button = btn
 
     btn.bg = ItruliaQoL:CreateBackground(btn)
     btn.border = ItruliaQoL:CreateBorder(btn)
@@ -349,7 +349,7 @@ function KeystoneLister:GenerateFrame(name, parent)
     btn.highlight:SetColorTexture(1, 1, 1, 0.12)
 
     btn:SetScript("OnClick", function(button)
-        if f.isPreview then
+        if frame.isPreview then
             return
         end
 
@@ -379,7 +379,7 @@ function KeystoneLister:GenerateFrame(name, parent)
 
         GameTooltip:SetOwner(button, "ANCHOR_TOP")
         GameTooltip:AddLine("Keystone Lister")
-        GameTooltip:AddLine(KeystoneLister:GetTooltip(f.state), 1, 1, 1, true)
+        GameTooltip:AddLine(KeystoneLister:GetTooltip(frame.state), 1, 1, 1, true)
         GameTooltip:Show()
     end)
 
@@ -387,7 +387,7 @@ function KeystoneLister:GenerateFrame(name, parent)
         GameTooltip:Hide()
     end)
 
-    function f:UpdateButton()
+    function frame:UpdateButton()
         local font = KeystoneLister.db.font
         local justify = font.justifyH or "CENTER"
 
@@ -402,9 +402,9 @@ function KeystoneLister:GenerateFrame(name, parent)
         btn.text:ClearAllPoints()
 
         if justify == "LEFT" then
-            btn.text:SetPoint("LEFT", KeystoneLister.db.paddingX, 0)
+            PixelUtil.SetPoint(btn.text, "LEFT", btn.text:GetParent() or UIParent, "LEFT", KeystoneLister.db.paddingX, 0)
         elseif justify == "RIGHT" then
-            btn.text:SetPoint("RIGHT", -KeystoneLister.db.paddingX, 0)
+            PixelUtil.SetPoint(btn.text, "RIGHT", btn.text:GetParent() or UIParent, "RIGHT", -KeystoneLister.db.paddingX, 0)
         else
             btn.text:SetPoint("CENTER")
         end
@@ -417,7 +417,8 @@ function KeystoneLister:GenerateFrame(name, parent)
             btn.text:SetShadowOffset(0, 0)
         end
 
-        self:SetSize(
+        PixelUtil.SetSize(
+            self,
             math.ceil(btn.text:GetStringWidth()) + KeystoneLister.db.paddingX * 2,
             math.ceil(math.max(btn.text:GetStringHeight(), font.fontSize)) + KeystoneLister.db.paddingY * 2
         )
@@ -425,7 +426,7 @@ function KeystoneLister:GenerateFrame(name, parent)
         btn:SetAlpha(1)
     end
 
-    function f:UpdateMouseover()
+    function frame:UpdateMouseover()
         if self.isPreview then
             return
         end
@@ -442,7 +443,7 @@ function KeystoneLister:GenerateFrame(name, parent)
         self:SetScript("OnUpdate", OnMouseoverUpdate)
     end
 
-    function f:UpdateVisibility()
+    function frame:UpdateVisibility()
         if self.isPreview then
             self:Show()
 
@@ -453,10 +454,10 @@ function KeystoneLister:GenerateFrame(name, parent)
         self:UpdateMouseover()
     end
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not E then
             self:ClearAllPoints()
-            self:SetPoint(KeystoneLister.db.point.point, KeystoneLister.db.point.x, KeystoneLister.db.point.y)
+            PixelUtil.SetPoint(self, KeystoneLister.db.point.point, self:GetParent() or UIParent, KeystoneLister.db.point.point, KeystoneLister.db.point.x, KeystoneLister.db.point.y)
         end
 
         self:SetFrameStrata(KeystoneLister.db.font.frameStrata or "MEDIUM")
@@ -464,7 +465,7 @@ function KeystoneLister:GenerateFrame(name, parent)
         self:UpdateButton()
     end
 
-    return f
+    return frame
 end
 
 function KeystoneLister:EnsureFrame()
@@ -472,20 +473,20 @@ function KeystoneLister:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
-    f:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-    f:RegisterEvent("BAG_UPDATE_DELAYED")
-    f:RegisterEvent("GROUP_ROSTER_UPDATE")
-    f:RegisterEvent("PARTY_LEADER_CHANGED")
-    f:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
-    f:RegisterEvent("LFG_LIST_AVAILABILITY_UPDATE")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
+    frame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+    frame:RegisterEvent("BAG_UPDATE_DELAYED")
+    frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+    frame:RegisterEvent("PARTY_LEADER_CHANGED")
+    frame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
+    frame:RegisterEvent("LFG_LIST_AVAILABILITY_UPDATE")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -495,14 +496,14 @@ function KeystoneLister:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function KeystoneLister:LoadDB()
@@ -520,13 +521,13 @@ function KeystoneLister:RefreshConfig()
     self.db = self:LoadDB()
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        OnEvent(f, "PLAYER_ENTERING_WORLD")
+        OnEvent(frame, "PLAYER_ENTERING_WORLD")
 
-        f:SetScript("OnEvent", OnEvent)
-        f:UpdateStyles()
-        f:UpdateVisibility()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:UpdateStyles()
+        frame:UpdateVisibility()
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

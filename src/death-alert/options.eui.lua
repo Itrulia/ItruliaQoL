@@ -231,8 +231,8 @@ function DeathAlert:GetEUIOptions(pageName)
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = DeathAlert.db.color
-            return c.r, c.g, c.b, c.a
+            local color = DeathAlert.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             DeathAlert.db.color = {

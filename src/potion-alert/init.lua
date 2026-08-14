@@ -70,25 +70,25 @@ local function OnEvent(self, event, ...)
 end
 
 function PotionAlert:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 300)
-    f:SetSize(28, 28)
+    local frame = CreateFrame("frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 300)
+    PixelUtil.SetSize(frame, 28, 28)
 
-    f.text = f:CreateFontString(nil, "OVERLAY")
-    f.text:SetPoint("CENTER")
-    f.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
-    f.text:SetTextColor(1, 1, 1, 1)
-    f.text:SetJustifyH("CENTER")
-    f.text:Hide();
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetPoint("CENTER")
+    frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
+    frame.text:SetTextColor(1, 1, 1, 1)
+    frame.text:SetJustifyH("CENTER")
+    frame.text:Hide();
 
-    f.onCD = false
-    f.potions = POTIONS
+    frame.onCD = false
+    frame.potions = POTIONS
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(PotionAlert.db.point.point, PotionAlert.db.point.x, PotionAlert.db.point.y)
+                PixelUtil.SetPoint(self, PotionAlert.db.point.point, self:GetParent() or UIParent, PotionAlert.db.point.point, PotionAlert.db.point.x, PotionAlert.db.point.y)
             end
 
             self:SetFrameStrata(PotionAlert.db.font.frameStrata or "BACKGROUND")
@@ -106,11 +106,11 @@ function PotionAlert:GenerateFrame(name, parent)
                 self.text:SetShadowOffset(0, 0)
             end
             self.text:SetFont(LSM:Fetch("font", PotionAlert.db.font.fontFamily), PotionAlert.db.font.fontSize, PotionAlert.db.font.fontOutline)
-            self:SetSize(math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
+            PixelUtil.SetSize(self, math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
         end
     end
 
-    return f
+    return frame
 end
 
 function PotionAlert:EnsureFrame()
@@ -118,18 +118,18 @@ function PotionAlert:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("BAG_UPDATE_COOLDOWN") -- doesn't fire often in dungeons/raids
-    f:RegisterEvent("SPELL_UPDATE_COOLDOWN")
-    f:RegisterEvent("PLAYER_REGEN_ENABLED")
-    f:RegisterEvent("PLAYER_REGEN_DISABLED")
-    f:RegisterEvent("ENCOUNTER_START")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("BAG_UPDATE_COOLDOWN") -- doesn't fire often in dungeons/raids
+    frame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
+    frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    frame:RegisterEvent("ENCOUNTER_START")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -139,14 +139,14 @@ function PotionAlert:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function PotionAlert:OnInitialize()
@@ -161,11 +161,11 @@ function PotionAlert:RefreshConfig()
     self.db = profile.PotionAlert
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:UpdateStyles()
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

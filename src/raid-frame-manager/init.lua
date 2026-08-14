@@ -207,13 +207,13 @@ local function OnMouseoverUpdate(self, elapsed)
 end
 
 function RaidFrameManager:GenerateFrame(name, parent)
-    local f = CreateFrame("Frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 0)
-    f:SetSize(58, 20)
-    f.buttons = {}
-    f.shownCount = 0
+    local frame = CreateFrame("Frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 0)
+    PixelUtil.SetSize(frame, 58, 20)
+    frame.buttons = {}
+    frame.shownCount = 0
 
-    function f:AcquireButton(index)
+    function frame:AcquireButton(index)
         local existing = self.buttons[index]
 
         if existing then
@@ -271,7 +271,7 @@ function RaidFrameManager:GenerateFrame(name, parent)
         return btn
     end
 
-    function f:UpdateButtons()
+    function frame:UpdateButtons()
         local db = RaidFrameManager.db
         local specs = RaidFrameManager:GetButtonSpecs()
         local horizontal = db.orientation ~= "VERTICAL"
@@ -297,9 +297,9 @@ function RaidFrameManager:GenerateFrame(name, parent)
             btn.text:ClearAllPoints()
 
             if justify == "LEFT" then
-                btn.text:SetPoint("LEFT", paddingX, 0)
+                PixelUtil.SetPoint(btn.text, "LEFT", btn.text:GetParent() or UIParent, "LEFT", paddingX, 0)
             elseif justify == "RIGHT" then
-                btn.text:SetPoint("RIGHT", -paddingX, 0)
+                PixelUtil.SetPoint(btn.text, "RIGHT", btn.text:GetParent() or UIParent, "RIGHT", -paddingX, 0)
             else
                 btn.text:SetPoint("CENTER")
             end
@@ -322,15 +322,15 @@ function RaidFrameManager:GenerateFrame(name, parent)
         for index = 1, #specs do
             local btn = self.buttons[index]
 
-            btn:SetSize(width, height)
+            PixelUtil.SetSize(btn, width, height)
             btn:ClearAllPoints()
 
             if index == 1 then
-                btn:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
+                PixelUtil.SetPoint(btn, "TOPLEFT", self, "TOPLEFT", 0, 0)
             elseif horizontal then
-                btn:SetPoint("TOPLEFT", self.buttons[index - 1], "TOPRIGHT", spacing, 0)
+                PixelUtil.SetPoint(btn, "TOPLEFT", self.buttons[index - 1], "TOPRIGHT", spacing, 0)
             else
-                btn:SetPoint("TOPLEFT", self.buttons[index - 1], "BOTTOMLEFT", 0, -spacing)
+                PixelUtil.SetPoint(btn, "TOPLEFT", self.buttons[index - 1], "BOTTOMLEFT", 0, -spacing)
             end
 
             btn:Show()
@@ -347,13 +347,13 @@ function RaidFrameManager:GenerateFrame(name, parent)
         local count = math.max(#specs, 1)
 
         if horizontal then
-            self:SetSize(width * count + spacing * (count - 1), height)
+            PixelUtil.SetSize(self, width * count + spacing * (count - 1), height)
         else
-            self:SetSize(width, height * count + spacing * (count - 1))
+            PixelUtil.SetSize(self, width, height * count + spacing * (count - 1))
         end
     end
 
-    function f:UpdatePermissions()
+    function frame:UpdatePermissions()
         for index = 1, self.shownCount do
             local btn = self.buttons[index]
             local usable = self.isPreview or RaidFrameManager:CanUse(btn.spec)
@@ -365,7 +365,7 @@ function RaidFrameManager:GenerateFrame(name, parent)
 
     -- The preview is always fully opaque; hover fading there would just make the
     -- config page's own bar disappear while you configure it.
-    function f:UpdateMouseover()
+    function frame:UpdateMouseover()
         if self.isPreview then
             return
         end
@@ -382,7 +382,7 @@ function RaidFrameManager:GenerateFrame(name, parent)
         self:SetScript("OnUpdate", OnMouseoverUpdate)
     end
 
-    function f:UpdateVisibility()
+    function frame:UpdateVisibility()
         if self.isPreview then
             self:Show()
 
@@ -405,12 +405,12 @@ function RaidFrameManager:GenerateFrame(name, parent)
         self:UpdateMouseover()
     end
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         local db = RaidFrameManager.db
 
         if not E then
             self:ClearAllPoints()
-            self:SetPoint(db.point.point, db.point.x, db.point.y)
+            PixelUtil.SetPoint(self, db.point.point, self:GetParent() or UIParent, db.point.point, db.point.x, db.point.y)
         end
 
         self:SetFrameStrata(db.font.frameStrata or "MEDIUM")
@@ -419,7 +419,7 @@ function RaidFrameManager:GenerateFrame(name, parent)
         self:UpdatePermissions()
     end
 
-    return f
+    return frame
 end
 
 -- Blizzard's manager goes under a hidden parent, which its own show logic cannot
@@ -465,17 +465,17 @@ function RaidFrameManager:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("PLAYER_REGEN_ENABLED")
-    f:RegisterEvent("PLAYER_REGEN_DISABLED")
-    f:RegisterEvent("GROUP_ROSTER_UPDATE")
-    f:RegisterEvent("PARTY_LEADER_CHANGED")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+    frame:RegisterEvent("PARTY_LEADER_CHANGED")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -485,14 +485,14 @@ function RaidFrameManager:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function RaidFrameManager:OnInitialize()
@@ -509,11 +509,11 @@ function RaidFrameManager:RefreshConfig()
     self:ApplyBlizzardVisibility()
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:SetScript("OnEvent", OnEvent)
-        f:UpdateStyles()
-        f:UpdateVisibility()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:UpdateStyles()
+        frame:UpdateVisibility()
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

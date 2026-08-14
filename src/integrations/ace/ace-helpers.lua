@@ -183,8 +183,8 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             name = "Shadow Color",
             hasAlpha = true,
             get = function()
-                local c = fontObject.fontShadowColor
-                return c.r, c.g, c.b, c.a
+                local color = fontObject.fontShadowColor
+                return color.r, color.g, color.b, color.a
             end,
             set = function(_, r, g, b, a)
                 fontObject.fontShadowColor = {

@@ -67,8 +67,8 @@ function NoTargetIndicator:GetOptions(onChange)
                         width = 0.4,
                         hasAlpha = true,
                         get = function()
-                            local c = NoTargetIndicator.db.color
-                            return c.r, c.g, c.b, c.a
+                            local color = NoTargetIndicator.db.color
+                            return color.r, color.g, color.b, color.a
                         end,
                         set = function(_, r, g, b, a)
                             NoTargetIndicator.db.color = {

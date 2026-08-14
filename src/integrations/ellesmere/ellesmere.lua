@@ -119,16 +119,16 @@ local function cogPopupRow(item)
     end
 
     local vals = item.values
-    local t = item.type
+    local itemType = item.type
 
-    if t == "select" then
-        t = "dropdown"
-    elseif t == "color" then
-        t = "colorpicker"
+    if itemType == "select" then
+        itemType = "dropdown"
+    elseif itemType == "color" then
+        itemType = "colorpicker"
     end
 
     return {
-        type = t,
+        type = itemType,
         label = item.label,
         tooltip = item.tooltip,
         hasAlpha = item.hasAlpha,
@@ -242,12 +242,12 @@ local function attachEUICog(region, cog)
     local anchor = region._lastInline or region._control
 
     local btn = CreateFrame("Button", nil, region)
-    btn:SetSize(26, 26)
+    PixelUtil.SetSize(btn, 26, 26)
 
     if anchor then
-        btn:SetPoint("RIGHT", anchor, "LEFT", -8, 0)
+        PixelUtil.SetPoint(btn, "RIGHT", anchor, "LEFT", -8, 0)
     else
-        btn:SetPoint("RIGHT", region, "RIGHT", -20, 0)
+        PixelUtil.SetPoint(btn, "RIGHT", region, "RIGHT", -20, 0)
     end
 
     region._lastInline = btn
@@ -532,7 +532,7 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
 
         local btn = CreateFrame("Button", nil, frame)
         PP.Size(btn, ICON, ICON)
-        btn:SetPoint("TOP", frame, "TOPLEFT", cx, cy)
+        PixelUtil.SetPoint(btn, "TOP", frame, "TOPLEFT", cx, cy)
 
         local tex = btn:CreateTexture(nil, "ARTWORK")
         tex:SetAllPoints()
@@ -545,8 +545,8 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
         PP.CreateBorder(bdr, 0, 0, 0, 1, 1)
 
         local hoverBdr = CreateFrame("Frame", nil, btn)
-        hoverBdr:SetPoint("TOPLEFT", btn, "TOPLEFT", -1, 1)
-        hoverBdr:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 1, -1)
+        PixelUtil.SetPoint(hoverBdr, "TOPLEFT", btn, "TOPLEFT", -1, 1)
+        PixelUtil.SetPoint(hoverBdr, "BOTTOMRIGHT", btn, "BOTTOMRIGHT", 1, -1)
         hoverBdr:SetFrameLevel(btn:GetFrameLevel() + 2)
         local ar, ag, ab = EUI.GetAccentColor()
         PP.CreateBorder(hoverBdr, ar, ag, ab, 1, 2)
@@ -555,7 +555,7 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
         local label = frame:CreateFontString(nil, "OVERLAY")
         label:SetFont(fontPath, 12, "")
         label:SetTextColor(1, 1, 1, 0.9)
-        label:SetPoint("TOP", btn, "BOTTOM", 0, -3)
+        PixelUtil.SetPoint(label, "TOP", btn, "BOTTOM", 0, -3)
         label:SetWidth(CELL_W - 10)
         label:SetWordWrap(false)
         label:SetJustifyH("CENTER")
@@ -620,8 +620,8 @@ function ItruliaQoL:EUIPreviewHeaderBuilder(module, pageName)
         -- Clipped so an oversized preview (a long alert text, a wide bar) stays in the
         -- header strip instead of drawing over the page below it.
         local display = CreateFrame("Frame", nil, hdr)
-        display:SetSize(hdrW, PREVIEW_HEADER_HEIGHT)
-        display:SetPoint("CENTER", hdr, "CENTER", 0, 0)
+        PixelUtil.SetSize(display, hdrW, PREVIEW_HEADER_HEIGHT)
+        PixelUtil.SetPoint(display, "CENTER", hdr, "CENTER", 0, 0)
         display:SetClipsChildren(true)
 
         if not ItruliaQoL:ShowPreview(module, display, pageName) then
@@ -680,13 +680,13 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     local title = frame:CreateFontString(nil, "OVERLAY")
     title:SetFont(fontPath, 16, "OUTLINE")
     title:SetTextColor(1, 0.75, 0.2, 1)
-    title:SetPoint("TOPLEFT", frame, "TOPLEFT", PAD_X, -PAD_Y)
+    PixelUtil.SetPoint(title, "TOPLEFT", frame, "TOPLEFT", PAD_X, -PAD_Y)
     title:SetText("BETA")
 
     local body = frame:CreateFontString(nil, "OVERLAY")
     body:SetFont(fontPath, 12, "")
     body:SetTextColor(1, 1, 1, 0.8)
-    body:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
+    PixelUtil.SetPoint(body, "TOPLEFT", title, "BOTTOMLEFT", 0, -6)
     body:SetWidth(availW - PAD_X * 2)
     body:SetJustifyH("LEFT")
     body:SetWordWrap(true)
@@ -698,11 +698,11 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     local support = frame:CreateFontString(nil, "OVERLAY")
     support:SetFont(fontPath, 12, "")
     support:SetTextColor(1, 0.85, 0.5, 0.9)
-    support:SetPoint("TOPLEFT", body, "BOTTOMLEFT", 0, -8)
+    PixelUtil.SetPoint(support, "TOPLEFT", body, "BOTTOMLEFT", 0, -8)
     support:SetWidth(availW - PAD_X * 2)
     support:SetJustifyH("LEFT")
     support:SetWordWrap(true)
-    support:SetText("Itrulia QoL is an inofficial module and not part of EllesmereUI. Please do not ask about it in the EllesmereUI Discord -- message Itrulia on Discord directly instead.")
+    support:SetText("Itrulia QoL is an inofficial module and not part of EllesmereUI. Please do not ask about it in the EllesmereUI Discord. Message Itrulia on Discord directly instead.")
 
     -- Straight to the complete panel, styled like EllesmereUI's own "Unlock Mode"
     -- footer link: accent text that brightens on hover. The EllesmereUI panel is
@@ -713,12 +713,12 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     local linkText = frame:CreateFontString(nil, "OVERLAY")
     linkText:SetFont(fontPath, 12, "")
     linkText:SetTextColor(ar, ag, ab, 0.9)
-    linkText:SetPoint("TOPLEFT", support, "BOTTOMLEFT", 0, -8)
+    PixelUtil.SetPoint(linkText, "TOPLEFT", support, "BOTTOMLEFT", 0, -8)
     linkText:SetText("Open the standalone config >")
 
     local link = CreateFrame("Button", nil, frame)
-    link:SetPoint("TOPLEFT", linkText, "TOPLEFT", -2, 2)
-    link:SetPoint("BOTTOMRIGHT", linkText, "BOTTOMRIGHT", 2, -2)
+    PixelUtil.SetPoint(link, "TOPLEFT", linkText, "TOPLEFT", -2, 2)
+    PixelUtil.SetPoint(link, "BOTTOMRIGHT", linkText, "BOTTOMRIGHT", 2, -2)
     link:SetFrameLevel(frame:GetFrameLevel() + 5)
     link:SetScript("OnEnter", function()
         linkText:SetTextColor(ar + (1 - ar) * 0.25, ag + (1 - ag) * 0.25, ab + (1 - ab) * 0.25, 1)
@@ -758,7 +758,7 @@ function ItruliaQoL:EUIFontValues()
 end
 
 -- A single EllesmereUI-native "Font" dropdown row (name label + per-font preview).
-function ItruliaQoL:EUIFontFamilyRow(f, apply)
+function ItruliaQoL:EUIFontFamilyRow(font, apply)
     local vals, order = self:EUIFontValues()
 
     return {
@@ -767,10 +767,10 @@ function ItruliaQoL:EUIFontFamilyRow(f, apply)
         values = vals,
         order = order,
         get = function()
-            return f.fontFamily
+            return font.fontFamily
         end,
         set = function(v)
-            f.fontFamily = v
+            font.fontFamily = v
 
             if apply then
                 apply()
@@ -900,14 +900,14 @@ end
 -- `lead` is an optional list of rows to put in front of the dropdowns, joining the
 -- same two-to-a-row flow rather than sitting above it -- for a module whose own
 -- text settings (a colour, say) belong with the font ones.
-function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
+function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
     exclude = exclude or {}
 
     -- A slug outline draws its own backdrop, so the shadow settings do nothing.
     -- They stay on the Outline cog, greyed out with that explanation, rather than
     -- the cog itself coming and going as the outline changes.
     local function slug()
-        return f.fontOutline == "OUTLINESLUG"
+        return font.fontOutline == "OUTLINESLUG"
     end
 
     local SLUG_TIP = "A slug outline draws its own backdrop, so a text shadow has no effect."
@@ -946,10 +946,10 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
         max = 68,
         step = 1,
         get = function()
-            return f.fontSize
+            return font.fontSize
         end,
         set = function(v)
-            f.fontSize = v
+            font.fontSize = v
             apply()
         end,
     }
@@ -958,10 +958,10 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
         label = "Justify",
         values = self.JustifyHSettings,
         get = function()
-            return f.justifyH or "CENTER"
+            return font.justifyH or "CENTER"
         end,
         set = function(v)
-            f.justifyH = v
+            font.justifyH = v
             apply()
         end,
     }
@@ -975,10 +975,10 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
         disabledTooltip = SLUG_TIP,
         rawTooltip = true,
         get = function()
-            return f.fontShadowXOffset
+            return font.fontShadowXOffset
         end,
         set = function(v)
-            f.fontShadowXOffset = v
+            font.fontShadowXOffset = v
             apply()
         end,
     }
@@ -992,10 +992,10 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
         disabledTooltip = SLUG_TIP,
         rawTooltip = true,
         get = function()
-            return f.fontShadowYOffset
+            return font.fontShadowYOffset
         end,
         set = function(v)
-            f.fontShadowYOffset = v
+            font.fontShadowYOffset = v
             apply()
         end,
     }
@@ -1007,11 +1007,11 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
         disabledTooltip = SLUG_TIP,
         rawTooltip = true,
         get = function()
-            local c = f.fontShadowColor
-            return c.r, c.g, c.b, c.a
+            local color = font.fontShadowColor
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
-            f.fontShadowColor = { r = r, g = g, b = b, a = a }
+            font.fontShadowColor = { r = r, g = g, b = b, a = a }
             apply()
         end,
     }
@@ -1029,7 +1029,7 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
         add("size", sizeRow)
         add("justify", justifyRow)
     else
-        local fontRow = self:EUIFontFamilyRow(f, apply)
+        local fontRow = self:EUIFontFamilyRow(font, apply)
         fontRow.cog = cogSpec("Font Settings", {
             { "size", sizeRow },
             { "justify", justifyRow },
@@ -1055,10 +1055,10 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
             label = "Outline",
             values = self.OutlineSettings,
             get = function()
-                return f.fontOutline or "NONE"
+                return font.fontOutline or "NONE"
             end,
             set = function(v)
-                f.fontOutline = (v ~= "NONE") and v or nil
+                font.fontOutline = (v ~= "NONE") and v or nil
                 apply()
             end,
         }
@@ -1076,10 +1076,10 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
         max = 10,
         step = 1,
         get = function()
-            return f.frameLevel or 1
+            return font.frameLevel or 1
         end,
         set = function(v)
-            f.frameLevel = v
+            font.frameLevel = v
             apply()
         end,
     }
@@ -1092,10 +1092,10 @@ function ItruliaQoL:EUIFontRows(f, apply, exclude, lead)
             label = "Frame Strata",
             values = self.FrameStrataSettings,
             get = function()
-                return f.frameStrata or "BACKGROUND"
+                return font.frameStrata or "BACKGROUND"
             end,
             set = function(v)
-                f.frameStrata = v
+                font.frameStrata = v
                 apply()
             end,
         }
@@ -1132,19 +1132,19 @@ StaticPopupDialogs["ITRULIAQOL_EUI_INPUT"] = {
     maxLetters = 12000,
     editBoxWidth = 260,
     OnAccept = function(self)
-        local d = self.data
+        local data = self.data
         local eb = popupEditBox(self)
 
-        if d and d.onAccept and eb then
-            d.onAccept(eb:GetText())
+        if data and data.onAccept and eb then
+            data.onAccept(eb:GetText())
         end
     end,
     OnShow = function(self)
-        local d = self.data
+        local data = self.data
         local eb = popupEditBox(self)
 
         if eb then
-            eb:SetText((d and d.initial) or "")
+            eb:SetText((data and data.initial) or "")
             eb:HighlightText()
             eb:SetFocus()
         end
@@ -1166,10 +1166,10 @@ StaticPopupDialogs["ITRULIAQOL_EUI_CONFIRM"] = {
     button1 = YES,
     button2 = NO,
     OnAccept = function(self)
-        local d = self.data
+        local data = self.data
 
-        if d and d.onAccept then
-            d.onAccept()
+        if data and data.onAccept then
+            data.onAccept()
         end
     end,
     timeout = 0,
@@ -1332,7 +1332,7 @@ function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHea
     -- Modules whose only setting was the enable flag have nothing left to draw once
     -- that moved to the sidebar switch, so say so rather than showing a blank page.
     if #rows == 0 then
-        _, h = W:DualRow(parent, y, { text = "Nothing to configure -- use the switch on the sidebar row to turn this on or off." })
+        _, h = W:DualRow(parent, y, { text = "Nothing to configure. Use the switch on the sidebar row to turn this on or off." })
 
         return math.abs(y - h)
     end
@@ -1359,8 +1359,8 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
     local function currentValues()
         local vals = {}
 
-        for _, n in ipairs(names()) do
-            vals[n] = n
+        for _, name in ipairs(names()) do
+            vals[name] = name
         end
 
         return vals
@@ -1369,9 +1369,9 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
     local function otherValues()
         local vals, cur = {}, db:GetCurrentProfile()
 
-        for _, n in ipairs(names()) do
-            if n ~= cur then
-                vals[n] = n
+        for _, name in ipairs(names()) do
+            if name ~= cur then
+                vals[name] = name
             end
         end
 
@@ -1379,15 +1379,15 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
     end
 
     local function sortedKeys(tbl)
-        local o = {}
+        local keys = {}
 
         for k in pairs(tbl) do
-            o[#o + 1] = k
+            keys[#keys + 1] = k
         end
 
-        table.sort(o)
+        table.sort(keys)
 
-        return o
+        return keys
     end
 
     local function refresh()
@@ -1626,13 +1626,13 @@ function ItruliaQoL:CreateEUIMover(module, frame, moduleName)
             end,
             -- Must return CENTER/CENTER for EllesmereUI to accept the stored pos.
             loadPos = function()
-                local p = module.db.point
+                local point = module.db.point
 
-                if not p or not p.x then
+                if not point or not point.x then
                     return nil
                 end
 
-                return { point = p.point, relPoint = p.relPoint or p.point, x = p.x, y = p.y }
+                return { point = point.point, relPoint = point.relPoint or point.point, x = point.x, y = point.y }
             end,
             -- Both gated on enabled for the reason described on
             -- ApplyModuleStyles: EllesmereUI calls applyPos for every registered
@@ -1734,7 +1734,7 @@ function ItruliaQoL:AttachEUISidebarGroupNote(groupKey)
     note:SetFont((EUI.GetFontPath and EUI.GetFontPath()) or STANDARD_TEXT_FONT, 11, "")
     note:SetTextColor(1, 1, 1, 0.35)
     note:SetText("(Inofficial Module)")
-    note:SetPoint("LEFT", header._label, "RIGHT", 6, -1)
+    PixelUtil.SetPoint(note, "LEFT", header._label, "RIGHT", 6, -1)
 
     header._itruliaNote = note
 end
@@ -1832,8 +1832,8 @@ function ItruliaQoL:AttachEUISidebarSwitches(entries)
             local btn = CreateFrame("Button", nil, row)
 
             -- Same icon, size and slot EllesmereUI uses for its own power toggle.
-            btn:SetSize(13, 13)
-            btn:SetPoint("RIGHT", row, "RIGHT", -18, 0)
+            PixelUtil.SetSize(btn, 13, 13)
+            PixelUtil.SetPoint(btn, "RIGHT", row, "RIGHT", -18, 0)
             btn:SetFrameLevel(row:GetFrameLevel() + 5)
 
             local tex = btn:CreateTexture(nil, "OVERLAY")

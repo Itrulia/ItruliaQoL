@@ -206,8 +206,8 @@ function RaidFrameManager:GetOptions(onChange)
                                 name = "Button color",
                                 hasAlpha = true,
                                 get = function()
-                                    local c = RaidFrameManager.db.buttonColor
-                                    return c.r, c.g, c.b, c.a
+                                    local color = RaidFrameManager.db.buttonColor
+                                    return color.r, color.g, color.b, color.a
                                 end,
                                 set = function(_, r, g, b, a)
                                     RaidFrameManager.db.buttonColor = {
@@ -226,8 +226,8 @@ function RaidFrameManager:GetOptions(onChange)
                                 name = "Text color",
                                 hasAlpha = true,
                                 get = function()
-                                    local c = RaidFrameManager.db.textColor
-                                    return c.r, c.g, c.b, c.a
+                                    local color = RaidFrameManager.db.textColor
+                                    return color.r, color.g, color.b, color.a
                                 end,
                                 set = function(_, r, g, b, a)
                                     RaidFrameManager.db.textColor = {

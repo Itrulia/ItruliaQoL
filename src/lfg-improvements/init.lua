@@ -88,20 +88,20 @@ function LFGImprovements:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f.groupName = nil
-    f.wasInInstance = IsInInstance()
+    frame.groupName = nil
+    frame.wasInInstance = IsInInstance()
 
-    f:RegisterEvent("GROUP_LEFT")
-    f:RegisterEvent("LFG_LIST_JOINED_GROUP")
-    f:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("PLAYER_LEVEL_UP")
-    f:RegisterEvent("START_LOOT_ROLL")
+    frame:RegisterEvent("GROUP_LEFT")
+    frame:RegisterEvent("LFG_LIST_JOINED_GROUP")
+    frame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("PLAYER_LEVEL_UP")
+    frame:RegisterEvent("START_LOOT_ROLL")
 
-    return f
+    return frame
 end
 
 function LFGImprovements:LoadDB()

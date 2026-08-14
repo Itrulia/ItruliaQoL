@@ -3,6 +3,6 @@
 local moduleName = "StanceAlert"
 local StanceAlert = ItruliaQoL:GetModule(moduleName)
 
-function StanceAlert:PreparePreview(f)
-    f.text:Show()
+function StanceAlert:PreparePreview(frame)
+    frame.text:Show()
 end

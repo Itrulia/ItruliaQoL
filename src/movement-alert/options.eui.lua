@@ -37,8 +37,8 @@ function MovementAlert:GetEUIOptions(pageName)
                             disabled = spiralOff,
                             disabledTooltip = "Time spiral",
                             get = function()
-                                local c = MovementAlert.db.timeSpiralColor
-                                return c.r, c.g, c.b, c.a
+                                local color = MovementAlert.db.timeSpiralColor
+                                return color.r, color.g, color.b, color.a
                             end,
                             set = function(r, g, b, a)
                                 MovementAlert.db.timeSpiralColor = {
@@ -159,8 +159,8 @@ function MovementAlert:GetEUIOptions(pageName)
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = MovementAlert.db.color
-            return c.r, c.g, c.b, c.a
+            local color = MovementAlert.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             MovementAlert.db.color = {

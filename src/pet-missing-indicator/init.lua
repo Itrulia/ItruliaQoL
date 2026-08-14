@@ -44,21 +44,21 @@ local function OnEvent(self, event, ...)
 end
 
 function PetMissingIndicator:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 300)
-    f:SetSize(28, 28)
+    local frame = CreateFrame("frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 300)
+    PixelUtil.SetSize(frame, 28, 28)
 
-    f.petClasses = PET_CLASSES
+    frame.petClasses = PET_CLASSES
 
-    f.text = f:CreateFontString(nil, "OVERLAY")
-    f.text:SetPoint("CENTER")
-    f.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
-    f.text:SetText("**Pet missing!**")
-    f.text:SetTextColor(1, 1, 1)
-    f.text:SetJustifyH("CENTER")
-    f.text:Hide()
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetPoint("CENTER")
+    frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
+    frame.text:SetText("**Pet missing!**")
+    frame.text:SetTextColor(1, 1, 1)
+    frame.text:SetJustifyH("CENTER")
+    frame.text:Hide()
 
-    function f:IsPetSpec()
+    function frame:IsPetSpec()
         local class = select(2, UnitClass("player"))
         local specID = select(1, GetSpecializationInfo(GetSpecialization()))
         local spells = self.petClasses[class]
@@ -76,7 +76,7 @@ function PetMissingIndicator:GenerateFrame(name, parent)
         return ItruliaQoL:IsSpellKnown(spellId)
     end
 
-    function f:IsPetPassive()
+    function frame:IsPetPassive()
         if not UnitExists("pet") then
             return false
         end
@@ -94,11 +94,11 @@ function PetMissingIndicator:GenerateFrame(name, parent)
         return false
     end
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
+                PixelUtil.SetPoint(self, PetMissingIndicator.db.point.point, self:GetParent() or UIParent, PetMissingIndicator.db.point.point, PetMissingIndicator.db.point.x, PetMissingIndicator.db.point.y)
             end
 
             self:SetFrameStrata(PetMissingIndicator.db.font.frameStrata or "BACKGROUND")
@@ -116,11 +116,11 @@ function PetMissingIndicator:GenerateFrame(name, parent)
                 self.text:SetShadowOffset(0, 0)
             end
             self.text:SetFont(LSM:Fetch("font", PetMissingIndicator.db.font.fontFamily), PetMissingIndicator.db.font.fontSize, PetMissingIndicator.db.font.fontOutline)
-            self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end
 
-    return f
+    return frame
 end
 
 function PetMissingIndicator:EnsureFrame()
@@ -128,24 +128,24 @@ function PetMissingIndicator:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-    f:RegisterEvent("PLAYER_TALENT_UPDATE")
-    f:RegisterEvent("TRAIT_CONFIG_UPDATED")
-    f:RegisterEvent("UNIT_PET")
-    f:RegisterEvent("PET_BAR_UPDATE")
-    f:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
-    f:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-    f:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
-    f:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
-    f:RegisterEvent("PLAYER_DEAD")
-    f:RegisterEvent("PLAYER_ALIVE")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    frame:RegisterEvent("PLAYER_TALENT_UPDATE")
+    frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+    frame:RegisterEvent("UNIT_PET")
+    frame:RegisterEvent("PET_BAR_UPDATE")
+    frame:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
+    frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
+    frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
+    frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
+    frame:RegisterEvent("PLAYER_DEAD")
+    frame:RegisterEvent("PLAYER_ALIVE")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -155,14 +155,14 @@ function PetMissingIndicator:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function PetMissingIndicator:OnInitialize()
@@ -177,11 +177,11 @@ function PetMissingIndicator:RefreshConfig()
     self.db = profile.PetMissingIndicator
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:UpdateStyles()
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

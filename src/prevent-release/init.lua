@@ -38,21 +38,21 @@ local function GetPopupButton(popup, index)
 end
 
 local function OnPopupUpdate(popup)
-    local f = PreventRelease.frame
+    local frame = PreventRelease.frame
 
-    if not f or f.watchedPopup ~= popup then
+    if not frame or frame.watchedPopup ~= popup then
         return
     end
 
-    f:Refresh()
+    frame:Refresh()
 end
 
 local function OnPopupHide(popup)
-    local f = PreventRelease.frame
+    local frame = PreventRelease.frame
 
     -- Covers the cases that never reach StaticPopup_Hide, such as the dialog being taken over by a resurrect prompt.
-    if f and f.watchedPopup == popup then
-        f:Cleanup()
+    if frame and frame.watchedPopup == popup then
+        frame:Cleanup()
     end
 end
 
@@ -67,14 +67,14 @@ local function HookPopup(popup)
 end
 
 function PreventRelease:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
+    local frame = CreateFrame("frame", name, parent or UIParent)
 
-    f.watchedPopup = nil
-    f.watchedButton = nil
-    f.blocked = false
-    f.originalColor = nil
+    frame.watchedPopup = nil
+    frame.watchedButton = nil
+    frame.blocked = false
+    frame.originalColor = nil
 
-    function f:RestoreLabel()
+    function frame:RestoreLabel()
         local button = self.watchedButton
         local color = self.originalColor
 
@@ -91,7 +91,7 @@ function PreventRelease:GenerateFrame(name, parent)
         end
     end
 
-    function f:EnsureBlocker()
+    function frame:EnsureBlocker()
         if self.blocker then
             return self.blocker
         end
@@ -101,7 +101,7 @@ function PreventRelease:GenerateFrame(name, parent)
         blocker:RegisterForClicks("AnyUp")
 
         blocker:SetScript("OnClick", function(_, mouseButton, down)
-            local button = f.watchedButton
+            local button = frame.watchedButton
 
             -- Swallow the click unless control is held. Forwarding from inside a real click handler keeps the hardware event intact, so releasing still works.
             if button and IsControlKeyDown() then
@@ -114,7 +114,7 @@ function PreventRelease:GenerateFrame(name, parent)
         return blocker
     end
 
-    function f:Cleanup()
+    function frame:Cleanup()
         if self.blocker then
             self.blocker:Hide()
             self.blocker:ClearAllPoints()
@@ -128,7 +128,7 @@ function PreventRelease:GenerateFrame(name, parent)
         self.blocked = false
     end
 
-    function f:IsPopupValid()
+    function frame:IsPopupValid()
         local popup = self.watchedPopup
         local button = self.watchedButton
 
@@ -140,7 +140,7 @@ function PreventRelease:GenerateFrame(name, parent)
             and button:GetText() == DEATH_RELEASE
     end
 
-    function f:Refresh()
+    function frame:Refresh()
         if not PreventRelease:IsActive() or UnitIsGhost("player") or not self:IsPopupValid() then
             self:Cleanup()
             return
@@ -182,7 +182,7 @@ function PreventRelease:GenerateFrame(name, parent)
         end
     end
 
-    function f:SetupPopup()
+    function frame:SetupPopup()
         self:Cleanup()
 
         if not PreventRelease:IsActive() or UnitIsGhost("player") then
@@ -198,8 +198,8 @@ function PreventRelease:GenerateFrame(name, parent)
                 local popup = _G["StaticPopup" .. i]
 
                 if popup and popup:IsShown() and popup.which == "DEATH" then
-                    for j = 1, 4 do
-                        local button = GetPopupButton(popup, j)
+                    for buttonIndex = 1, 4 do
+                        local button = GetPopupButton(popup, buttonIndex)
 
                         if button and button:IsShown() and button:GetText() == DEATH_RELEASE then
                             self.watchedPopup = popup
@@ -227,7 +227,7 @@ function PreventRelease:GenerateFrame(name, parent)
         end)
     end
 
-    return f
+    return frame
 end
 
 function PreventRelease:EnsureFrame()
@@ -235,15 +235,15 @@ function PreventRelease:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ALIVE")
-    f:RegisterEvent("PLAYER_UNGHOST")
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("GROUP_ROSTER_UPDATE")
+    frame:RegisterEvent("PLAYER_ALIVE")
+    frame:RegisterEvent("PLAYER_UNGHOST")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 
-    return f
+    return frame
 end
 
 function PreventRelease:OnInitialize()
@@ -258,10 +258,10 @@ function PreventRelease:RefreshConfig()
     self.db = profile.PreventRelease
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:SetScript("OnEvent", OnEvent)
-        f:SetupPopup()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:SetupPopup()
     elseif self.frame then
         self.frame:Cleanup()
         self.frame:SetScript("OnEvent", nil)

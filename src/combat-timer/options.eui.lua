@@ -11,8 +11,8 @@ function CombatTimer:GetEUIOptions()
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = CombatTimer.db.color
-            return c.r, c.g, c.b, c.a
+            local color = CombatTimer.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             CombatTimer.db.color = {

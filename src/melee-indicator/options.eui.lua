@@ -11,8 +11,8 @@ function MeleeIndicator:GetEUIOptions()
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = MeleeIndicator.db.color
-            return c.r, c.g, c.b, c.a
+            local color = MeleeIndicator.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             MeleeIndicator.db.color = {

@@ -66,20 +66,20 @@ function ItruliaQoL:IsSpellKnown(spellId)
     end
 
     -- C_SpellBook.IsSpellInSpellBook might return false for w/e reason (like Fel Rush)
-    -- C_SpellBook.IsSpellKnown doesn't work with overriden spells
+    -- C_SpellBook.IsSpellKnown doesn'parts work with overriden spells
     
     return C_SpellBook.IsSpellInSpellBook(spellId, Enum.SpellBookSpellBank.Player, false) or C_SpellBook.IsSpellKnown(spellId, Enum.SpellBookSpellBank.Player)
 end
 
 function ItruliaQoL:SplitAndTrim(str)
-    local t = {}
+    local parts = {}
 
     for part in string.gmatch(str, "([^,]+)") do
         part = part:match("^%s*(.-)%s*$") -- trim whitespace
-        table.insert(t, part)
+        table.insert(parts, part)
     end
 
-    return t
+    return parts
 end
 
 function ItruliaQoL:GetGroupUnits()
@@ -213,12 +213,12 @@ end
 
 function ItruliaQoL:CreateBorder(frame, r, g, b, a)
     local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    border:SetPoint("TOPLEFT", frame, 0, 0)
-    border:SetPoint("BOTTOMRIGHT", frame, 0, 0)
+    PixelUtil.SetPoint(border, "TOPLEFT", frame, "TOPLEFT", 0, 0)
+    PixelUtil.SetPoint(border, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
     border:SetBackdrop({
-        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        edgeSize = 1,
+        edgeFile = [[Interface\Buttons\WHITE8x8]],
+        bgFile = [[Interface\Buttons\WHITE8x8]],
+        edgeSize = PixelUtil.GetNearestPixelSize(1, border:GetEffectiveScale(), 1),
     })
     border:SetBackdropBorderColor(r or 0, g or 0, b or 0, a or 1)
     border:SetBackdropColor(0, 0, 0, 0)
@@ -238,9 +238,9 @@ function ItruliaQoL:CreateBackground(frame, r, g, b, a)
     background:SetFrameStrata(frame:GetFrameStrata())
     background:SetFrameLevel(math.max(frame:GetFrameLevel() - 1, 0))
     background:SetBackdrop({
-        edgeFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        edgeSize = 1,
+        edgeFile = [[Interface\Buttons\WHITE8x8]],
+        bgFile = [[Interface\Buttons\WHITE8x8]],
+        edgeSize = PixelUtil.GetNearestPixelSize(1, background:GetEffectiveScale(), 1),
     })
     background:SetBackdropColor(r or 0, g or 0, b or 0, a or 0.35)
 

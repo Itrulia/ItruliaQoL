@@ -48,22 +48,22 @@ local function OnUpdate(self)
 end
 
 function FocusInterruptIndicator:GenerateFrame(frameName, parent)
-    local f = CreateFrame("frame", frameName, parent or UIParent)
-    f:SetPoint("CENTER", parent or UIParent, 0, 150)
-    f:SetSize(28, 28)
-    f.active = false
-    f.interruptId = nil
-    f.notInterruptible = nil;
+    local frame = CreateFrame("frame", frameName, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", parent or UIParent, "CENTER", 0, 150)
+    PixelUtil.SetSize(frame, 28, 28)
+    frame.active = false
+    frame.interruptId = nil
+    frame.notInterruptible = nil;
 
-    f.text = f:CreateFontString(nil, "OVERLAY")
-    f.text:SetPoint("CENTER")
-    f.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
-    f.text:SetTextColor(1, 1, 1)
-    f.text:SetJustifyH("CENTER")
-    f.text:SetText("INTERRUPT")
-    f.text:Hide()
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetPoint("CENTER")
+    frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
+    frame.text:SetTextColor(1, 1, 1)
+    frame.text:SetJustifyH("CENTER")
+    frame.text:SetText("INTERRUPT")
+    frame.text:Hide()
 
-    function f:UpdateFocusInterruptIndicator(active)
+    function frame:UpdateFocusInterruptIndicator(active)
         self.active = active
 
         if not self.active then
@@ -89,15 +89,15 @@ function FocusInterruptIndicator:GenerateFrame(frameName, parent)
         end
     end
 
-    function f:CacheInterruptId()
+    function frame:CacheInterruptId()
         self.interruptId = ItruliaQoL:GetInterruptSpell()
     end
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
+                PixelUtil.SetPoint(self, FocusInterruptIndicator.db.point.point, self:GetParent() or UIParent, FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
             end
 
             self:SetFrameStrata(FocusInterruptIndicator.db.font.frameStrata or "BACKGROUND")
@@ -115,11 +115,11 @@ function FocusInterruptIndicator:GenerateFrame(frameName, parent)
                 self.text:SetShadowOffset(0, 0)
             end
             self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font.fontFamily), FocusInterruptIndicator.db.font.fontSize, FocusInterruptIndicator.db.font.fontOutline)
-            self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end
 
-    return f
+    return frame
 end
 
 function FocusInterruptIndicator:EnsureFrame()
@@ -127,21 +127,21 @@ function FocusInterruptIndicator:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-    f:RegisterEvent("PLAYER_FOCUS_CHANGED")
-    f:RegisterUnitEvent("UNIT_SPELLCAST_START", "focus")
-    f:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "focus")
-    f:RegisterUnitEvent("UNIT_SPELLCAST_STOP", "focus")
-    f:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "focus")
-    f:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "focus")
-    f:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "focus")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    frame:RegisterEvent("PLAYER_FOCUS_CHANGED")
+    frame:RegisterUnitEvent("UNIT_SPELLCAST_START", "focus")
+    frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "focus")
+    frame:RegisterUnitEvent("UNIT_SPELLCAST_STOP", "focus")
+    frame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "focus")
+    frame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "focus")
+    frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "focus")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -151,14 +151,14 @@ function FocusInterruptIndicator:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function FocusInterruptIndicator:OnInitialize()
@@ -173,13 +173,13 @@ function FocusInterruptIndicator:RefreshConfig()
     self.db = profile.FocusInterruptIndicator
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:UpdateStyles()
-        f:CacheInterruptId()
-        f:SetScript("OnEvent", OnEvent)
-        f:SetScript("OnUpdate", OnUpdate)
-        OnEvent(f)
+        frame:UpdateStyles()
+        frame:CacheInterruptId()
+        frame:SetScript("OnEvent", OnEvent)
+        frame:SetScript("OnUpdate", OnUpdate)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

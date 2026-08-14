@@ -38,15 +38,15 @@ function ItruliaQoL:EnsurePreviewFrame(module)
         return nil
     end
 
-    local ok, f = pcall(module.GenerateFrame, module, addonName .. module:GetName() .. "Preview", previewPool)
-    if not ok or not f then
+    local ok, frame = pcall(module.GenerateFrame, module, addonName .. module:GetName() .. "Preview", previewPool)
+    if not ok or not frame then
         return nil
     end
 
-    f.isPreview = true
-    module.previewFrame = f
+    frame.isPreview = true
+    module.previewFrame = frame
 
-    return f
+    return frame
 end
 
 -- True for the modules that have something worth previewing.
@@ -66,17 +66,17 @@ function ItruliaQoL:ShowPreview(module, display, page)
         return nil
     end
 
-    local f = self:EnsurePreviewFrame(module)
-    if not f then
+    local frame = self:EnsurePreviewFrame(module)
+    if not frame then
         return nil
     end
 
     display.previewPage = page
     self.activePreviews[module] = display
-    f:SetParent(display)
+    frame:SetParent(display)
     self:RefreshPreview(module)
 
-    return f
+    return frame
 end
 
 -- Parks the preview back in the pool. `display` is optional: pass it to only release
@@ -89,11 +89,11 @@ function ItruliaQoL:HidePreview(module, display)
 
     self.activePreviews[module] = nil
 
-    local f = module.previewFrame
-    if f then
-        f:Hide()
-        f:ClearAllPoints()
-        f:SetParent(previewPool)
+    local frame = module.previewFrame
+    if frame then
+        frame:Hide()
+        frame:ClearAllPoints()
+        frame:SetParent(previewPool)
     end
 end
 
@@ -101,17 +101,17 @@ end
 -- one, so option setters can call it unconditionally.
 function ItruliaQoL:RefreshPreview(module)
     local display = self.activePreviews[module]
-    local f = display and module.previewFrame
-    if not f then
+    local frame = display and module.previewFrame
+    if not frame then
         return
     end
 
-    if f.UpdateStyles then
-        pcall(f.UpdateStyles, f)
+    if frame.UpdateStyles then
+        pcall(frame.UpdateStyles, frame)
     end
 
     if module.PreparePreview then
-        pcall(module.PreparePreview, module, f, display.previewPage)
+        pcall(module.PreparePreview, module, frame, display.previewPage)
     end
 
     self:PinPreview(module)
@@ -128,16 +128,16 @@ end
 -- font would not preview at the size it actually draws on screen.
 function ItruliaQoL:PinPreview(module)
     local display = self.activePreviews[module]
-    local f = display and module.previewFrame
-    if not f then
+    local frame = display and module.previewFrame
+    if not frame then
         return
     end
 
-    f:SetScale(UIParent:GetEffectiveScale() / display:GetEffectiveScale())
-    f:ClearAllPoints()
-    f:SetPoint("CENTER", display)
-    f:SetFrameStrata(display:GetFrameStrata())
-    f:SetFrameLevel(display:GetFrameLevel() + 1)
-    f:SetAlpha(1)
-    f:Show()
+    frame:SetScale(UIParent:GetEffectiveScale() / display:GetEffectiveScale())
+    frame:ClearAllPoints()
+    frame:SetPoint("CENTER", display)
+    frame:SetFrameStrata(display:GetFrameStrata())
+    frame:SetFrameLevel(display:GetFrameLevel() + 1)
+    frame:SetAlpha(1)
+    frame:Show()
 end

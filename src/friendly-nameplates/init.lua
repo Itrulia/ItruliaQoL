@@ -34,12 +34,12 @@ function FriendlyNameplates:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-    return f
+    return frame
 end
 
 function FriendlyNameplates:OnInitialize()
@@ -54,10 +54,10 @@ function FriendlyNameplates:RefreshConfig()
     self.db = profile.FriendlyNameplates
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
     end

@@ -129,8 +129,8 @@ function PotionAlert:GetEUIOptions(pageName)
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = PotionAlert.db.color
-            return c.r, c.g, c.b, c.a
+            local color = PotionAlert.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             PotionAlert.db.color = {

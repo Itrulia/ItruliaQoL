@@ -24,28 +24,28 @@ local function OnUpdate(self)
         self.previousX = x
         self.previousY = y
         self:SetAlpha(1)
-        self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
+        PixelUtil.SetPoint(self, "CENTER", UIParent, "BOTTOMLEFT", x, y)
     end
 end
 
 function CursorCircle:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f:SetPoint("CENTER")
-    f:SetFrameStrata("TOOLTIP")
-    f:SetFrameLevel(100)
-    f:SetClampedToScreen(true)
-    f:Hide()
+    local frame = CreateFrame("frame", name, parent or UIParent)
+    frame:SetPoint("CENTER")
+    frame:SetFrameStrata("TOOLTIP")
+    frame:SetFrameLevel(100)
+    frame:SetClampedToScreen(true)
+    frame:Hide()
 
-    f.texture = f:CreateTexture("$parent_Texture", "OVERLAY")
-    f.texture:SetAllPoints(f)
+    frame.texture = frame:CreateTexture("$parent_Texture", "OVERLAY")
+    frame.texture:SetAllPoints(frame)
 
-    function f:UpdateStyles()
-        self:SetSize(CursorCircle.db.size, CursorCircle.db.size)
+    function frame:UpdateStyles()
+        PixelUtil.SetSize(self, CursorCircle.db.size, CursorCircle.db.size)
         self.texture:SetTexture(CursorCircle.db.displayTexture)
         self.texture:SetVertexColor(CursorCircle.db.color.r, CursorCircle.db.color.g, CursorCircle.db.color.b, CursorCircle.db.color.a)
     end
 
-    return f
+    return frame
 end
 
 function CursorCircle:EnsureFrame()
@@ -70,11 +70,11 @@ function CursorCircle:RefreshConfig()
     self.db = profile[moduleName]
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:Show()
-        f:UpdateStyles()
-        f:SetScript("OnUpdate", OnUpdate)
+        frame:Show()
+        frame:UpdateStyles()
+        frame:SetScript("OnUpdate", OnUpdate)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

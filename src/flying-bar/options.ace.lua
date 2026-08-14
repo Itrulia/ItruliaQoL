@@ -13,8 +13,8 @@ local createStatusbarOptions = function (statusBar, onChange, additionalOptions)
             hasAlpha = true, 
             width = 0.4,
             get = function()
-                local c = FlyingBar.db[statusBar].color
-                return c.r, c.g, c.b, c.a
+                local color = FlyingBar.db[statusBar].color
+                return color.r, color.g, color.b, color.a
             end,
             set = function(_, r, g, b, a)
                 FlyingBar.db[statusBar].color = {

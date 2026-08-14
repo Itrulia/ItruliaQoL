@@ -55,8 +55,8 @@ function FocusInterruptIndicator:GetOptions(onChange)
                         width = 0.4,
                         hasAlpha = true, 
                         get = function()
-                            local c = FocusInterruptIndicator.db.color
-                            return c.r, c.g, c.b, c.a
+                            local color = FocusInterruptIndicator.db.color
+                            return color.r, color.g, color.b, color.a
                         end,
                         set = function(_, r, g, b, a)
                             FocusInterruptIndicator.db.color = {

@@ -61,4 +61,4 @@ The logo was AI generate due to the fact that nearly every new addon on cursefor
 If you are an artist that wants to make me one as a **paid** commission, hit me up.
 
 
-There's a limit amount of AI used in the code. Such as porting Ace3 configs to Ellesmere, EllesmereUI integration, spell checking and writing documentation.
+There's a limited amount of AI used in the code. Such as porting Ace3 configs to Ellesmere, EllesmereUI integration, spell checking and writing documentation. All code is checked and approved before committed.

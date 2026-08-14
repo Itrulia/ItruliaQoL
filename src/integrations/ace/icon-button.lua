@@ -56,8 +56,8 @@ local methods = {
         image:SetTexture(path)
 
         if image:GetTexture() then
-            local n = select("#", ...)
-            if n == 4 or n == 8 then
+            local count = select("#", ...)
+            if count == 4 or count == 8 then
                 image:SetTexCoord(...)
             else
                 image:SetTexCoord(0, 1, 0, 1)
@@ -68,8 +68,8 @@ local methods = {
     ["SetImageSize"] = function(self, width, height)
         self.imageW = width
         self.imageH = height
-        self.image:SetSize(width, height)
-        self.border:SetSize(width + borderSize * 2, height + borderSize * 2)
+        PixelUtil.SetSize(self.image, width, height)
+        PixelUtil.SetSize(self.border, width + borderSize * 2, height + borderSize * 2)
         self:UpdateLayout()
     end,
 
@@ -90,7 +90,7 @@ local methods = {
             height = height + labelMargin + self.label:GetStringHeight()
         end
 
-        self.frame:SetSize(width, height)
+        PixelUtil.SetSize(self.frame, width, height)
     end,
 
     ["ApplyState"] = function(self)
@@ -148,7 +148,7 @@ local function Constructor()
     highlight:SetBlendMode("ADD")
 
     local label = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    label:SetPoint("TOP", border, "BOTTOM", 0, -labelMargin)
+    PixelUtil.SetPoint(label, "TOP", border, "BOTTOM", 0, -labelMargin)
     label:SetJustifyH("CENTER")
     label:SetWordWrap(true)
 

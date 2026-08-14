@@ -96,10 +96,10 @@ StaticPopupDialogs["ITRULIAQOL_MACRO_OVERRIDE"] = {
     button1 = YES,
     button2 = NO,
     OnAccept = function(self)
-        local d = self.data
+        local data = self.data
 
-        if d and d.onAccept then
-            d.onAccept()
+        if data and data.onAccept then
+            data.onAccept()
         end
     end,
     timeout = 0,

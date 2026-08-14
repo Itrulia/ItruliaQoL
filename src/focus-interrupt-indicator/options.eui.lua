@@ -95,8 +95,8 @@ function FocusInterruptIndicator:GetEUIOptions(pageName)
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = FocusInterruptIndicator.db.color
-            return c.r, c.g, c.b, c.a
+            local color = FocusInterruptIndicator.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             FocusInterruptIndicator.db.color = {

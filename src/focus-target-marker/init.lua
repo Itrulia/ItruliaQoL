@@ -36,11 +36,11 @@ local function OnEvent(self, event, ...)
 end
 
 function FocusTargetMarker:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
+    local frame = CreateFrame("frame", name, parent or UIParent)
 
-    f.targetMarkerText = TARGET_MARKER_TEXT
+    frame.targetMarkerText = TARGET_MARKER_TEXT
 
-    function f:WriteMacro(marker)
+    function frame:WriteMacro(marker)
         if InCombatLockdown() then
             return
         end
@@ -60,7 +60,7 @@ function FocusTargetMarker:GenerateFrame(name, parent)
         end)
     end
 
-    return f
+    return frame
 end
 
 function FocusTargetMarker:EnsureFrame()
@@ -68,13 +68,13 @@ function FocusTargetMarker:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("READY_CHECK")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("READY_CHECK")
 
-    return f
+    return frame
 end
 
 function FocusTargetMarker:OnInitialize()
@@ -89,10 +89,10 @@ function FocusTargetMarker:RefreshConfig()
     self.db = profile.FocusTargetMarker
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
     end

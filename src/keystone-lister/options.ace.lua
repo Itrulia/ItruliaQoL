@@ -122,8 +122,8 @@ function KeystoneLister:GetOptions(onChange)
                                 name = "Button color",
                                 hasAlpha = true,
                                 get = function()
-                                    local c = KeystoneLister.db.buttonColor
-                                    return c.r, c.g, c.b, c.a
+                                    local color = KeystoneLister.db.buttonColor
+                                    return color.r, color.g, color.b, color.a
                                 end,
                                 set = function(_, r, g, b, a)
                                     KeystoneLister.db.buttonColor = {r = r, g = g, b = b, a = a}
@@ -137,8 +137,8 @@ function KeystoneLister:GetOptions(onChange)
                                 name = "Text color",
                                 hasAlpha = true,
                                 get = function()
-                                    local c = KeystoneLister.db.textColor
-                                    return c.r, c.g, c.b, c.a
+                                    local color = KeystoneLister.db.textColor
+                                    return color.r, color.g, color.b, color.a
                                 end,
                                 set = function(_, r, g, b, a)
                                     KeystoneLister.db.textColor = {r = r, g = g, b = b, a = a}

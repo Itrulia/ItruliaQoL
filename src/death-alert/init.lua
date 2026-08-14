@@ -130,32 +130,32 @@ local function OnEvent(self, event, deadGUID, ...)
 end
 
 function DeathAlert:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 300)
-    f:SetSize(28, 28)
-    f.lastSoundPlayedAt = nil
+    local frame = CreateFrame("frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 300)
+    PixelUtil.SetSize(frame, 28, 28)
+    frame.lastSoundPlayedAt = nil
 
-    f.text = f:CreateFontString(nil, "OVERLAY")
-    f.text:SetPoint("CENTER")
-    f.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
-    f.text:SetTextColor(1, 1, 1)
-    f.text:SetJustifyH("CENTER")
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetPoint("CENTER")
+    frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
+    frame.text:SetTextColor(1, 1, 1)
+    frame.text:SetJustifyH("CENTER")
 
-    f.text.anim = f.text:CreateAnimationGroup()
-    f.text.anim:SetScript("OnFinished", function()
-        f.text:SetText("")
+    frame.text.anim = frame.text:CreateAnimationGroup()
+    frame.text.anim:SetScript("OnFinished", function()
+        frame.text:SetText("")
     end)
-    f.alpha = f.text.anim:CreateAnimation("Alpha")
-    f.alpha:SetFromAlpha(1)
-    f.alpha:SetToAlpha(0)
-    f.alpha:SetDuration(1)
-    f.alpha:SetStartDelay(4)
+    frame.alpha = frame.text.anim:CreateAnimation("Alpha")
+    frame.alpha:SetFromAlpha(1)
+    frame.alpha:SetToAlpha(0)
+    frame.alpha:SetDuration(1)
+    frame.alpha:SetStartDelay(4)
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
+                PixelUtil.SetPoint(self, DeathAlert.db.point.point, self:GetParent() or UIParent, DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
             end
 
             self:SetFrameStrata(DeathAlert.db.font.frameStrata or "BACKGROUND")
@@ -174,11 +174,11 @@ function DeathAlert:GenerateFrame(name, parent)
             self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
             self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
 
-            self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end
 
-    return f
+    return frame
 end
 
 function DeathAlert:EnsureFrame()
@@ -186,13 +186,13 @@ function DeathAlert:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("UNIT_DIED")
+    frame:RegisterEvent("UNIT_DIED")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -202,14 +202,14 @@ function DeathAlert:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function DeathAlert:OnInitialize()
@@ -227,11 +227,11 @@ function DeathAlert:RefreshConfig()
     self.db = profile.DeathAlert
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:UpdateStyles()
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

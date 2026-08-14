@@ -7,6 +7,8 @@ local E = ItruliaQoL.E
 
 local HealerManaIndicator = ItruliaQoL:NewModule(moduleName)
 
+local LINE_SPACING = 4
+
 local function IsGroupUnit(unit)
     return unit == "player"
         or (unit ~= nil and (strmatch(unit, "^party%d+$") ~= nil or strmatch(unit, "^raid%d+$") ~= nil))
@@ -39,14 +41,14 @@ local function OnEvent(self, event, unit, powerType)
 end
 
 function HealerManaIndicator:GenerateFrame(frameName, parent)
-    local f = CreateFrame("frame", frameName, parent or UIParent)
-    f:SetPoint("CENTER", 0, 50)
-    f:SetSize(150, 28)
+    local frame = CreateFrame("frame", frameName, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 50)
+    PixelUtil.SetSize(frame, 150, 28)
 
-    f.texts = {}
-    f.healers = {}
+    frame.texts = {}
+    frame.healers = {}
 
-    function f:IsHealer(unit)
+    function frame:IsHealer(unit)
         return UnitExists(unit)
             and UnitIsConnected(unit)
             and (
@@ -55,7 +57,7 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
             )
     end
 
-    function f:UpdateTextStyle(text)
+    function frame:UpdateTextStyle(text)
         if not text then
             return
         end
@@ -74,11 +76,73 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
         end
     end
 
-    function f:UpdateStyles()
+    -- The stack starts at the edge it grows away from, so the lines always stay
+    -- inside the frame: the movers (EllesmereUI, ElvUI, LibEditMode) and the config
+    -- preview are all drawn from this frame's rect, and a stack hanging outside it
+    -- puts the mover box somewhere the text isn't.
+    function frame:AnchorText(index)
+        local text = self.texts[index]
+
+        if not text then
+            return
+        end
+
+        local point = "LEFT"
+        if HealerManaIndicator.db.font.justifyH == "CENTER" then
+            point = ""
+        elseif HealerManaIndicator.db.font.justifyH == "RIGHT" then
+            point = "RIGHT"
+        end
+
+        text:ClearAllPoints()
+
+        if index == 1 then
+            local anchor = HealerManaIndicator.db.growUpwards and "BOTTOM" or "TOP"
+
+            PixelUtil.SetPoint(text, anchor .. point, self, anchor .. point, 0, 0)
+        elseif HealerManaIndicator.db.growUpwards then
+            PixelUtil.SetPoint(text, "BOTTOM" .. point, self.texts[index - 1], "TOP" .. point, 0, LINE_SPACING)
+        else
+            PixelUtil.SetPoint(text, "TOP" .. point, self.texts[index - 1], "BOTTOM" .. point, 0, -LINE_SPACING)
+        end
+    end
+
+    -- Sized from the lines that are actually showing, so the frame is the block of
+    -- text and nothing else.
+    function frame:UpdateSize()
+        local lines, width, hasSecret = 0, 0, false
+
+        for _, text in ipairs(self.texts) do
+            if text:IsShown() then
+                lines = lines + 1
+
+                -- A live mana value can be a secret, and the string width is secret
+                -- with it; keep the width we already have rather than measuring.
+                if text:HasAnySecretAspect() then
+                    hasSecret = true
+                else
+                    width = math.max(width, text:GetStringWidth())
+                end
+            end
+        end
+
+        if hasSecret or width <= 0 then
+            width = self:GetWidth()
+        end
+
+        -- Nothing listed still leaves a line's worth of box, so the mover and the
+        -- preview keep something to grab.
+        local fontSize = HealerManaIndicator.db.font.fontSize
+        local height = math.max(lines, 1) * fontSize + math.max(lines - 1, 0) * LINE_SPACING
+
+        PixelUtil.SetSize(self, math.max(width, 1), height)
+    end
+
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(HealerManaIndicator.db.point.point, HealerManaIndicator.db.point.x, HealerManaIndicator.db.point.y)
+                PixelUtil.SetPoint(self, HealerManaIndicator.db.point.point, self:GetParent() or UIParent, HealerManaIndicator.db.point.point, HealerManaIndicator.db.point.x, HealerManaIndicator.db.point.y)
             end
 
             self:SetFrameStrata(HealerManaIndicator.db.font.frameStrata or "BACKGROUND")
@@ -86,64 +150,39 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
 
             for index, text in ipairs(self.texts) do
                 self:UpdateTextStyle(text)
-
-                text:ClearAllPoints()
-                local point = "LEFT"
-                if HealerManaIndicator.db.font.justifyH == "CENTER" then
-                    point = ""
-                elseif HealerManaIndicator.db.font.justifyH == "RIGHT" then
-                    point = "RIGHT"
-                end
-
-                if index == 1 then
-                    text:SetPoint("TOP" .. point, self, 0, 0)
-                else
-                    if HealerManaIndicator.db.growUpwards then
-                        text:SetPoint("BOTTOM" .. point, self.texts[index - 1], "TOP" .. point, 0, 4)
-                    else
-                        text:SetPoint("TOP" .. point, self.texts[index - 1], "BOTTOM" .. point, 0, -4)
-                    end
-                end
+                self:AnchorText(index)
             end
 
-            self:SetHeight(HealerManaIndicator.db.font.fontSize)
+            self:UpdateSize()
         end
     end
 
-    function f:GetOrCreateText(index)
+    function frame:GetOrCreateText(index)
         if not self.texts[index] then
             local text = self:CreateFontString(nil, "OVERLAY")
             self:UpdateTextStyle(text)
             text:SetText(" ")
-            text:SetJustifyH("LEFT")
             text:Hide()
 
-            if index == 1 then
-                text:SetPoint("TOPLEFT", self, 0, 0)
-            else
-                if HealerManaIndicator.db.growUpwards then
-                    text:SetPoint("BOTTOMLEFT", self.texts[index - 1], "TOPLEFT", 0, 4)
-                else
-                    text:SetPoint("TOPLEFT", self.texts[index - 1], "BOTTOMLEFT", 0, -4)
-                end
-            end
-
             self.texts[index] = text
+            self:AnchorText(index)
         end
 
         return self.texts[index]
     end
 
-    function f:ClearTexts()
+    function frame:ClearTexts()
         wipe(self.healers)
 
         for _, text in ipairs(self.texts) do
             text:SetText(" ")
             text:Hide()
         end
+
+        self:UpdateSize()
     end
 
-    function f:UpdateManaText(index, unit, overrideMana)
+    function frame:UpdateManaText(index, unit, overrideMana)
         local percent = overrideMana or UnitPowerPercent(unit, Enum.PowerType.Mana, true, CurveConstants.ScaleTo100)
         local name = UnitName(unit)
         local _, class = UnitClass(unit)
@@ -153,9 +192,11 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
         local text = self:GetOrCreateText(index)
         text:SetText(string.format("%d%% - %s", percent, nameText))
         text:Show()
+
+        self:UpdateSize()
     end
 
-    function f:IsActive()
+    function frame:IsActive()
         if ItruliaQoL:InRaid() then
             return HealerManaIndicator.db.enableInRaids
         elseif ItruliaQoL:InDungeon() then
@@ -165,7 +206,7 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
         return false
     end
 
-    function f:UpdateManaValue(unit)
+    function frame:UpdateManaValue(unit)
         if not IsGroupUnit(unit) or #self.healers == 0 then
             return
         end
@@ -179,7 +220,7 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
         end
     end
 
-    function f:UpdateManaTexts()
+    function frame:UpdateManaTexts()
         wipe(self.healers)
 
         if self:IsActive() then
@@ -199,9 +240,11 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
             text:SetText(" ")
             text:Hide()
         end
+
+        self:UpdateSize()
     end
 
-    return f
+    return frame
 end
 
 function HealerManaIndicator:EnsureFrame()
@@ -209,17 +252,17 @@ function HealerManaIndicator:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
-    f:RegisterEvent("GROUP_ROSTER_UPDATE")
-    f:RegisterEvent("PLAYER_ENTERING_WORLD")
-    f:RegisterEvent("UNIT_POWER_UPDATE")
-    f:RegisterEvent("UNIT_DISPLAYPOWER")
-    f:RegisterEvent("UNIT_MAXPOWER")
+    frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("UNIT_POWER_UPDATE")
+    frame:RegisterEvent("UNIT_DISPLAYPOWER")
+    frame:RegisterEvent("UNIT_MAXPOWER")
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -229,14 +272,14 @@ function HealerManaIndicator:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function HealerManaIndicator:OnInitialize()
@@ -251,12 +294,12 @@ function HealerManaIndicator:RefreshConfig()
     self.db = profile.HealerManaIndicator
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:ClearTexts()
-        f:UpdateStyles()
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:ClearTexts()
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

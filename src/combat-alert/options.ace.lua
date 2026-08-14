@@ -54,8 +54,8 @@ function CombatAlert:GetOptions(onChange)
                         name = "Combat starts color",
                         hasAlpha = true,
                         get = function()
-                            local c = CombatAlert.db.combatStartsColor
-                            return c.r, c.g, c.b, c.a
+                            local color = CombatAlert.db.combatStartsColor
+                            return color.r, color.g, color.b, color.a
                         end,
                         set = function(_, r, g, b, a)
                             CombatAlert.db.combatStartsColor = {
@@ -91,8 +91,8 @@ function CombatAlert:GetOptions(onChange)
                         name = "Combat ends color",
                         hasAlpha = true,
                         get = function()
-                            local c = CombatAlert.db.combatEndsColor
-                            return c.r, c.g, c.b, c.a
+                            local color = CombatAlert.db.combatEndsColor
+                            return color.r, color.g, color.b, color.a
                         end,
                         set = function(_, r, g, b, a)
                             CombatAlert.db.combatEndsColor = {

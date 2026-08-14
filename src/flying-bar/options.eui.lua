@@ -48,8 +48,8 @@ function FlyingBar:GetEUIOptions()
                         label = "Color",
                         hasAlpha = true,
                         get = function()
-                            local c = FlyingBar.db[key].color
-                            return c.r, c.g, c.b, c.a
+                            local color = FlyingBar.db[key].color
+                            return color.r, color.g, color.b, color.a
                         end,
                         set = function(r, g, b, a)
                             FlyingBar.db[key].color = {

@@ -11,8 +11,8 @@ function RepairIndicator:GetEUIOptions()
         label = "Display",
         hasAlpha = true,
         get = function()
-            local c = RepairIndicator.db.color
-            return c.r, c.g, c.b, c.a
+            local color = RepairIndicator.db.color
+            return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
             RepairIndicator.db.color = {

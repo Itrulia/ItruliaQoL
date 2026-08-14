@@ -81,22 +81,22 @@ local function OnEvent(self)
 end
 
 function StanceAlert:GenerateFrame(name, parent)
-    local f = CreateFrame("frame", name, parent or UIParent)
-    f:SetPoint("CENTER", 0, 50)
-    f:SetSize(28, 28)
+    local frame = CreateFrame("frame", name, parent or UIParent)
+    PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 50)
+    PixelUtil.SetSize(frame, 28, 28)
 
-    f.text = f:CreateFontString(nil, "OVERLAY")
-    f.text:SetPoint("CENTER")
-    f.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
-    f.text:SetTextColor(1, 1, 1)
-    f.text:SetJustifyH("CENTER")
-    f.text:Hide()
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetPoint("CENTER")
+    frame.text:SetFont(LSM:Fetch("font", "Expressway"), 14, "OUTLINE")
+    frame.text:SetTextColor(1, 1, 1)
+    frame.text:SetJustifyH("CENTER")
+    frame.text:Hide()
 
-    function f:UpdateStyles()
+    function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             if not E then
                 self:ClearAllPoints()
-                self:SetPoint(StanceAlert.db.point.point, StanceAlert.db.point.x, StanceAlert.db.point.y)
+                PixelUtil.SetPoint(self, StanceAlert.db.point.point, self:GetParent() or UIParent, StanceAlert.db.point.point, StanceAlert.db.point.x, StanceAlert.db.point.y)
             end
 
             self:SetFrameStrata(StanceAlert.db.font.frameStrata or "BACKGROUND")
@@ -116,11 +116,11 @@ function StanceAlert:GenerateFrame(name, parent)
             end
             self.text:SetFont(LSM:Fetch("font", StanceAlert.db.font.fontFamily), StanceAlert.db.font.fontSize, StanceAlert.db.font.fontOutline)
 
-            self:SetSize(self.text:GetStringWidth(), self.text:GetStringHeight())
+            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end
 
-    return f
+    return frame
 end
 
 function StanceAlert:EnsureFrame()
@@ -128,25 +128,25 @@ function StanceAlert:EnsureFrame()
         return self.frame
     end
 
-    local f = self:GenerateFrame(addonName .. moduleName)
-    self.frame = f
+    local frame = self:GenerateFrame(addonName .. moduleName)
+    self.frame = frame
 
     if StanceAlert.StanceCheckers[ItruliaQoL.PlayerClass] then
-        f:RegisterEvent("PLAYER_ENTERING_WORLD")
-        f:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-        f:RegisterEvent("PLAYER_TALENT_UPDATE")
-        f:RegisterEvent("TRAIT_CONFIG_UPDATED")
-        f:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-        f:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
-        f:RegisterEvent("PLAYER_REGEN_ENABLED")
-        f:RegisterEvent("PLAYER_REGEN_DISABLED")
-        f:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-        f:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
-        f:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
+        frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+        frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+        frame:RegisterEvent("PLAYER_TALENT_UPDATE")
+        frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+        frame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+        frame:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
+        frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+        frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+        frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
+        frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
+        frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
     end
 
     if E then
-        E:CreateMover(f, f:GetName() .. "Mover", moduleName, nil,
+        E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,
             nil,
             nil,
             "ALL,ITRULIA",
@@ -156,14 +156,14 @@ function StanceAlert:EnsureFrame()
             addonName .. "," .. moduleName
         )
     elseif ItruliaQoL.EUI then
-        ItruliaQoL:CreateEUIMover(self, f, moduleName)
+        ItruliaQoL:CreateEUIMover(self, frame, moduleName)
     else
-        LEM:AddFrame(f, function(_, layoutName, point, x, y)
+        LEM:AddFrame(frame, function(_, layoutName, point, x, y)
             self.db.point = {point = point, x = x, y = y}
         end, self:GetDefaults().point)
     end
 
-    return f
+    return frame
 end
 
 function StanceAlert:OnInitialize()
@@ -178,11 +178,11 @@ function StanceAlert:RefreshConfig()
     self.db = profile.StanceAlert
 
     if self.db.enabled then
-        local f = self:EnsureFrame()
+        local frame = self:EnsureFrame()
 
-        f:UpdateStyles()
-        f:SetScript("OnEvent", OnEvent)
-        OnEvent(f)
+        frame:UpdateStyles()
+        frame:SetScript("OnEvent", OnEvent)
+        OnEvent(frame)
     elseif self.frame then
         self.frame:SetScript("OnEvent", nil)
         self.frame:SetScript("OnUpdate", nil)

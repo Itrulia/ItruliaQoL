@@ -7,7 +7,7 @@ RaidFrameManager.pageDisplay = "Display"
 RaidFrameManager.pageActions = "Actions"
 RaidFrameManager.pagePullTimers = "Pull Timers"
 
-function RaidFrameManager:PreparePreview(f)
-    f:UpdateStyles()
-    f:Show()
+function RaidFrameManager:PreparePreview(frame)
+    frame:UpdateStyles()
+    frame:Show()
 end
