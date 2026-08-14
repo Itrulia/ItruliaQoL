@@ -20,6 +20,7 @@ function MovementAlert:GetDefaults()
         timeSpiralPlayTTS = false,
         timeSpiralTTS = "",
         timeSpiralTTSVolume = 50,
+        timeSpiralTTSVoice = 0,
 
         font = {
             fontFamily = "Expressway",

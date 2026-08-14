@@ -7,7 +7,7 @@ local E = ItruliaQoL.E
 
 local MovementAlert = ItruliaQoL:NewModule(moduleName)
 
-local MOVEMENT_ABILITIES = {
+local movementAbilities = {
     DEATHKNIGHT = {[250] = {48265}, [251] = {48265}, [252] = {48265}},
     DEMONHUNTER = {[577] = {195072}, [581] = {189110}, [1480] = {1234796}},
     DRUID = {[102] = {102401, 252216, 1850}, [103] = {102401, 252216, 1850}, [104] = {102401, 106898}, [105] = {102401, 252216, 1850}},
@@ -24,7 +24,7 @@ local MOVEMENT_ABILITIES = {
 }
 
 -- List taken from: https://www.curseforge.com/wow/addons/time-spiral-tracker
-local TIME_SPIRAL_ABILITIES = {
+local timeSpiralAbilities = {
     -- DK
     [48265] = true, -- Death's Advance
     -- DH
@@ -60,7 +60,7 @@ local TIME_SPIRAL_ABILITIES = {
     [6544] = true, -- Heroic Leap
 }
 
-local SPELLS_THAT_TRIGGER_GLOWS = {
+local spellsThatTriggerGlows = {
 	DEMONHUNTER = {
         [577] = {
             { talent = 427640, spellId = 370965, delay = 1 }, -- Inertia / The hunt
@@ -81,7 +81,7 @@ local SPELLS_THAT_TRIGGER_GLOWS = {
     },
 }
 
-local SPELLS_WITH_OWN_GCD = {
+local spellsWithOwnGCD = {
 	[1234796] = 0.8
 }
 
@@ -151,7 +151,7 @@ local function OnEvent(self, event, ...)
                 if MovementAlert.db.timeSpiralPlaySound and MovementAlert.db.timeSpiralSound then
                     PlaySoundFile(LSM:Fetch("sound", MovementAlert.db.timeSpiralSound), "Master")
                 elseif MovementAlert.db.timeSpiralPlayTTS and MovementAlert.db.timeSpiralTTS then
-                    C_VoiceChat.SpeakText(0, MovementAlert.db.timeSpiralTTS, 1, MovementAlert.db.timeSpiralTTSVolume, true)
+                    C_VoiceChat.SpeakText(MovementAlert.db.timeSpiralTTSVoice, MovementAlert.db.timeSpiralTTS, 1, MovementAlert.db.timeSpiralTTSVolume, true)
                 end
             end
         elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
@@ -193,10 +193,10 @@ function MovementAlert:GenerateFrame(name, parent)
     frame.timeSpiralOn = false;
     frame.ignoreGlow = false
 
-    frame.movementAbilities = MOVEMENT_ABILITIES
-    frame.timeSpiralAbilities = TIME_SPIRAL_ABILITIES
-    frame.spellsThatTriggerGlows = SPELLS_THAT_TRIGGER_GLOWS
-    frame.spellsThatHaveTheirOwnGCD = SPELLS_WITH_OWN_GCD
+    frame.movementAbilities = movementAbilities
+    frame.timeSpiralAbilities = timeSpiralAbilities
+    frame.spellsThatTriggerGlows = spellsThatTriggerGlows
+    frame.spellsThatHaveTheirOwnGCD = spellsWithOwnGCD
 
     frame.text = frame:CreateFontString(nil, "OVERLAY")
     frame.text:SetPoint("CENTER")
@@ -338,6 +338,9 @@ function MovementAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
     profile.MovementAlert = profile.MovementAlert or self:GetDefaults()
     self.db = profile.MovementAlert
+
+    -- Migration
+    self.db.timeSpiralTTSVoice = self.db.timeSpiralTTSVoice or self:GetDefaults().timeSpiralTTSVoice
 end
 
 function MovementAlert:RefreshConfig()

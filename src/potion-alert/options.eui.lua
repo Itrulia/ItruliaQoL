@@ -54,9 +54,7 @@ function PotionAlert:GetEUIOptions(pageName)
                         PotionAlert.db.playTTS = value
                     end,
                 },
-                {
-                    type = "input",
-                    label = "TTS Message",
+                ItruliaQoL:EUITTSRow({
                     disabled = function()
                         return PotionAlert.db.playSound or not PotionAlert.db.playTTS
                     end,
@@ -66,23 +64,15 @@ function PotionAlert:GetEUIOptions(pageName)
                     set = function(value)
                         PotionAlert.db.TTS = value
                     end,
-                },
-                {
-                    type = "slider",
-                    label = "TTS Volume",
-                    min = 0,
-                    max = 100,
-                    step = 1,
-                    disabled = function()
-                        return PotionAlert.db.playSound or not PotionAlert.db.playTTS
-                    end,
-                    get = function()
-                        return PotionAlert.db.TTSVolume
-                    end,
-                    set = function(value)
-                        PotionAlert.db.TTSVolume = value
-                    end,
-                },
+                    volume = {
+                        get = function() return PotionAlert.db.TTSVolume end,
+                        set = function(value) PotionAlert.db.TTSVolume = value end,
+                    },
+                    voice = {
+                        get = function() return PotionAlert.db.TTSVoice end,
+                        set = function(value) PotionAlert.db.TTSVoice = value end,
+                    },
+                }),
             },
         }
     end

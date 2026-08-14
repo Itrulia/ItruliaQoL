@@ -16,6 +16,7 @@ function FocusInterruptIndicator:GetDefaults()
         playTTS = false,
         TTS = "",
         TTSVolume = 50,
+        TTSVoice = 0,
 
         font = {
             fontFamily = "Expressway",

@@ -6,9 +6,9 @@ local addonName, ItruliaQoL = ...
 -- SetImageSize / SetLabel / OnClick.
 local AceGUI = LibStub("AceGUI-3.0")
 
-local Type, Version = "ItruliaMacroIcon", 4
+local widgetType, widgetVersion = "ItruliaMacroIcon", 4
 
-if (AceGUI:GetWidgetVersion(Type) or 0) >= Version then
+if (AceGUI:GetWidgetVersion(widgetType) or 0) >= widgetVersion then
     return
 end
 
@@ -157,7 +157,7 @@ local function Constructor()
         border = border,
         label = label,
         frame = frame,
-        type = Type,
+        type = widgetType,
     }
 
     for method, func in pairs(methods) do
@@ -169,4 +169,4 @@ local function Constructor()
     return AceGUI:RegisterAsWidget(widget)
 end
 
-AceGUI:RegisterWidgetType(Type, Constructor, Version)
+AceGUI:RegisterWidgetType(widgetType, Constructor, widgetVersion)

@@ -9,10 +9,12 @@ Source code formatting should follow the existing conventions in the codebase.
 - Always use `then`/`end`, even for single statements.
 - Never add comments **unless** they are needed to avoid bugs down the line.
 - Avoid 1 character variable names
+- Variable names are always camelCase unless it's a modules name
 
 ## Code Rules
 
 - Prefer using `PixelUtil` for sizing and positioning unless that would cause bugs. Like multiple bars chained together that would lead to inconsistent spacing.
+- Update `ellesmere-options.md` whenever you change something in regard of the ellesmere options.
 
 ## Commit Rules
 

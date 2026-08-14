@@ -52,6 +52,42 @@ ItruliaQoL.JustifyHSettings = {
     RIGHT = "RIGHT",
 }
 
+function ItruliaQoL:TTSPreviewButton(order, getMessage, getVolume, getVoice, disabled)
+    return {
+        order = order,
+        type = "execute",
+        name = "Preview",
+        width = 0.5,
+        func = function()
+            local message = getMessage()
+
+            if message and message ~= "" then
+                C_VoiceChat.SpeakText(getVoice and getVoice() or 0, message, 1, getVolume and getVolume() or 100, true)
+            end
+        end,
+        disabled = function()
+            local message = getMessage()
+
+            return not message or message == "" or (disabled and disabled())
+        end,
+    }
+end
+
+function ItruliaQoL:TTSVoiceOption(order, get, set, disabled)
+    local values, sortOrder = self:GetTTSVoiceOptions()
+
+    return {
+        order = order,
+        type = "select",
+        name = "Voice",
+        values = values,
+        sorting = sortOrder,
+        get = get,
+        set = set,
+        disabled = disabled,
+    }
+end
+
 function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
     local function shadowHidden()
         return fontObject.fontOutline == "OUTLINESLUG"

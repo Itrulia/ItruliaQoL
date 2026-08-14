@@ -7,20 +7,20 @@ local addonName, ItruliaQoL = ...
 -- `arg` -- see ItruliaQoL:CreatePreviewOption below.
 local AceGUI = LibStub("AceGUI-3.0")
 
-local Type, Version = "ItruliaPreview", 1
+local widgetType, widgetVersion = "ItruliaPreview", 1
 
-if (AceGUI:GetWidgetVersion(Type) or 0) >= Version then
+if (AceGUI:GetWidgetVersion(widgetType) or 0) >= widgetVersion then
     return
 end
 
-local DEFAULT_HEIGHT = 120
-local LABEL_HEIGHT = 15
+local defaultHeight = 120
+local labelHeight = 15
 
 local methods = {
     ["OnAcquire"] = function(self)
         self.module = nil -- widgets are pooled; clear stale state
         self.label:SetText("")
-        self.frame:SetHeight(DEFAULT_HEIGHT)
+        self.frame:SetHeight(defaultHeight)
         self:SetDisabled(false)
     end,
 
@@ -114,7 +114,7 @@ local function Constructor()
     })
     frame:SetBackdropColor(0, 0, 0, 0.4)
     frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
-    frame:SetHeight(DEFAULT_HEIGHT)
+    frame:SetHeight(defaultHeight)
     frame:SetScript("OnShow", Control_OnShow)
 
     local label = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -124,7 +124,7 @@ local function Constructor()
     -- Clipped so an oversized preview (a long alert text, a wide bar) stays inside the
     -- box instead of drawing over the rest of the options page.
     local display = CreateFrame("Frame", nil, frame)
-    PixelUtil.SetPoint(display, "TOPLEFT", display:GetParent() or UIParent, "TOPLEFT", 1, -LABEL_HEIGHT)
+    PixelUtil.SetPoint(display, "TOPLEFT", display:GetParent() or UIParent, "TOPLEFT", 1, -labelHeight)
     PixelUtil.SetPoint(display, "BOTTOMRIGHT", display:GetParent() or UIParent, "BOTTOMRIGHT", -1, 1)
     display:SetClipsChildren(true)
 
@@ -132,7 +132,7 @@ local function Constructor()
         label = label,
         display = display,
         frame = frame,
-        type = Type,
+        type = widgetType,
     }
 
     for method, func in pairs(methods) do
@@ -142,7 +142,7 @@ local function Constructor()
     return AceGUI:RegisterAsWidget(widget)
 end
 
-AceGUI:RegisterWidgetType(Type, Constructor, Version)
+AceGUI:RegisterWidgetType(widgetType, Constructor, widgetVersion)
 
 -- Option entry for the top of a module's AceConfig page.
 --

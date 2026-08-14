@@ -18,7 +18,8 @@ function PotionAlert:GetDefaults()
         playTTS = false,
         TTS = "",
         TTSVolume = 50,
-        
+        TTSVoice = 0,
+
         font = {
             fontFamily = "Expressway",
             fontSize = 14,

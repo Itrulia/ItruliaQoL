@@ -85,7 +85,7 @@ function FocusInterruptIndicator:GenerateFrame(frameName, parent)
         if FocusInterruptIndicator.db.playSound and FocusInterruptIndicator.db.sound then
             PlaySoundFile(LSM:Fetch("sound", FocusInterruptIndicator.db.sound), "Master")
         elseif FocusInterruptIndicator.db.playTTS and FocusInterruptIndicator.db.TTS then
-            C_VoiceChat.SpeakText(0, FocusInterruptIndicator.db.TTS, 1, FocusInterruptIndicator.db.TTSVolume, true)
+            C_VoiceChat.SpeakText(FocusInterruptIndicator.db.TTSVoice, FocusInterruptIndicator.db.TTS, 1, FocusInterruptIndicator.db.TTSVolume, true)
         end
     end
 
@@ -165,6 +165,9 @@ function FocusInterruptIndicator:OnInitialize()
     local profile = ItruliaQoL.db.profile
     profile.FocusInterruptIndicator = profile.FocusInterruptIndicator or self:GetDefaults()
     self.db = profile.FocusInterruptIndicator
+
+    -- Migration
+    self.db.TTSVoice = self.db.TTSVoice or self:GetDefaults().TTSVoice
 end
 
 function FocusInterruptIndicator:RefreshConfig()

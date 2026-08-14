@@ -106,6 +106,12 @@ local function optionsForRole(role)
                         return DeathAlert.db.playSound or not DeathAlert.db.playTTS or not DeathAlert.db.byRole.tts[role].enabled
                     end
                 },
+                ttsPreview = ItruliaQoL:TTSPreviewButton(3,
+                    function() return DeathAlert.db.byRole.tts[role].TTS end,
+                    function() return DeathAlert.db.TTSVolume end,
+                    function() return DeathAlert.db.TTSVoice end,
+                    function() return DeathAlert.db.playSound or not DeathAlert.db.playTTS or not DeathAlert.db.byRole.tts[role].enabled end
+                ),
             }
         }
     }
@@ -222,7 +228,7 @@ function DeathAlert:GetOptions(onChange)
                     sound = {
                         order = 2,
                         type = "select",
-                        dialogControl = "LSM30_Sound", 
+                        dialogControl = "LSM30_Sound",
                         name = "Sound",
                         values = LSM:HashTable("sound"),
                         get = function()
@@ -268,8 +274,14 @@ function DeathAlert:GetOptions(onChange)
                             return not DeathAlert.db.playTTS
                         end,
                     },
+                    ttsPreview = ItruliaQoL:TTSPreviewButton(3,
+                        function() return DeathAlert.db.TTS end,
+                        function() return DeathAlert.db.TTSVolume end,
+                        function() return DeathAlert.db.TTSVoice end,
+                        function() return not DeathAlert.db.playTTS end
+                    ),
                     TTSVolume = {
-                        order = 3,
+                        order = 4,
                         type = "range",
                         width = 0.75,
                         min = 0,
@@ -286,6 +298,11 @@ function DeathAlert:GetOptions(onChange)
                             return not DeathAlert.db.playTTS
                         end,
                     },
+                    TTSVoice = ItruliaQoL:TTSVoiceOption(5,
+                        function() return DeathAlert.db.TTSVoice end,
+                        function(_, value) DeathAlert.db.TTSVoice = value end,
+                        function() return not DeathAlert.db.playTTS end
+                    ),
                 },
                 disabled = function()
                     return DeathAlert.db.playSound

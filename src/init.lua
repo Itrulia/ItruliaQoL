@@ -300,7 +300,7 @@ end
 
 -- The three config hosts, each a { available, open } pair, so the automatic pick
 -- and the explicit subcommands go through the same code.
-local HOSTS = {
+local hosts = {
     elvui = {
         label = "ElvUI",
         available = function(self)
@@ -338,7 +338,7 @@ local HOSTS = {
     },
 }
 
-local HOST_ALIASES = {
+local hostAliases = {
     elv = "elvui",
     elvui = "elvui",
     tukui = "elvui",
@@ -350,15 +350,15 @@ local HOST_ALIASES = {
     blizzard = "standalone",
 }
 
-local AUTO_ORDER = { "elvui", "eui", "standalone" }
+local autoOrder = { "elvui", "eui", "standalone" }
 
 function ItruliaQoL:OpenConfig(host)
     if host then
-        local spec = HOSTS[host]
+        local spec = hosts[host]
 
         if not spec.available(self) then
             self:Print("|cffff0000" .. spec.label .. " is not available.|r Opening the standalone config instead.")
-            HOSTS.standalone.open(self)
+            hosts.standalone.open(self)
 
             return
         end
@@ -368,8 +368,8 @@ function ItruliaQoL:OpenConfig(host)
         return
     end
 
-    for _, key in ipairs(AUTO_ORDER) do
-        local spec = HOSTS[key]
+    for _, key in ipairs(autoOrder) do
+        local spec = hosts[key]
 
         if spec.available(self) then
             spec.open(self)
@@ -385,8 +385,8 @@ function ItruliaQoL:MySlashProcessorFunc(input)
 
     if arg == "" or arg == "config" or arg == "c" then
         self:OpenConfig()
-    elseif HOST_ALIASES[arg] then
-        self:OpenConfig(HOST_ALIASES[arg])
+    elseif hostAliases[arg] then
+        self:OpenConfig(hostAliases[arg])
     elseif arg == "test" or arg == "t" then
         self:ToggleTestMode(not ItruliaQoL.testMode)
     else

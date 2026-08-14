@@ -232,6 +232,33 @@ function ItruliaQoL:CreateBorder(frame, r, g, b, a)
     return border
 end
 
+-- (values, order) for a TTS voice dropdown -- values keyed by voiceID (the id
+-- C_VoiceChat.SpeakText's first argument takes), "Default" (voiceID 0, the
+-- system default every module used before voice selection existed) pinned
+-- first, the rest of the installed voices alphabetical after it.
+function ItruliaQoL:GetTTSVoiceOptions()
+    local values, order = {[0] = "Default"}, {0}
+
+    local voices = C_VoiceChat.GetTtsVoices and C_VoiceChat.GetTtsVoices() or {}
+
+    for _, voice in ipairs(voices) do
+        if voice.voiceID ~= 0 then
+            values[voice.voiceID] = voice.name
+            order[#order + 1] = voice.voiceID
+        end
+    end
+
+    table.sort(order, function(a, b)
+        if a == 0 or b == 0 then
+            return a == 0
+        end
+
+        return values[a] < values[b]
+    end)
+
+    return values, order
+end
+
 function ItruliaQoL:CreateBackground(frame, r, g, b, a)
     local background = CreateFrame("Frame", "$parent_Background", frame, "BackdropTemplate")
     background:SetAllPoints()

@@ -116,7 +116,7 @@ local function OnEvent(self, event, deadGUID, ...)
                     PlaySoundFile(LSM:Fetch("sound", sound), "Master")
                 elseif playTTS then
                     self.lastSoundPlayedAt = GetTime()
-                    C_VoiceChat.SpeakText(0, tts, 1, DeathAlert.db.TTSVolume, true)
+                    C_VoiceChat.SpeakText(DeathAlert.db.TTSVoice, tts, 1, DeathAlert.db.TTSVolume, true)
                 end
             end
         else
@@ -219,6 +219,7 @@ function DeathAlert:OnInitialize()
 
     -- Migration
     self.db.byRole = self.db.byRole or self:GetDefaults().byRole
+    self.db.TTSVoice = self.db.TTSVoice or self:GetDefaults().TTSVoice
 end
 
 function DeathAlert:RefreshConfig()

@@ -57,8 +57,7 @@ function FocusInterruptIndicator:GetEUIOptions(pageName)
                         FocusInterruptIndicator.db.playTTS = value
                     end,
                 },
-                {
-                    type = "input",
+                ItruliaQoL:EUITTSRow({
                     label = "TTS message",
                     disabled = function()
                         return FocusInterruptIndicator.db.playSound or not FocusInterruptIndicator.db.playTTS
@@ -69,23 +68,15 @@ function FocusInterruptIndicator:GetEUIOptions(pageName)
                     set = function(value)
                         FocusInterruptIndicator.db.TTS = value
                     end,
-                },
-                {
-                    type = "slider",
-                    label = "TTS volume",
-                    min = 0,
-                    max = 100,
-                    step = 1,
-                    disabled = function()
-                        return FocusInterruptIndicator.db.playSound or not FocusInterruptIndicator.db.playTTS
-                    end,
-                    get = function()
-                        return FocusInterruptIndicator.db.TTSVolume
-                    end,
-                    set = function(value)
-                        FocusInterruptIndicator.db.TTSVolume = value
-                    end,
-                },
+                    volume = {
+                        get = function() return FocusInterruptIndicator.db.TTSVolume end,
+                        set = function(value) FocusInterruptIndicator.db.TTSVolume = value end,
+                    },
+                    voice = {
+                        get = function() return FocusInterruptIndicator.db.TTSVoice end,
+                        set = function(value) FocusInterruptIndicator.db.TTSVoice = value end,
+                    },
+                }),
             },
         }
     end

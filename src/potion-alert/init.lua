@@ -7,7 +7,7 @@ local E = ItruliaQoL.E
 
 local PotionAlert = ItruliaQoL:NewModule(moduleName)
 
-local POTIONS = {
+local potions = {
     -- TWW
     212263, -- Tempered Potion
     212264, -- Tempered Potion
@@ -57,7 +57,7 @@ local function OnEvent(self, event, ...)
                 if PotionAlert.db.playSound and PotionAlert.db.sound then
                     PlaySoundFile(LSM:Fetch("sound", PotionAlert.db.sound), "Master")
                 elseif PotionAlert.db.playTTS and PotionAlert.db.TTS then
-                    C_VoiceChat.SpeakText(0, PotionAlert.db.TTS, 1, PotionAlert.db.TTSVolume, true)
+                    C_VoiceChat.SpeakText(PotionAlert.db.TTSVoice, PotionAlert.db.TTS, 1, PotionAlert.db.TTSVolume, true)
                 end
             end
 
@@ -82,7 +82,7 @@ function PotionAlert:GenerateFrame(name, parent)
     frame.text:Hide();
 
     frame.onCD = false
-    frame.potions = POTIONS
+    frame.potions = potions
 
     function frame:UpdateStyles()
         if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
@@ -153,6 +153,9 @@ function PotionAlert:OnInitialize()
     local profile = ItruliaQoL.db.profile
     profile.PotionAlert = profile.PotionAlert or self:GetDefaults()
     self.db = profile.PotionAlert
+
+    -- Migration
+    self.db.TTSVoice = self.db.TTSVoice or self:GetDefaults().TTSVoice
 end
 
 function PotionAlert:RefreshConfig()

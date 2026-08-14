@@ -7,7 +7,7 @@ local E = ItruliaQoL.E
 
 local HealerManaIndicator = ItruliaQoL:NewModule(moduleName)
 
-local LINE_SPACING = 4
+local lineSpacing = 4
 
 local function IsGroupUnit(unit)
     return unit == "player"
@@ -101,9 +101,9 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
 
             PixelUtil.SetPoint(text, anchor .. point, self, anchor .. point, 0, 0)
         elseif HealerManaIndicator.db.growUpwards then
-            PixelUtil.SetPoint(text, "BOTTOM" .. point, self.texts[index - 1], "TOP" .. point, 0, LINE_SPACING)
+            PixelUtil.SetPoint(text, "BOTTOM" .. point, self.texts[index - 1], "TOP" .. point, 0, lineSpacing)
         else
-            PixelUtil.SetPoint(text, "TOP" .. point, self.texts[index - 1], "BOTTOM" .. point, 0, -LINE_SPACING)
+            PixelUtil.SetPoint(text, "TOP" .. point, self.texts[index - 1], "BOTTOM" .. point, 0, -lineSpacing)
         end
     end
 
@@ -133,7 +133,7 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
         -- Nothing listed still leaves a line's worth of box, so the mover and the
         -- preview keep something to grab.
         local fontSize = HealerManaIndicator.db.font.fontSize
-        local height = math.max(lines, 1) * fontSize + math.max(lines - 1, 0) * LINE_SPACING
+        local height = math.max(lines, 1) * fontSize + math.max(lines - 1, 0) * lineSpacing
 
         PixelUtil.SetSize(self, math.max(width, 1), height)
     end

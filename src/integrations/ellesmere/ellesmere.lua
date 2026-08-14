@@ -151,7 +151,7 @@ end
 -- reads as active next to the rows above it. Dim it ourselves, finding the label
 -- by its text the way EllesmereUI's own BuildCursorAnchorRow does. `colorRows` is
 -- the popup's colour rows that have a `disabled`.
-local LABEL_ALPHA, LABEL_ALPHA_DISABLED = 0.6, 0.25
+local labelAlpha, labelAlphaDisabled = 0.6, 0.25
 
 local function dimDisabledCogLabels(popup, colorRows)
     local EUI = ItruliaQoL.EUI
@@ -171,7 +171,7 @@ local function dimDisabledCogLabels(popup, colorRows)
         end
 
         if row._cogLabel then
-            row._cogLabel:SetAlpha(row.disabled() and LABEL_ALPHA_DISABLED or LABEL_ALPHA)
+            row._cogLabel:SetAlpha(row.disabled() and labelAlphaDisabled or labelAlpha)
         end
     end
 end
@@ -186,7 +186,7 @@ end
 -- sentence, shown verbatim), for settings that only mean anything while the row
 -- they hang off is on -- there is no point opening a popup whose every row would
 -- be greyed out. The cog dims, stops opening, and explains itself on hover.
-local COG_ALPHA, COG_ALPHA_HOVER, COG_ALPHA_DISABLED = 0.4, 0.7, 0.15
+local cogAlpha, cogAlphaHover, cogAlphaDisabled = 0.4, 0.7, 0.15
 
 local function attachEUICog(region, cog)
     local EUI = ItruliaQoL.EUI
@@ -264,7 +264,7 @@ local function attachEUICog(region, cog)
     -- Through EllesmereUI's widget refresh list, so a page row that gates this cog
     -- (its `refresh = true` edit re-reads every widget) dims it in the same pass.
     local function updateState()
-        btn:SetAlpha(disabled() and COG_ALPHA_DISABLED or COG_ALPHA)
+        btn:SetAlpha(disabled() and cogAlphaDisabled or cogAlpha)
     end
 
     if cog.disabled and EUI.RegisterWidgetRefresh then
@@ -284,7 +284,7 @@ local function attachEUICog(region, cog)
             return
         end
 
-        self:SetAlpha(COG_ALPHA_HOVER)
+        self:SetAlpha(cogAlphaHover)
     end)
     btn:SetScript("OnLeave", function()
         if EUI.HideWidgetTooltip then
@@ -333,7 +333,7 @@ end
 -- enabled", or a full sentence of your own with `rawTooltip = true`). `get`/`set`
 -- read/write the module db directly and call the module's own apply (e.g.
 -- self:RefreshConfig()).
-function ItruliaQoL:RenderEUIList(W, parent, y, rows)
+function ItruliaQoL:RenderEUIList(widgets, parent, y, rows)
     local _, h
 
     -- Translate one row spec into a DualRow half config. EllesmereUI's DualRow takes
@@ -458,22 +458,22 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
     for _, item in ipairs(rows) do
         if item.pair then
             -- Two controls sharing one row, each getting half the width.
-            row, h = W:DualRow(parent, y, halfConfig(item.pair[1]), halfConfig(item.pair[2]))
+            row, h = widgets:DualRow(parent, y, halfConfig(item.pair[1]), halfConfig(item.pair[2]))
             attachEUICog(row._leftRegion, item.pair[1] and item.pair[1].cog)
             attachEUICog(row._rightRegion, item.pair[2] and item.pair[2].cog)
             y = y - h
         elseif item.rows then
             if item.header then
-                _, h = W:SectionHeader(parent, item.header, y)
+                _, h = widgets:SectionHeader(parent, item.header, y)
                 y = y - h
             end
 
-            y = self:RenderEUIList(W, parent, y, item.rows)
+            y = self:RenderEUIList(widgets, parent, y, item.rows)
         elseif item.header then
-            _, h = W:SectionHeader(parent, item.header, y)
+            _, h = widgets:SectionHeader(parent, item.header, y)
             y = y - h
         elseif item.spacer then
-            _, h = W:Spacer(parent, y, item.spacer)
+            _, h = widgets:Spacer(parent, y, item.spacer)
             y = y - h
         elseif item.type == "icons" then
             _, h = self:RenderEUIIconGrid(parent, y, item.items or {})
@@ -483,7 +483,7 @@ function ItruliaQoL:RenderEUIList(W, parent, y, rows)
             local cfg = halfConfig(item)
 
             if cfg then
-                row, h = W:DualRow(parent, y, cfg)
+                row, h = widgets:DualRow(parent, y, cfg)
                 attachEUICog(row._leftRegion, item.cog)
                 y = y - h
             end
@@ -505,16 +505,16 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
     local pad = EUI.CONTENT_PAD or 0
     local fontPath = (EUI.GetFontPath and EUI.GetFontPath()) or STANDARD_TEXT_FONT
 
-    local ICON = 36
-    local CELL_W = 84 -- horizontal stride per icon (icon + gap + label room)
-    local ROW_H = 60  -- vertical stride per row (icon + label + gap)
-    local TOP = 8
+    local iconSize = 36
+    local cellWidth = 84 -- horizontal stride per icon (icon + gap + label room)
+    local rowHeight = 60 -- vertical stride per row (icon + label + gap)
+    local topInset = 8
 
     local availW = parent:GetWidth() - pad * 2
-    local perRow = math.max(1, math.floor(availW / CELL_W))
+    local perRow = math.max(1, math.floor(availW / cellWidth))
     local count = #items
     local rows = math.ceil(count / perRow)
-    local height = TOP + rows * ROW_H
+    local height = topInset + rows * rowHeight
 
     local frame = CreateFrame("Frame", nil, parent)
     PP.Size(frame, availW, height)
@@ -526,12 +526,12 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
         local col = idx % perRow
         -- Centre the (possibly partial) last row within the available width.
         local inThisRow = math.min(perRow, count - row * perRow)
-        local startX = (availW - inThisRow * CELL_W) / 2
-        local cx = startX + col * CELL_W + CELL_W / 2
-        local cy = -TOP - row * ROW_H
+        local startX = (availW - inThisRow * cellWidth) / 2
+        local cx = startX + col * cellWidth + cellWidth / 2
+        local cy = -topInset - row * rowHeight
 
         local btn = CreateFrame("Button", nil, frame)
-        PP.Size(btn, ICON, ICON)
+        PP.Size(btn, iconSize, iconSize)
         PixelUtil.SetPoint(btn, "TOP", frame, "TOPLEFT", cx, cy)
 
         local tex = btn:CreateTexture(nil, "ARTWORK")
@@ -556,7 +556,7 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
         label:SetFont(fontPath, 12, "")
         label:SetTextColor(1, 1, 1, 0.9)
         PixelUtil.SetPoint(label, "TOP", btn, "BOTTOM", 0, -3)
-        label:SetWidth(CELL_W - 10)
+        label:SetWidth(cellWidth - 10)
         label:SetWordWrap(false)
         label:SetJustifyH("CENTER")
         label:SetText((item.label or ""):gsub("\n", " "))
@@ -606,7 +606,7 @@ end
 -- SetParent(nil) (page cleared). Either way `display` goes with it and the preview
 -- inside it stops drawing. On the way back, a cached page fires onPageCacheRestore
 -- (RestoreEUIPreview below) and a cleared one rebuilds cold through this builder.
-local PREVIEW_HEADER_HEIGHT = 120
+local previewHeaderHeight = 120
 
 -- `pageName` is passed through to PreparePreview, so a module split across tabs can
 -- preview the state each tab configures. Its display is remembered per page: a tabbed
@@ -620,7 +620,7 @@ function ItruliaQoL:EUIPreviewHeaderBuilder(module, pageName)
         -- Clipped so an oversized preview (a long alert text, a wide bar) stays in the
         -- header strip instead of drawing over the page below it.
         local display = CreateFrame("Frame", nil, hdr)
-        PixelUtil.SetSize(display, hdrW, PREVIEW_HEADER_HEIGHT)
+        PixelUtil.SetSize(display, hdrW, previewHeaderHeight)
         PixelUtil.SetPoint(display, "CENTER", hdr, "CENTER", 0, 0)
         display:SetClipsChildren(true)
 
@@ -631,7 +631,7 @@ function ItruliaQoL:EUIPreviewHeaderBuilder(module, pageName)
         module.euiPreviewDisplays = module.euiPreviewDisplays or {}
         module.euiPreviewDisplays[pageName or true] = display
 
-        return PREVIEW_HEADER_HEIGHT
+        return previewHeaderHeight
     end
 end
 
@@ -666,7 +666,7 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     local pad = EUI.CONTENT_PAD or 0
     local fontPath = (EUI.GetFontPath and EUI.GetFontPath()) or STANDARD_TEXT_FONT
 
-    local PAD_X, PAD_Y = 12, 10
+    local padX, padY = 12, 10
     local availW = parent:GetWidth() - pad * 2
 
     local frame = CreateFrame("Frame", nil, parent)
@@ -680,14 +680,14 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     local title = frame:CreateFontString(nil, "OVERLAY")
     title:SetFont(fontPath, 16, "OUTLINE")
     title:SetTextColor(1, 0.75, 0.2, 1)
-    PixelUtil.SetPoint(title, "TOPLEFT", frame, "TOPLEFT", PAD_X, -PAD_Y)
+    PixelUtil.SetPoint(title, "TOPLEFT", frame, "TOPLEFT", padX, -padY)
     title:SetText("BETA")
 
     local body = frame:CreateFontString(nil, "OVERLAY")
     body:SetFont(fontPath, 12, "")
     body:SetTextColor(1, 1, 1, 0.8)
     PixelUtil.SetPoint(body, "TOPLEFT", title, "BOTTOMLEFT", 0, -6)
-    body:SetWidth(availW - PAD_X * 2)
+    body:SetWidth(availW - padX * 2)
     body:SetJustifyH("LEFT")
     body:SetWordWrap(true)
     body:SetText("The EllesmereUI integration is still being built. The ElvUI and standalone config panels are the complete ones for now (although uglier).")
@@ -699,7 +699,7 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     support:SetFont(fontPath, 12, "")
     support:SetTextColor(1, 0.85, 0.5, 0.9)
     PixelUtil.SetPoint(support, "TOPLEFT", body, "BOTTOMLEFT", 0, -8)
-    support:SetWidth(availW - PAD_X * 2)
+    support:SetWidth(availW - padX * 2)
     support:SetJustifyH("LEFT")
     support:SetWordWrap(true)
     support:SetText("Itrulia QoL is an inofficial module and not part of EllesmereUI. Please do not ask about it in the EllesmereUI Discord. Message Itrulia on Discord directly instead.")
@@ -732,8 +732,8 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
         end)
     end)
 
-    local height = PAD_Y + title:GetStringHeight() + 6 + body:GetStringHeight()
-        + 8 + support:GetStringHeight() + 8 + linkText:GetStringHeight() + PAD_Y + 8
+    local height = padY + title:GetStringHeight() + 6 + body:GetStringHeight()
+        + 8 + support:GetStringHeight() + 8 + linkText:GetStringHeight() + padY + 8
     PP.Size(frame, availW, height)
     PP.CreateBorder(frame, 0.95, 0.65, 0.15, 1, 1)
 
@@ -885,6 +885,73 @@ function ItruliaQoL:EUISoundRow(row)
     }
 end
 
+-- A TTS message input row with Voice, Volume and a click-to-preview button
+-- behind its cogwheel, the EUI equivalent of the ace TTS voice select + volume
+-- slider + preview button. `row` is the usual input spec (`label?`, `tooltip?`,
+-- `disabled?`, `get`, `set`) plus `volume` (`{ get, set, min?, max?, step? }`)
+-- for the TTS volume and `voice` (`{ get, set }`) for the TTS voice.
+function ItruliaQoL:EUITTSRow(row)
+    local volume = row.volume or {}
+    local voice = row.voice
+
+    local cogRows = {}
+
+    if voice then
+        local values, order = self:GetTTSVoiceOptions()
+
+        cogRows[#cogRows + 1] = {
+            type = "select",
+            label = "Voice",
+            values = values,
+            order = order,
+            get = voice.get,
+            set = voice.set,
+        }
+    end
+
+    cogRows[#cogRows + 1] = {
+        type = "slider",
+        label = "Volume",
+        min = volume.min or 0,
+        max = volume.max or 100,
+        step = volume.step or 1,
+        get = volume.get,
+        set = volume.set,
+    }
+
+    cogRows[#cogRows + 1] = {
+        type = "execute",
+        label = "Preview",
+        disabled = function()
+            local message = row.get()
+
+            return not message or message == ""
+        end,
+        func = function()
+            local message = row.get()
+
+            if message and message ~= "" then
+                C_VoiceChat.SpeakText(voice and voice.get and voice.get() or 0, message, 1, volume.get and volume.get() or 100, true)
+            end
+        end,
+    }
+
+    return {
+        type = "input",
+        label = row.label or "TTS Message",
+        tooltip = row.tooltip,
+        disabled = row.disabled,
+        get = row.get,
+        set = row.set,
+        cog = {
+            title = "Text-to-Speech",
+            disabled = row.disabled,
+            disabledTooltip = row.disabledTooltip or "TTS",
+            rows = cogRows,
+        },
+    }
+end
+
 -- Shared font-settings rows for the manual list, mirroring createFontOptions.
 -- `apply` runs after each change (e.g. the module's RefreshConfig). `exclude` is
 -- an optional set of row keys to skip:
@@ -910,7 +977,7 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         return font.fontOutline == "OUTLINESLUG"
     end
 
-    local SLUG_TIP = "A slug outline draws its own backdrop, so a text shadow has no effect."
+    local slugTip = "A slug outline draws its own backdrop, so a text shadow has no effect."
 
     local rows = {}
     local function add(key, row)
@@ -972,7 +1039,7 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         max = 5,
         step = 1,
         disabled = slug,
-        disabledTooltip = SLUG_TIP,
+        disabledTooltip = slugTip,
         rawTooltip = true,
         get = function()
             return font.fontShadowXOffset
@@ -989,7 +1056,7 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         max = 5,
         step = 1,
         disabled = slug,
-        disabledTooltip = SLUG_TIP,
+        disabledTooltip = slugTip,
         rawTooltip = true,
         get = function()
             return font.fontShadowYOffset
@@ -1004,7 +1071,7 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         label = "Shadow Color",
         hasAlpha = true,
         disabled = slug,
-        disabledTooltip = SLUG_TIP,
+        disabledTooltip = slugTip,
         rawTooltip = true,
         get = function()
             local color = font.fontShadowColor
@@ -1205,8 +1272,8 @@ end)
 -- being buried on an arbitrary Indicators/Alerts/Utility page. Each row owns a
 -- single page; the panel header already names the module, so pages don't need
 -- distinct names beyond the two on the Profiles row.
-local GROUP_KEY   = "itrulia"
-local GROUP_LABEL = "Itrulia QoL"
+local groupKey   = "itrulia"
+local groupLabel = "Itrulia QoL"
 
 -- The on-screen form of the name, in the addon's own colours (the same escape
 -- sequence as `## Title` in the .toc, so it reads the way the addon does in the
@@ -1218,16 +1285,16 @@ local GROUP_LABEL = "Itrulia QoL"
 -- it from an accent callback), leaving "Itrulia QoL" indistinguishable from its
 -- own groups.
 --
--- Plain GROUP_LABEL stays the name wherever the string is not rendered text --
+-- Plain groupLabel stays the name wherever the string is not rendered text --
 -- the unlock-mode group, which EllesmereUI also keys movers by, and the sidebar
 -- search text, which is matched against the player's plain-text query.
-local GROUP_LABEL_COLORED = "|cffe9e9edItrulia|r |cff9184d9QoL|r"
+local groupLabelColored = "|cffe9e9edItrulia|r |cff9184d9QoL|r"
 
-local PAGE_GENERAL  = "General"
-local PAGE_DISPLAY  = "Display"
-local PAGE_SETTINGS = "Settings"
-local PAGE_PROFILES = "Profiles"
-local PAGE_IMPEXP   = "Import / Export"
+local pageGeneral      = "General"
+local pageDisplay      = "Display"
+local pageSettings     = "Settings"
+local pageProfiles     = "Profiles"
+local pageImportExport = "Import / Export"
 
 -- The single tab of a module that doesn't declare EUIPages. A module that draws
 -- something calls that tab "Display", matching the first tab of the modules that
@@ -1235,7 +1302,7 @@ local PAGE_IMPEXP   = "Import / Export"
 -- PreventRelease) has no display to name, so its tab stays "Settings".
 -- PreparePreview is the same draws-something flag the preview header keys off.
 local function defaultPage(module)
-    return module.PreparePreview and PAGE_DISPLAY or PAGE_SETTINGS
+    return module.PreparePreview and pageDisplay or pageSettings
 end
 
 -- Modules whose settings share one sidebar row instead of getting one each. Each
@@ -1243,7 +1310,7 @@ end
 -- would have appeared, so the surrounding order is untouched. The row needs its
 -- own `description`: it is shown per row rather than per tab, so the members'
 -- individual blurbs are not rendered anywhere.
-local COMBINED_ROWS = {
+local combinedRows = {
     {
         key = "PetIndicators",
         display = "Pet Indicators",
@@ -1252,34 +1319,34 @@ local COMBINED_ROWS = {
     },
 }
 
-local COMBINED_BY_MODULE = {}
+local combinedByModule = {}
 
-for _, row in ipairs(COMBINED_ROWS) do
+for _, row in ipairs(combinedRows) do
     for _, key in ipairs(row.members) do
-        COMBINED_BY_MODULE[key] = row
+        combinedByModule[key] = row
     end
 end
 
 -- Top-level parentOptions.args keys that are not modules.
-local RESERVED = {
+local reserved = {
     all = true, enable = true, description = true, profiles = true, importExport = true,
 }
 
 -- Addon-wide settings, from general/options.eui.lua.
 function ItruliaQoL:BuildEUIGeneralPage(parent, yOffset)
-    local W = self.EUI.Widgets
+    local widgets = self.EUI.Widgets
     local y = yOffset
     local _, h
 
-    _, h = W:Spacer(parent, y, 8)
+    _, h = widgets:Spacer(parent, y, 8)
     y = y - h
-    _, h = W:SectionHeader(parent, "GENERAL", y)
+    _, h = widgets:SectionHeader(parent, "GENERAL", y)
     y = y - h
 
     local spec = self.GetGeneralEUIOptions and self:GetGeneralEUIOptions()
 
     if spec and spec.rows then
-        y = self:RenderEUIList(W, parent, y, spec.rows)
+        y = self:RenderEUIList(widgets, parent, y, spec.rows)
     end
 
     return math.abs(y)
@@ -1301,17 +1368,17 @@ end
 -- call, so building the sidebar does not mean invoking every module at login.
 -- Modules without EUIPages ignore the argument and keep their single page.
 function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHeader, pageName)
-    local W = self.EUI.Widgets
+    local widgets = self.EUI.Widgets
     local y = yOffset
     local _, h
 
-    _, h = W:Spacer(parent, y, 8)
+    _, h = widgets:Spacer(parent, y, 8)
     y = y - h
 
     local spec = module.GetEUIOptions and module:GetEUIOptions(pageName)
 
     if not spec then
-        _, h = W:DualRow(parent, y, { text = "This module has no EllesmereUI settings yet." })
+        _, h = widgets:DualRow(parent, y, { text = "This module has no EllesmereUI settings yet." })
 
         return math.abs(y - h)
     end
@@ -1332,12 +1399,12 @@ function ItruliaQoL:BuildEUIModulePage(module, parent, yOffset, descriptionInHea
     -- Modules whose only setting was the enable flag have nothing left to draw once
     -- that moved to the sidebar switch, so say so rather than showing a blank page.
     if #rows == 0 then
-        _, h = W:DualRow(parent, y, { text = "Nothing to configure. Use the switch on the sidebar row to turn this on or off." })
+        _, h = widgets:DualRow(parent, y, { text = "Nothing to configure. Use the switch on the sidebar row to turn this on or off." })
 
         return math.abs(y - h)
     end
 
-    y = self:RenderEUIList(W, parent, y, rows)
+    y = self:RenderEUIList(widgets, parent, y, rows)
 
     return math.abs(y)
 end
@@ -1347,7 +1414,7 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
     addon = addon or self
 
     local EUI = self.EUI
-    local W = EUI.Widgets
+    local widgets = EUI.Widgets
     local db = addon.db
     local y = yOffset
     local _, h
@@ -1396,14 +1463,14 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
         end
     end
 
-    _, h = W:Spacer(parent, y, 8)
+    _, h = widgets:Spacer(parent, y, 8)
     y = y - h
-    _, h = W:SectionHeader(parent, "PROFILES", y)
+    _, h = widgets:SectionHeader(parent, "PROFILES", y)
     y = y - h
 
     do
         local cv = currentValues()
-        _, h = W:DualRow(parent, y, {
+        _, h = widgets:DualRow(parent, y, {
             type = "dropdown",
             text = "Current Profile",
             values = cv,
@@ -1419,7 +1486,7 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
         y = y - h
     end
 
-    _, h = W:DualRow(parent, y, {
+    _, h = widgets:DualRow(parent, y, {
         type = "button",
         text = "New Profile",
         onClick = function()
@@ -1437,7 +1504,7 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
 
     do
         local ov = otherValues()
-        _, h = W:DualRow(parent, y,
+        _, h = widgets:DualRow(parent, y,
             {
                 type = "dropdown",
                 text = "Copy From",
@@ -1469,7 +1536,7 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
 
     do
         local ov = otherValues()
-        _, h = W:DualRow(parent, y,
+        _, h = widgets:DualRow(parent, y,
             {
                 type = "dropdown",
                 text = "Delete Profile",
@@ -1501,7 +1568,7 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
         y = y - h
     end
 
-    _, h = W:DualRow(parent, y, {
+    _, h = widgets:DualRow(parent, y, {
         type = "button",
         text = "Reset Current Profile",
         onClick = function()
@@ -1527,24 +1594,24 @@ function ItruliaQoL:BuildEUIImportExportPage(parent, yOffset, addon)
     addon = addon or self
 
     local EUI = self.EUI
-    local W = EUI.Widgets
+    local widgets = EUI.Widgets
     local y = yOffset
     local _, h
 
-    _, h = W:Spacer(parent, y, 8)
+    _, h = widgets:Spacer(parent, y, 8)
     y = y - h
-    _, h = W:SectionHeader(parent, "IMPORT / EXPORT", y)
-    y = y - h
-
-    _, h = W:DualRow(parent, y, { text = "Share your current profile, or paste a string to load one." })
+    _, h = widgets:SectionHeader(parent, "IMPORT / EXPORT", y)
     y = y - h
 
-    _, h = W:WideButton(parent, "Export Current Profile", y, function()
+    _, h = widgets:DualRow(parent, y, { text = "Share your current profile, or paste a string to load one." })
+    y = y - h
+
+    _, h = widgets:WideButton(parent, "Export Current Profile", y, function()
         ShowInputPopup("Copy your profile export string:", addon:ExportCurrentProfile(), nil)
     end)
     y = y - h
 
-    _, h = W:WideButton(parent, "Import (Overwrite Current Profile)", y, function()
+    _, h = widgets:WideButton(parent, "Import (Overwrite Current Profile)", y, function()
         ShowInputPopup("Paste a string to OVERWRITE the current profile:", "", function(str)
             if not str or str == "" then
                 return
@@ -1565,7 +1632,7 @@ function ItruliaQoL:BuildEUIImportExportPage(parent, yOffset, addon)
     end)
     y = y - h
 
-    _, h = W:WideButton(parent, "Import as New Profile", y, function()
+    _, h = widgets:WideButton(parent, "Import as New Profile", y, function()
         ShowInputPopup("Paste a string to import as a new profile:", "", function(str)
             if not str or str == "" then
                 return
@@ -1608,7 +1675,7 @@ function ItruliaQoL:CreateEUIMover(module, frame, moduleName)
         EUI.MakeUnlockElement({
             key = frame:GetName(),
             label = moduleName,
-            group = GROUP_LABEL,
+            group = groupLabel,
             order = 1,
             isHidden = function()
                 return not module.db.enabled
@@ -1693,7 +1760,7 @@ function ItruliaQoL:InjectEUISidebar(entries)
     -- the list rather than bailing -- otherwise a changed module set keeps the
     -- stale rows.
     for _, group in ipairs(EUI.ADDON_GROUPS) do
-        if group.key == GROUP_KEY then
+        if group.key == groupKey then
             group.members = members
 
             return
@@ -1704,8 +1771,8 @@ function ItruliaQoL:InjectEUISidebar(entries)
     -- and this group is long enough that putting it first would push EllesmereUI's
     -- own addons down the list.
     table.insert(EUI.ADDON_GROUPS, {
-        key = GROUP_KEY,
-        label = GROUP_LABEL_COLORED,
+        key = groupKey,
+        label = groupLabelColored,
         members = members,
     })
 end
@@ -1718,13 +1785,13 @@ end
 -- per CreateMainFrame (kept in _sidebarGroupButtons, keyed by group), so attaching
 -- once is enough -- guarded by _itruliaNote, since this runs on every panel open.
 --
--- `groupKey` defaults to our own group so existing callers need not pass it; the
--- companion addons (ItruliaEUI) hand in theirs, since the note belongs on every
--- group we inject and the frame-level guard keeps them independent.
-function ItruliaQoL:AttachEUISidebarGroupNote(groupKey)
+-- `targetGroupKey` defaults to our own group so existing callers need not pass
+-- it; the companion addons (ItruliaEUI) hand in theirs, since the note belongs on
+-- every group we inject and the frame-level guard keeps them independent.
+function ItruliaQoL:AttachEUISidebarGroupNote(targetGroupKey)
     local EUI = self.EUI
     local headers = EUI and EUI._sidebarGroupButtons
-    local header = headers and headers[groupKey or GROUP_KEY]
+    local header = headers and headers[targetGroupKey or groupKey]
 
     if not header or header._itruliaNote or not header._label then
         return
@@ -1753,7 +1820,7 @@ end
 -- Deferred a frame because on a cold open the rows are anchored during the same
 -- call that gets us here (CreateMainFrame -> RefreshSidebarStates), and their
 -- GetTop() only means anything once the layout has run.
-local SIDEBAR_SCROLL_MARGIN = 6
+local sidebarScrollMargin = 6
 
 function ItruliaQoL:ScrollEUISidebarToGroup()
     local EUI = self.EUI
@@ -1766,7 +1833,7 @@ function ItruliaQoL:ScrollEUISidebarToGroup()
         local sf = EUI._addonScrollFrame
         local child = EUI._addonScrollChild
         local headers = EUI._sidebarGroupButtons
-        local header = headers and headers[GROUP_KEY]
+        local header = headers and headers[groupKey]
 
         -- Hidden means the sidebar search has filtered our group out; whatever the
         -- player is searching for owns the scroll position in that case.
@@ -1786,7 +1853,7 @@ function ItruliaQoL:ScrollEUISidebarToGroup()
             return
         end
 
-        local target = math.max(0, math.min(maxScroll, childTop - headerTop - SIDEBAR_SCROLL_MARGIN))
+        local target = math.max(0, math.min(maxScroll, childTop - headerTop - sidebarScrollMargin))
 
         sf:SetVerticalScroll(target)
 
@@ -2054,7 +2121,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     local moduleKeys = {}
 
     for key, e in pairs(parentOptions.args) do
-        if type(e) == "table" and e.type == "group" and not RESERVED[key] then
+        if type(e) == "table" and e.type == "group" and not reserved[key] then
             moduleKeys[#moduleKeys + 1] = key
         end
     end
@@ -2069,7 +2136,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     -- own, so the row lands in one predictable place instead of wherever its
     -- first member happens to fall.
     local function sidebarName(key)
-        local combined = COMBINED_BY_MODULE[key]
+        local combined = combinedByModule[key]
 
         return combined and combined.display or displayFor(key)
     end
@@ -2128,14 +2195,14 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         return (tostring(text):gsub("%s+$", ""))
     end
 
-    addEntry("General", "General", { PAGE_GENERAL }, function(_, parent, y)
+    addEntry("General", "General", { pageGeneral }, function(_, parent, y)
         return ItruliaQoL:BuildEUIGeneralPage(parent, y)
     end, "Quality-of-life indicators, alerts and helpers. Move things with EllesmereUI's unlock mode.")
 
     local emittedCombined = {}
 
     for _, key in ipairs(moduleKeys) do
-        local combined = COMBINED_BY_MODULE[key]
+        local combined = combinedByModule[key]
 
         -- Skip modules with no hand-authored list -- they would get a sidebar row
         -- that opens an empty page. DungeonTeleports is the only one today.
@@ -2199,8 +2266,8 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         end
     end
 
-    addEntry("Profiles", "Profiles", { PAGE_PROFILES, PAGE_IMPEXP }, function(pageName, parent, y)
-        if pageName == PAGE_IMPEXP then
+    addEntry("Profiles", "Profiles", { pageProfiles, pageImportExport }, function(pageName, parent, y)
+        if pageName == pageImportExport then
             return ItruliaQoL:BuildEUIImportExportPage(parent, y)
         end
 
@@ -2256,7 +2323,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         end
 
         self:RegisterEUIModule(entry.key, {
-            title = GROUP_LABEL_COLORED .. " - " .. entry.display,
+            title = groupLabelColored .. " - " .. entry.display,
             description = "|cffffbf33BETA:|r " .. (entry.description or ""),
             pages = entry.pages,
             buildPage = function(pageName, parent, yOffset)

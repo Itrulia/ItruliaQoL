@@ -65,9 +65,7 @@ local function roleRows(role)
                 DeathAlert.db.byRole.tts[role].enabled = value
             end,
         },
-        {
-            type = "input",
-            label = "TTS Message",
+        ItruliaQoL:EUITTSRow({
             disabled = function()
                 return DeathAlert.db.playSound or not DeathAlert.db.playTTS or not DeathAlert.db.byRole.tts[role].enabled
             end,
@@ -80,7 +78,15 @@ local function roleRows(role)
                 end
                 DeathAlert.db.byRole.tts[role].TTS = value
             end,
-        },
+            volume = {
+                get = function() return DeathAlert.db.TTSVolume end,
+                set = function(value) DeathAlert.db.TTSVolume = value end,
+            },
+            voice = {
+                get = function() return DeathAlert.db.TTSVoice end,
+                set = function(value) DeathAlert.db.TTSVoice = value end,
+            },
+        }),
     }
 end
 
@@ -136,9 +142,7 @@ function DeathAlert:GetEUIOptions(pageName)
                         DeathAlert.db.playTTS = value
                     end,
                 },
-                {
-                    type = "input",
-                    label = "TTS Message",
+                ItruliaQoL:EUITTSRow({
                     disabled = function()
                         return DeathAlert.db.playSound or not DeathAlert.db.playTTS
                     end,
@@ -148,23 +152,15 @@ function DeathAlert:GetEUIOptions(pageName)
                     set = function(value)
                         DeathAlert.db.TTS = value
                     end,
-                },
-                {
-                    type = "slider",
-                    label = "TTS Volume",
-                    min = 0,
-                    max = 100,
-                    step = 1,
-                    disabled = function()
-                        return DeathAlert.db.playSound or not DeathAlert.db.playTTS
-                    end,
-                    get = function()
-                        return DeathAlert.db.TTSVolume
-                    end,
-                    set = function(value)
-                        DeathAlert.db.TTSVolume = value
-                    end,
-                },
+                    volume = {
+                        get = function() return DeathAlert.db.TTSVolume end,
+                        set = function(value) DeathAlert.db.TTSVolume = value end,
+                    },
+                    voice = {
+                        get = function() return DeathAlert.db.TTSVoice end,
+                        set = function(value) DeathAlert.db.TTSVoice = value end,
+                    },
+                }),
             },
         }
     end

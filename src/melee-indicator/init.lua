@@ -7,7 +7,7 @@ local E = ItruliaQoL.E
 
 local MeleeIndicator = ItruliaQoL:NewModule(moduleName)
 
-local MELEE_SPELLS = {
+local meleeSpells = {
     DEATHKNIGHT = {
         [250] = 49998,
         [251] = 49998,
@@ -83,7 +83,7 @@ function MeleeIndicator:GenerateFrame(name, parent)
     PixelUtil.SetSize(frame, 28, 28)
     frame.meleeSpellId = nil
     frame.meleeSpellName = nil
-    frame.meleeSpells = MELEE_SPELLS
+    frame.meleeSpells = meleeSpells
 
     frame.text = frame:CreateFontString(nil, "OVERLAY")
     frame.text:SetPoint("CENTER")

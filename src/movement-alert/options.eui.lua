@@ -119,9 +119,7 @@ function MovementAlert:GetEUIOptions(pageName)
                         apply()
                     end,
                 },
-                {
-                    type = "input",
-                    label = "TTS Message",
+                ItruliaQoL:EUITTSRow({
                     disabled = function()
                         return spiralOff() or MovementAlert.db.timeSpiralPlaySound or not MovementAlert.db.timeSpiralPlayTTS
                     end,
@@ -132,23 +130,15 @@ function MovementAlert:GetEUIOptions(pageName)
                         MovementAlert.db.timeSpiralTTS = value
                         apply()
                     end,
-                },
-                {
-                    type = "slider",
-                    label = "TTS Volume",
-                    min = 0,
-                    max = 100,
-                    step = 1,
-                    disabled = function()
-                        return spiralOff() or MovementAlert.db.timeSpiralPlaySound or not MovementAlert.db.timeSpiralPlayTTS
-                    end,
-                    get = function()
-                        return MovementAlert.db.timeSpiralTTSVolume
-                    end,
-                    set = function(value)
-                        MovementAlert.db.timeSpiralTTSVolume = value
-                    end,
-                },
+                    volume = {
+                        get = function() return MovementAlert.db.timeSpiralTTSVolume end,
+                        set = function(value) MovementAlert.db.timeSpiralTTSVolume = value end,
+                    },
+                    voice = {
+                        get = function() return MovementAlert.db.timeSpiralTTSVoice end,
+                        set = function(value) MovementAlert.db.timeSpiralTTSVoice = value end,
+                    },
+                }),
             },
         }
     end

@@ -139,7 +139,7 @@ function PotionAlert:GetOptions(onChange)
                     sound = {
                         order = 2,
                         type = "select",
-                        dialogControl = "LSM30_Sound", 
+                        dialogControl = "LSM30_Sound",
                         name = "Sound",
                         values = LSM:HashTable("sound"),
                         get = function()
@@ -185,8 +185,14 @@ function PotionAlert:GetOptions(onChange)
                             return not PotionAlert.db.playTTS
                         end,
                     },
+                    ttsPreview = ItruliaQoL:TTSPreviewButton(3,
+                        function() return PotionAlert.db.TTS end,
+                        function() return PotionAlert.db.TTSVolume end,
+                        function() return PotionAlert.db.TTSVoice end,
+                        function() return not PotionAlert.db.playTTS end
+                    ),
                     ttsVolume = {
-                        order = 3,
+                        order = 4,
                         type = "range",
                         width = 0.75,
                         min = 0,
@@ -203,6 +209,11 @@ function PotionAlert:GetOptions(onChange)
                             return not PotionAlert.db.playTTS
                         end,
                     },
+                    ttsVoice = ItruliaQoL:TTSVoiceOption(5,
+                        function() return PotionAlert.db.TTSVoice end,
+                        function(_, value) PotionAlert.db.TTSVoice = value end,
+                        function() return not PotionAlert.db.playTTS end
+                    ),
                 },
                 disabled = function()
                     return PotionAlert.db.playSound

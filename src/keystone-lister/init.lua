@@ -14,7 +14,7 @@ KeystoneLister.states = {
     DELIST = "DELIST",
 }
 
-local LABELS = {
+local labels = {
     LIST = "List Key",
     DELIST = "Delist",
 }
@@ -87,7 +87,7 @@ function KeystoneLister:GetState()
 end
 
 function KeystoneLister:GetLabel(state)
-    return LABELS[state] or LABELS.LIST
+    return labels[state] or labels.LIST
 end
 
 function KeystoneLister:GetTooltip(state)

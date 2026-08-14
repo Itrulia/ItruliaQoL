@@ -363,6 +363,27 @@ Prefer `refresh` where it is enough: a rebuild reallocates every widget on the p
 - **`ItruliaQoL:EUISoundRow(row)`** → a sound dropdown row: the sound **name** as
   the label plus a click-to-preview speaker icon on each menu row, and a search
   box in the menu. Same `row` spec; `label` defaults to `"Sound"`.
+- **`ItruliaQoL:EUITTSRow(row)`** → a TTS message input row with Voice, Volume
+  and a click-to-preview button behind its cogwheel, that speaks the message via
+  `C_VoiceChat.SpeakText`. `row` is the usual input spec (`label?`, `tooltip?`,
+  `disabled?`, `get`, `set`) plus `volume` (`{ get, set, min?, max?, step? }`) for
+  the TTS volume and an optional `voice` (`{ get, set }`, voiceID) that adds the
+  Voice dropdown when given; `label` defaults to `"TTS Message"`:
+  ```lua
+  ItruliaQoL:EUITTSRow({
+      disabled = function() return not M.db.playTTS end,
+      get = function() return M.db.TTS end,
+      set = function(v) M.db.TTS = v end,
+      volume = {
+          get = function() return M.db.TTSVolume end,
+          set = function(v) M.db.TTSVolume = v end,
+      },
+      voice = {
+          get = function() return M.db.TTSVoice end,
+          set = function(v) M.db.TTSVoice = v end,
+      },
+  }),
+  ```
 - **`ItruliaQoL:EUIStatusbarValues()`** / **`ItruliaQoL:EUISoundValues()`** →
   `(values, order)` for those dropdowns, if you need to build the select row by
   hand (e.g. to add extra entries). The previews ride on `values._menuOpts`, so
@@ -543,13 +564,13 @@ that has no display to name. Keep "Display" as the first page name when adding
 The content header sits *below* the tab bar, so each tab gets its own preview and
 `PreparePreview` is told which tab is open — see **The preview** above.
 
-### Combined rows (`COMBINED_ROWS`)
+### Combined rows (`combinedRows`)
 
 Two or more modules can share one sidebar row, each becoming a tab on it. This is
 configured in `ellesmere.lua`, not in the modules:
 
 ```lua
-local COMBINED_ROWS = {
+local combinedRows = {
     {
         key = "PetIndicators",
         display = "Pet Indicators",
@@ -572,7 +593,7 @@ order is unchanged. Three things follow from it being one row:
 
 If two modules are grouped permanently, consider merging them into one real module
 instead (as `AutoAcceptRole` + `GroupJoinedReminder` became `LFGImprovements`);
-`COMBINED_ROWS` is for presentation only.
+`combinedRows` is for presentation only.
 
 ---
 

@@ -3,11 +3,11 @@ local moduleName = "PreventRelease"
 
 local PreventRelease = ItruliaQoL:NewModule(moduleName)
 
-local DEATH_RELEASE = _G["DEATH_RELEASE"]
-local NUM_DIALOGS = _G["STATICPOPUP_NUMDIALOGS"] or 4
+local deathReleaseText = _G["DEATH_RELEASE"]
+local numDialogs = _G["STATICPOPUP_NUMDIALOGS"] or 4
 
 local hookedPopups = {}
-local BLOCKED_COLOR = GRAY_FONT_COLOR
+local blockedColor = GRAY_FONT_COLOR
 
 local function OnEvent(self, event)
     if event == "GROUP_ROSTER_UPDATE" then
@@ -137,7 +137,7 @@ function PreventRelease:GenerateFrame(name, parent)
             and popup:IsShown()
             and popup.which == "DEATH"
             and button:IsShown()
-            and button:GetText() == DEATH_RELEASE
+            and button:GetText() == deathReleaseText
     end
 
     function frame:Refresh()
@@ -163,12 +163,12 @@ function PreventRelease:GenerateFrame(name, parent)
             if label then
                 local r, g, b, a = label:GetTextColor()
 
-                if r ~= BLOCKED_COLOR.r or g ~= BLOCKED_COLOR.g or b ~= BLOCKED_COLOR.b then
+                if r ~= blockedColor.r or g ~= blockedColor.g or b ~= blockedColor.b then
                     if not self.originalColor then
                         self.originalColor = { r, g, b, a }
                     end
 
-                    label:SetTextColor(BLOCKED_COLOR.r, BLOCKED_COLOR.g, BLOCKED_COLOR.b)
+                    label:SetTextColor(blockedColor.r, blockedColor.g, blockedColor.b)
                 end
             end
         else
@@ -194,14 +194,14 @@ function PreventRelease:GenerateFrame(name, parent)
                 return
             end
 
-            for i = 1, NUM_DIALOGS do
+            for i = 1, numDialogs do
                 local popup = _G["StaticPopup" .. i]
 
                 if popup and popup:IsShown() and popup.which == "DEATH" then
                     for buttonIndex = 1, 4 do
                         local button = GetPopupButton(popup, buttonIndex)
 
-                        if button and button:IsShown() and button:GetText() == DEATH_RELEASE then
+                        if button and button:IsShown() and button:GetText() == deathReleaseText then
                             self.watchedPopup = popup
                             self.watchedButton = button
 

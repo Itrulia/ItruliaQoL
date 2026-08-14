@@ -220,8 +220,14 @@ function MovementAlert:GetOptions(onChange)
                                     return not MovementAlert.db.timeSpiralPlayTTS
                                 end,
                             },
+                            timeSpiralTTSPreview = ItruliaQoL:TTSPreviewButton(3,
+                                function() return MovementAlert.db.timeSpiralTTS end,
+                                function() return MovementAlert.db.timeSpiralTTSVolume end,
+                                function() return MovementAlert.db.timeSpiralTTSVoice end,
+                                function() return not MovementAlert.db.timeSpiralPlayTTS end
+                            ),
                             timeSpiralTTSVolume = {
-                                order = 3,
+                                order = 4,
                                 type = "range",
                                 width = 0.75,
                                 min = 0,
@@ -238,6 +244,11 @@ function MovementAlert:GetOptions(onChange)
                                     return not MovementAlert.db.timeSpiralPlayTTS
                                 end,
                             },
+                            timeSpiralTTSVoice = ItruliaQoL:TTSVoiceOption(5,
+                                function() return MovementAlert.db.timeSpiralTTSVoice end,
+                                function(_, value) MovementAlert.db.timeSpiralTTSVoice = value end,
+                                function() return not MovementAlert.db.timeSpiralPlayTTS end
+                            ),
                         },
                         disabled = function()
                             return not MovementAlert.db.showTimeSpiral or MovementAlert.db.timeSpiralPlaySound

@@ -7,7 +7,7 @@ local E = ItruliaQoL.E
 
 local PetMissingIndicator = ItruliaQoL:NewModule(moduleName)
 
-local PET_CLASSES = {
+local petClasses = {
     DEATHKNIGHT = {[250] = false, [251] = false, [252] = true},
     DEMONHUNTER = {[577] = false, [581] = false, [1480] = false},
     DRUID = {[102] = false, [103] = false, [104] = false, [105] = false},
@@ -48,7 +48,7 @@ function PetMissingIndicator:GenerateFrame(name, parent)
     PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 300)
     PixelUtil.SetSize(frame, 28, 28)
 
-    frame.petClasses = PET_CLASSES
+    frame.petClasses = petClasses
 
     frame.text = frame:CreateFontString(nil, "OVERLAY")
     frame.text:SetPoint("CENTER")

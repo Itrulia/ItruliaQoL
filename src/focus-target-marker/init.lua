@@ -4,7 +4,7 @@ local LSM = ItruliaQoL.LSM
 
 local FocusTargetMarker = ItruliaQoL:NewModule(moduleName)
 
-local TARGET_MARKER_TEXT = {
+local targetMarkerText = {
     [1] = 'Star',
     [2] = 'Circle',
     [3] = 'Diamond',
@@ -38,7 +38,7 @@ end
 function FocusTargetMarker:GenerateFrame(name, parent)
     local frame = CreateFrame("frame", name, parent or UIParent)
 
-    frame.targetMarkerText = TARGET_MARKER_TEXT
+    frame.targetMarkerText = targetMarkerText
 
     function frame:WriteMacro(marker)
         if InCombatLockdown() then

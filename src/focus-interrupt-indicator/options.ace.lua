@@ -105,7 +105,7 @@ function FocusInterruptIndicator:GetOptions(onChange)
                     sound = {
                         order = 3,
                         type = "select",
-                        dialogControl = "LSM30_Sound", 
+                        dialogControl = "LSM30_Sound",
                         name = "Sound",
                         values = LSM:HashTable("sound"),
                         get = function()
@@ -151,8 +151,14 @@ function FocusInterruptIndicator:GetOptions(onChange)
                             return not FocusInterruptIndicator.db.playTTS
                         end,
                     },
+                    ttsPreview = ItruliaQoL:TTSPreviewButton(3,
+                        function() return FocusInterruptIndicator.db.TTS end,
+                        function() return FocusInterruptIndicator.db.TTSVolume end,
+                        function() return FocusInterruptIndicator.db.TTSVoice end,
+                        function() return not FocusInterruptIndicator.db.playTTS end
+                    ),
                     TTSVolume = {
-                        order = 3,
+                        order = 4,
                         type = "range",
                         width = 0.75,
                         min = 0,
@@ -169,6 +175,11 @@ function FocusInterruptIndicator:GetOptions(onChange)
                             return not FocusInterruptIndicator.db.playTTS
                         end,
                     },
+                    TTSVoice = ItruliaQoL:TTSVoiceOption(5,
+                        function() return FocusInterruptIndicator.db.TTSVoice end,
+                        function(_, value) FocusInterruptIndicator.db.TTSVoice = value end,
+                        function() return not FocusInterruptIndicator.db.playTTS end
+                    ),
                 },
                 disabled = function()
                     return FocusInterruptIndicator.db.playSound
