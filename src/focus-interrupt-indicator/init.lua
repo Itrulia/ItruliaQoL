@@ -94,27 +94,28 @@ function FocusInterruptIndicator:GenerateFrame(frameName, parent)
     end
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, FocusInterruptIndicator.db.point.point, self:GetParent() or UIParent, FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
-            end
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, FocusInterruptIndicator.db.point.point, self:GetParent() or UIParent, FocusInterruptIndicator.db.point.point, FocusInterruptIndicator.db.point.x, FocusInterruptIndicator.db.point.y)
+        end
 
-            self:SetFrameStrata(FocusInterruptIndicator.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(FocusInterruptIndicator.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(FocusInterruptIndicator.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(FocusInterruptIndicator.db.font.justifyH or "CENTER")
-            self.text:SetText(FocusInterruptIndicator.db.displayText)
-            self.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
-            if FocusInterruptIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(FocusInterruptIndicator.db.font.fontShadowColor.r, FocusInterruptIndicator.db.font.fontShadowColor.g, FocusInterruptIndicator.db.font.fontShadowColor.b, FocusInterruptIndicator.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(FocusInterruptIndicator.db.font.fontShadowXOffset, FocusInterruptIndicator.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font.fontFamily), FocusInterruptIndicator.db.font.fontSize, FocusInterruptIndicator.db.font.fontOutline)
+        self:SetFrameStrata(FocusInterruptIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(FocusInterruptIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(FocusInterruptIndicator.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(FocusInterruptIndicator.db.font.justifyH or "CENTER")
+        self.text:SetText(FocusInterruptIndicator.db.displayText)
+        self.text:SetTextColor(FocusInterruptIndicator.db.color.r, FocusInterruptIndicator.db.color.g, FocusInterruptIndicator.db.color.b, FocusInterruptIndicator.db.color.a)
+        if FocusInterruptIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(FocusInterruptIndicator.db.font.fontShadowColor.r, FocusInterruptIndicator.db.font.fontShadowColor.g, FocusInterruptIndicator.db.font.fontShadowColor.b, FocusInterruptIndicator.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(FocusInterruptIndicator.db.font.fontShadowXOffset, FocusInterruptIndicator.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", FocusInterruptIndicator.db.font.fontFamily), FocusInterruptIndicator.db.font.fontSize, FocusInterruptIndicator.db.font.fontOutline)
+
+        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
         end
     end

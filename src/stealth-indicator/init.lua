@@ -32,31 +32,29 @@ function StealthIndicator:GenerateFrame(name, parent)
     frame.text:SetJustifyH("CENTER")
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, StealthIndicator.db.point.point, self:GetParent() or UIParent, StealthIndicator.db.point.point, StealthIndicator.db.point.x, StealthIndicator.db.point.y)
-            end
-
-            self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(StealthIndicator.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(StealthIndicator.db.font.justifyH or "CENTER")
-            self.text:SetText(StealthIndicator.db.displayText)
-            self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
-
-            if StealthIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(StealthIndicator.db.font.fontShadowColor.r, StealthIndicator.db.font.fontShadowColor.g, StealthIndicator.db.font.fontShadowColor.b, StealthIndicator.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(StealthIndicator.db.font.fontShadowXOffset, StealthIndicator.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
-
-            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, StealthIndicator.db.point.point, self:GetParent() or UIParent, StealthIndicator.db.point.point, StealthIndicator.db.point.x, StealthIndicator.db.point.y)
         end
+
+        self:SetFrameStrata(StealthIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(StealthIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(StealthIndicator.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(StealthIndicator.db.font.justifyH or "CENTER")
+        self.text:SetText(StealthIndicator.db.displayText)
+        self.text:SetTextColor(StealthIndicator.db.color.r, StealthIndicator.db.color.g, StealthIndicator.db.color.b, StealthIndicator.db.color.a)
+
+        if StealthIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(StealthIndicator.db.font.fontShadowColor.r, StealthIndicator.db.font.fontShadowColor.g, StealthIndicator.db.font.fontShadowColor.b, StealthIndicator.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(StealthIndicator.db.font.fontShadowXOffset, StealthIndicator.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", StealthIndicator.db.font.fontFamily), StealthIndicator.db.font.fontSize, StealthIndicator.db.font.fontOutline)
+
+        PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
     end
 
     return frame

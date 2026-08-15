@@ -163,29 +163,27 @@ function MeleeIndicator:GenerateFrame(name, parent)
     end
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, MeleeIndicator.db.point.point, self:GetParent() or UIParent, MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
-            end
-
-            self:SetFrameStrata(MeleeIndicator.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(MeleeIndicator.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(MeleeIndicator.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(MeleeIndicator.db.font.justifyH or "CENTER")
-            self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
-            self.text:SetText(MeleeIndicator.db.displayText)
-            if MeleeIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(MeleeIndicator.db.font.fontShadowColor.r, MeleeIndicator.db.font.fontShadowColor.g, MeleeIndicator.db.font.fontShadowColor.b, MeleeIndicator.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(MeleeIndicator.db.font.fontShadowXOffset, MeleeIndicator.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font.fontFamily), MeleeIndicator.db.font.fontSize, MeleeIndicator.db.font.fontOutline)
-            PixelUtil.SetSize(self, math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, MeleeIndicator.db.point.point, self:GetParent() or UIParent, MeleeIndicator.db.point.point, MeleeIndicator.db.point.x, MeleeIndicator.db.point.y)
         end
+
+        self:SetFrameStrata(MeleeIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(MeleeIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(MeleeIndicator.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(MeleeIndicator.db.font.justifyH or "CENTER")
+        self.text:SetTextColor(MeleeIndicator.db.color.r, MeleeIndicator.db.color.g, MeleeIndicator.db.color.b, MeleeIndicator.db.color.a)
+        self.text:SetText(MeleeIndicator.db.displayText)
+        if MeleeIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(MeleeIndicator.db.font.fontShadowColor.r, MeleeIndicator.db.font.fontShadowColor.g, MeleeIndicator.db.font.fontShadowColor.b, MeleeIndicator.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(MeleeIndicator.db.font.fontShadowXOffset, MeleeIndicator.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", MeleeIndicator.db.font.fontFamily), MeleeIndicator.db.font.fontSize, MeleeIndicator.db.font.fontOutline)
+        PixelUtil.SetSize(self, math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
     end
 
     return frame

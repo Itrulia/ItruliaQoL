@@ -85,29 +85,27 @@ function PotionAlert:GenerateFrame(name, parent)
     frame.potions = potions
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, PotionAlert.db.point.point, self:GetParent() or UIParent, PotionAlert.db.point.point, PotionAlert.db.point.x, PotionAlert.db.point.y)
-            end
-
-            self:SetFrameStrata(PotionAlert.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(PotionAlert.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(PotionAlert.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(PotionAlert.db.font.justifyH or "CENTER")
-            self.text:SetText(PotionAlert.db.displayText)
-            self.text:SetTextColor(PotionAlert.db.color.r, PotionAlert.db.color.g, PotionAlert.db.color.b, PotionAlert.db.color.a)
-            if PotionAlert.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(PotionAlert.db.font.fontShadowColor.r, PotionAlert.db.font.fontShadowColor.g, PotionAlert.db.font.fontShadowColor.b, PotionAlert.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(PotionAlert.db.font.fontShadowXOffset, PotionAlert.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", PotionAlert.db.font.fontFamily), PotionAlert.db.font.fontSize, PotionAlert.db.font.fontOutline)
-            PixelUtil.SetSize(self, math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, PotionAlert.db.point.point, self:GetParent() or UIParent, PotionAlert.db.point.point, PotionAlert.db.point.x, PotionAlert.db.point.y)
         end
+
+        self:SetFrameStrata(PotionAlert.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(PotionAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(PotionAlert.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(PotionAlert.db.font.justifyH or "CENTER")
+        self.text:SetText(PotionAlert.db.displayText)
+        self.text:SetTextColor(PotionAlert.db.color.r, PotionAlert.db.color.g, PotionAlert.db.color.b, PotionAlert.db.color.a)
+        if PotionAlert.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(PotionAlert.db.font.fontShadowColor.r, PotionAlert.db.font.fontShadowColor.g, PotionAlert.db.font.fontShadowColor.b, PotionAlert.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(PotionAlert.db.font.fontShadowXOffset, PotionAlert.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", PotionAlert.db.font.fontFamily), PotionAlert.db.font.fontSize, PotionAlert.db.font.fontOutline)
+        PixelUtil.SetSize(self, math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
     end
 
     return frame

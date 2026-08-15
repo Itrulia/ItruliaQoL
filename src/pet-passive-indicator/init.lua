@@ -51,30 +51,28 @@ function PetPassiveIndicator:GenerateFrame(frameName, parent)
     end
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, PetPassiveIndicator.db.point.point, self:GetParent() or UIParent, PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)
-            end
-
-            self:SetFrameStrata(PetPassiveIndicator.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(PetPassiveIndicator.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(PetPassiveIndicator.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(PetPassiveIndicator.db.font.justifyH or "CENTER")
-            self.text:SetText(PetPassiveIndicator.db.displayText)
-            self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
-            if PetPassiveIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(PetPassiveIndicator.db.font.fontShadowColor.r, PetPassiveIndicator.db.font.fontShadowColor.g, PetPassiveIndicator.db.font.fontShadowColor.b, PetPassiveIndicator.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(PetPassiveIndicator.db.font.fontShadowXOffset, PetPassiveIndicator.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font.fontFamily), PetPassiveIndicator.db.font.fontSize, PetPassiveIndicator.db.font.fontOutline)
-
-            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, PetPassiveIndicator.db.point.point, self:GetParent() or UIParent, PetPassiveIndicator.db.point.point, PetPassiveIndicator.db.point.x, PetPassiveIndicator.db.point.y)
         end
+
+        self:SetFrameStrata(PetPassiveIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(PetPassiveIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(PetPassiveIndicator.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(PetPassiveIndicator.db.font.justifyH or "CENTER")
+        self.text:SetText(PetPassiveIndicator.db.displayText)
+        self.text:SetTextColor(PetPassiveIndicator.db.color.r, PetPassiveIndicator.db.color.g, PetPassiveIndicator.db.color.b, PetPassiveIndicator.db.color.a)
+        if PetPassiveIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(PetPassiveIndicator.db.font.fontShadowColor.r, PetPassiveIndicator.db.font.fontShadowColor.g, PetPassiveIndicator.db.font.fontShadowColor.b, PetPassiveIndicator.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(PetPassiveIndicator.db.font.fontShadowXOffset, PetPassiveIndicator.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", PetPassiveIndicator.db.font.fontFamily), PetPassiveIndicator.db.font.fontSize, PetPassiveIndicator.db.font.fontOutline)
+
+        PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
     end
 
     return frame

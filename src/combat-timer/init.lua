@@ -79,28 +79,26 @@ function CombatTimer:GenerateFrame(name, parent)
     end
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, CombatTimer.db.point.point, self:GetParent() or UIParent, CombatTimer.db.point.point, CombatTimer.db.point.x, CombatTimer.db.point.y)
-            end
-
-            self:SetFrameStrata(CombatTimer.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(CombatTimer.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(CombatTimer.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(CombatTimer.db.font.justifyH or "CENTER")
-            self.text:SetTextColor(CombatTimer.db.color.r, CombatTimer.db.color.g, CombatTimer.db.color.b, CombatTimer.db.color.a)
-            if CombatTimer.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(CombatTimer.db.font.fontShadowColor.r, CombatTimer.db.font.fontShadowColor.g, CombatTimer.db.font.fontShadowColor.b, CombatTimer.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(CombatTimer.db.font.fontShadowXOffset, CombatTimer.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", CombatTimer.db.font.fontFamily), CombatTimer.db.font.fontSize, CombatTimer.db.font.fontOutline)
-            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, CombatTimer.db.point.point, self:GetParent() or UIParent, CombatTimer.db.point.point, CombatTimer.db.point.x, CombatTimer.db.point.y)
         end
+
+        self:SetFrameStrata(CombatTimer.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(CombatTimer.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(CombatTimer.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(CombatTimer.db.font.justifyH or "CENTER")
+        self.text:SetTextColor(CombatTimer.db.color.r, CombatTimer.db.color.g, CombatTimer.db.color.b, CombatTimer.db.color.a)
+        if CombatTimer.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(CombatTimer.db.font.fontShadowColor.r, CombatTimer.db.font.fontShadowColor.g, CombatTimer.db.font.fontShadowColor.b, CombatTimer.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(CombatTimer.db.font.fontShadowXOffset, CombatTimer.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", CombatTimer.db.font.fontFamily), CombatTimer.db.font.fontSize, CombatTimer.db.font.fontOutline)
+        PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
     end
 
     return frame

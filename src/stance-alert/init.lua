@@ -1,4 +1,4 @@
-﻿local addonName, ItruliaQoL = ...
+local addonName, ItruliaQoL = ...
 local moduleName = "StanceAlert"
 
 local LSM = ItruliaQoL.LSM
@@ -93,31 +93,29 @@ function StanceAlert:GenerateFrame(name, parent)
     frame.text:Hide()
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, StanceAlert.db.point.point, self:GetParent() or UIParent, StanceAlert.db.point.point, StanceAlert.db.point.x, StanceAlert.db.point.y)
-            end
-
-            self:SetFrameStrata(StanceAlert.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(StanceAlert.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(StanceAlert.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(StanceAlert.db.font.justifyH or "CENTER")
-            self.text:SetText(StanceAlert.db.displayText)
-            self.text:SetTextColor(StanceAlert.db.color.r, StanceAlert.db.color.g, StanceAlert.db.color.b, StanceAlert.db.color.a)
-
-            if StanceAlert.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(StanceAlert.db.font.fontShadowColor.r, StanceAlert.db.font.fontShadowColor.g, StanceAlert.db.font.fontShadowColor.b, StanceAlert.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(StanceAlert.db.font.fontShadowXOffset, StanceAlert.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", StanceAlert.db.font.fontFamily), StanceAlert.db.font.fontSize, StanceAlert.db.font.fontOutline)
-
-            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, StanceAlert.db.point.point, self:GetParent() or UIParent, StanceAlert.db.point.point, StanceAlert.db.point.x, StanceAlert.db.point.y)
         end
+
+        self:SetFrameStrata(StanceAlert.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(StanceAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(StanceAlert.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(StanceAlert.db.font.justifyH or "CENTER")
+        self.text:SetText(StanceAlert.db.displayText)
+        self.text:SetTextColor(StanceAlert.db.color.r, StanceAlert.db.color.g, StanceAlert.db.color.b, StanceAlert.db.color.a)
+
+        if StanceAlert.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(StanceAlert.db.font.fontShadowColor.r, StanceAlert.db.font.fontShadowColor.g, StanceAlert.db.font.fontShadowColor.b, StanceAlert.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(StanceAlert.db.font.fontShadowXOffset, StanceAlert.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", StanceAlert.db.font.fontFamily), StanceAlert.db.font.fontSize, StanceAlert.db.font.fontOutline)
+
+        PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
     end
 
     return frame

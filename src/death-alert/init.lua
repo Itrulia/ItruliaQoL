@@ -152,30 +152,28 @@ function DeathAlert:GenerateFrame(name, parent)
     frame.alpha:SetStartDelay(4)
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, DeathAlert.db.point.point, self:GetParent() or UIParent, DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
-            end
-
-            self:SetFrameStrata(DeathAlert.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(DeathAlert.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(DeathAlert.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(DeathAlert.db.font.justifyH or "CENTER")
-            self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
-            if DeathAlert.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
-            self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
-
-            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, DeathAlert.db.point.point, self:GetParent() or UIParent, DeathAlert.db.point.point, DeathAlert.db.point.x, DeathAlert.db.point.y)
         end
+
+        self:SetFrameStrata(DeathAlert.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(DeathAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(DeathAlert.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(DeathAlert.db.font.justifyH or "CENTER")
+        self.text:SetTextColor(DeathAlert.db.color.r, DeathAlert.db.color.g, DeathAlert.db.color.b, DeathAlert.db.color.a)
+        if DeathAlert.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(DeathAlert.db.font.fontShadowColor.r, DeathAlert.db.font.fontShadowColor.g, DeathAlert.db.font.fontShadowColor.b, DeathAlert.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(DeathAlert.db.font.fontShadowXOffset, DeathAlert.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", DeathAlert.db.font.fontFamily), DeathAlert.db.font.fontSize, DeathAlert.db.font.fontOutline)
+        self.alpha:SetStartDelay(DeathAlert.db.messageDuration)
+
+        PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
     end
 
     return frame

@@ -270,26 +270,27 @@ function MovementAlert:GenerateFrame(name, parent)
     end
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, MovementAlert.db.point.point, self:GetParent() or UIParent, MovementAlert.db.point.point, MovementAlert.db.point.x, MovementAlert.db.point.y)
-            end
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, MovementAlert.db.point.point, self:GetParent() or UIParent, MovementAlert.db.point.point, MovementAlert.db.point.x, MovementAlert.db.point.y)
+        end
 
-            self:SetFrameStrata(MovementAlert.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(MovementAlert.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(MovementAlert.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(MovementAlert.db.font.justifyH or "CENTER")
-            self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
-            if MovementAlert.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(MovementAlert.db.font.fontShadowColor.r, MovementAlert.db.font.fontShadowColor.g, MovementAlert.db.font.fontShadowColor.b, MovementAlert.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(MovementAlert.db.font.fontShadowXOffset, MovementAlert.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
+        self:SetFrameStrata(MovementAlert.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(MovementAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(MovementAlert.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(MovementAlert.db.font.justifyH or "CENTER")
+        self.text:SetTextColor(MovementAlert.db.color.r, MovementAlert.db.color.g, MovementAlert.db.color.b, MovementAlert.db.color.a)
+        if MovementAlert.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(MovementAlert.db.font.fontShadowColor.r, MovementAlert.db.font.fontShadowColor.g, MovementAlert.db.font.fontShadowColor.b, MovementAlert.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(MovementAlert.db.font.fontShadowXOffset, MovementAlert.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", MovementAlert.db.font.fontFamily), MovementAlert.db.font.fontSize, MovementAlert.db.font.fontOutline)
+
+        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
             PixelUtil.SetSize(self, math.max(self.text:GetStringWidth(), 28), math.max(self.text:GetStringHeight(), 28))
         end
     end

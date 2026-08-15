@@ -48,30 +48,28 @@ function RepairIndicator:GenerateFrame(name, parent)
     end
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, RepairIndicator.db.point.point, self:GetParent() or UIParent, RepairIndicator.db.point.point, RepairIndicator.db.point.x, RepairIndicator.db.point.y)
-            end
-
-            self:SetFrameStrata(RepairIndicator.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(RepairIndicator.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(RepairIndicator.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(RepairIndicator.db.font.justifyH or "CENTER")
-            self.text:SetText(RepairIndicator.db.displayText)
-            self.text:SetTextColor(RepairIndicator.db.color.r, RepairIndicator.db.color.g, RepairIndicator.db.color.b, RepairIndicator.db.color.a)
-            if RepairIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(RepairIndicator.db.font.fontShadowColor.r, RepairIndicator.db.font.fontShadowColor.g, RepairIndicator.db.font.fontShadowColor.b, RepairIndicator.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(RepairIndicator.db.font.fontShadowXOffset, RepairIndicator.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", RepairIndicator.db.font.fontFamily), RepairIndicator.db.font.fontSize, RepairIndicator.db.font.fontOutline)
-
-            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, RepairIndicator.db.point.point, self:GetParent() or UIParent, RepairIndicator.db.point.point, RepairIndicator.db.point.x, RepairIndicator.db.point.y)
         end
+
+        self:SetFrameStrata(RepairIndicator.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(RepairIndicator.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(RepairIndicator.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(RepairIndicator.db.font.justifyH or "CENTER")
+        self.text:SetText(RepairIndicator.db.displayText)
+        self.text:SetTextColor(RepairIndicator.db.color.r, RepairIndicator.db.color.g, RepairIndicator.db.color.b, RepairIndicator.db.color.a)
+        if RepairIndicator.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(RepairIndicator.db.font.fontShadowColor.r, RepairIndicator.db.font.fontShadowColor.g, RepairIndicator.db.font.fontShadowColor.b, RepairIndicator.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(RepairIndicator.db.font.fontShadowXOffset, RepairIndicator.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", RepairIndicator.db.font.fontFamily), RepairIndicator.db.font.fontSize, RepairIndicator.db.font.fontOutline)
+
+        PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
     end
 
     return frame

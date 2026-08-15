@@ -56,28 +56,26 @@ function CombatAlert:GenerateFrame(name, parent)
     frame.alpha:SetStartDelay(1.5)
 
     function frame:UpdateStyles()
-        if not self:HasAnySecretAspect() and not self.text:HasAnySecretAspect() then
-            if not E then
-                self:ClearAllPoints()
-                PixelUtil.SetPoint(self, CombatAlert.db.point.point, self:GetParent() or UIParent, CombatAlert.db.point.point, CombatAlert.db.point.x, CombatAlert.db.point.y)
-            end
-
-            self:SetFrameStrata(CombatAlert.db.font.frameStrata or "BACKGROUND")
-            self:SetFrameLevel(CombatAlert.db.font.frameLevel or 1)
-            self.text:ClearAllPoints()
-            self.text:SetPoint(CombatAlert.db.font.justifyH or "CENTER")
-            self.text:SetJustifyH(CombatAlert.db.font.justifyH or "CENTER")
-            if CombatAlert.db.font.fontOutline ~= "OUTLINESLUG" then
-                self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
-                self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
-            else
-                self.text:SetShadowColor(0, 0, 0, 0)
-                self.text:SetShadowOffset(0, 0)
-            end
-            self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
-
-            PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
+        if not E then
+            self:ClearAllPoints()
+            PixelUtil.SetPoint(self, CombatAlert.db.point.point, self:GetParent() or UIParent, CombatAlert.db.point.point, CombatAlert.db.point.x, CombatAlert.db.point.y)
         end
+
+        self:SetFrameStrata(CombatAlert.db.font.frameStrata or "BACKGROUND")
+        self:SetFrameLevel(CombatAlert.db.font.frameLevel or 1)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(CombatAlert.db.font.justifyH or "CENTER")
+        self.text:SetJustifyH(CombatAlert.db.font.justifyH or "CENTER")
+        if CombatAlert.db.font.fontOutline ~= "OUTLINESLUG" then
+            self.text:SetShadowColor(CombatAlert.db.font.fontShadowColor.r, CombatAlert.db.font.fontShadowColor.g, CombatAlert.db.font.fontShadowColor.b, CombatAlert.db.font.fontShadowColor.a)
+            self.text:SetShadowOffset(CombatAlert.db.font.fontShadowXOffset, CombatAlert.db.font.fontShadowYOffset)
+        else
+            self.text:SetShadowColor(0, 0, 0, 0)
+            self.text:SetShadowOffset(0, 0)
+        end
+        self.text:SetFont(LSM:Fetch("font", CombatAlert.db.font.fontFamily), CombatAlert.db.font.fontSize, CombatAlert.db.font.fontOutline)
+
+        PixelUtil.SetSize(self, self.text:GetStringWidth(), self.text:GetStringHeight())
     end
 
     return frame
