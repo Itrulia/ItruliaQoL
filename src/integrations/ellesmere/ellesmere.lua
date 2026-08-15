@@ -127,6 +127,25 @@ local function cogPopupRow(item)
         itemType = "colorpicker"
     end
 
+    -- Same nil guard as halfConfig's slider branch above: EllesmereUI's slider
+    -- does arithmetic on the value, so a field a profile happens to lack (added
+    -- after that profile was created, or never seeded at all) must not reach it
+    -- as nil. Cog rows go through this translation instead of halfConfig, so they
+    -- need their own copy of the same fallback.
+    local get = item.get
+
+    if itemType == "slider" then
+        get = function()
+            local v = item.get and item.get()
+
+            if v == nil then
+                return item.min or 0
+            end
+
+            return v
+        end
+    end
+
     return {
         type = itemType,
         label = item.label,
@@ -141,7 +160,7 @@ local function cogPopupRow(item)
         disabledTooltip = item.disabledTooltip,
         rawTooltip = item.rawTooltip,
         inputWidth = item.width,
-        get = item.get,
+        get = get,
         set = wrapPageRefresh(item.set, item.refresh, item.rebuild),
     }
 end
@@ -1457,9 +1476,15 @@ function ItruliaQoL:BuildEUIProfilesPage(parent, yOffset, addon)
         return keys
     end
 
+    -- Forced: the profile dropdowns' `values`/`order` are baked in at build time
+    -- (currentValues()/otherValues(), read once as of this call), not re-derived
+    -- from a live getter the way a row's own value is. A plain RefreshPage only
+    -- re-reads get/set through the widgets already on the page -- it cannot make a
+    -- new, renamed, copied, or deleted profile show up in these lists. Only a
+    -- forced refresh tears the page down and calls this builder again.
     local function refresh()
         if EUI.RefreshPage then
-            EUI:RefreshPage()
+            EUI:RefreshPage(true)
         end
     end
 
