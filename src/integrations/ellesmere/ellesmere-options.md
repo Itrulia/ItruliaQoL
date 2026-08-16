@@ -104,6 +104,7 @@ the row cannot hold a label and a dropdown at usable widths.
 { type = "input",   label=, tooltip=, width=, disabled=, refresh=, rebuild=, get=, set= }
 { type = "execute", label=, disabled=, refresh=, rebuild=, func= }
 { type = "icons",   items = { <icon>, <icon>, ... } }   -- grid of icon buttons
+{ type = "multiselect", label=, tooltip=, items=, width=, maxVisible=, searchable=, disabled=, get=, set= }
 ```
 
 Field reference:
@@ -118,6 +119,7 @@ Field reference:
 | `min/max/step` | slider range |
 | `values`   | select options: `{ key = "Display", ... }` |
 | `order`    | select display order: `{ "key1", "key2", ... }` (defaults to sorted-by-label) |
+| `items`    | checkbox-dropdown entries: `{ key =, label =, icon =? }`, or `{ isHeader = true, label = }` |
 | `hasAlpha` | colour picker includes an opacity slider |
 | `width`    | input box width in px (default 180) |
 | `get`      | reader — see below |
@@ -188,6 +190,33 @@ itself on hover:
 
 The gating row needs `refresh = true` for the cog to dim in the same edit.
 
+### Checkbox dropdown (`multiselect`)
+
+For a setting that is a set rather than one value. The closed control summarises
+what is checked ("None", "All", or the names); the open menu is EllesmereUI's own
+checkbox list, the same widget its pages use for their class and spec pickers:
+
+```lua
+{ type = "multiselect", label = "Frost", tooltip = "...",
+  items = {
+      { key = 1953,  label = "Blink",   icon = 135736 },  -- icon optional
+      { key = 212653, label = "Shimmer" },
+      { isHeader = true, label = "Talents" },             -- groups the entries below it
+  },
+  get = function(key) return M.db.picked[key] end,
+  set = function(key, value) M.db.picked[key] = value; apply() end },
+```
+
+`width` sizes the closed control (default 210), `maxVisible` how many entries the
+menu shows before it scrolls (default 10), and `searchable = true` adds a search
+box. `disabled` dims the dropdown and stops it opening, with `disabledTooltip` on
+the row's label as usual. Unlike the other controls it takes a whole row of its
+own, so it cannot be half of a `pair`, and it carries no `cog`.
+
+The dropdown is skipped during EllesmereUI's hidden search prebuild, which throws
+its pages away; the rest of the row still renders, so the setting keeps its label
+in the global search index.
+
 ### Icon grid (`icons`)
 
 A grid of clickable spell-icon buttons (a 1px-bordered icon with a label
@@ -228,6 +257,10 @@ set = function(r, g, b, a) CombatTimer.db.color = { r = r, g = g, b = b, a = a }
 
 -- execute: no get; func is the button action
 func = function() CombatTimer:DoTheThing() end,
+
+-- multiselect: both take the entry's key
+get = function(key) return CombatTimer.db.picked[key] end,
+set = function(key, value) CombatTimer.db.picked[key] = value; apply() end,
 ```
 
 ---

@@ -8,11 +8,11 @@ local E = ItruliaQoL.E
 local MovementAlert = ItruliaQoL:NewModule(moduleName)
 
 local movementAbilities = {
-    DEATHKNIGHT = {[250] = {48265}, [251] = {48265}, [252] = {48265}},
+    DEATHKNIGHT = {[250] = {48265, 212552}, [251] = {48265, 212552}, [252] = {48265, 212552}},
     DEMONHUNTER = {[577] = {195072}, [581] = {189110}, [1480] = {1234796}},
     DRUID = {[102] = {102401, 252216, 1850}, [103] = {102401, 252216, 1850}, [104] = {102401, 106898}, [105] = {102401, 252216, 1850}},
     EVOKER = {[1467] = {358267}, [1468] = {358267}, [1473] = {358267}},
-    HUNTER = {[253] = {781}, [254] = {781}, [255] = {781}},
+    HUNTER = {[253] = {781, 186257}, [254] = {781, 186257}, [255] = {781, 186257}},
     MAGE = {[62] = {212653, 1953}, [63] = {212653, 1953}, [64] = {212653, 1953}},
     MONK = {[268] = {115008, 109132}, [269] = {109132}, [270] = {109132}},
     PALADIN = {[65] = {190784} , [66] = {190784} , [70] = {190784} },
@@ -20,45 +20,86 @@ local movementAbilities = {
     ROGUE = {[259] = {36554}, [260] = {195457}, [261] = {36554}},
     SHAMAN = {[262] = {79206, 90328, 192063}, [263] = {90328, 192063}, [264] = {79206, 90328, 192063}},
     WARLOCK = {[265] = {48020}, [266] = {48020}, [267] = {48020}},
-    WARRIOR = {[71] = {6544}, [72] = {6544}, [73] = {6544}}
+    WARRIOR = {[71] = {6544, 100}, [72] = {6544, 100}, [73] = {6544, 100}}
 }
 
+-- Spec ids are unique across classes, so the class layer above is only there to keep
+-- the list readable. Exposed because defaults.lua seeds a profile from it and
+-- options.shared.lua builds the options lists from it.
+local movementAbilitiesBySpec = {}
+
+for _, specs in pairs(movementAbilities) do
+    for specId, spellIds in pairs(specs) do
+        movementAbilitiesBySpec[specId] = spellIds
+    end
+end
+
+MovementAlert.movementAbilitiesBySpec = movementAbilitiesBySpec
+
 -- List taken from: https://www.curseforge.com/wow/addons/time-spiral-tracker
+-- Exposed because options.shared.lua lists it per class.
 local timeSpiralAbilities = {
-    -- DK
-    [48265] = true, -- Death's Advance
-    -- DH
-    [195072] = true, -- Fel Rush
-    [189110] = true, -- Infernal Strike
-    [1234796] = true, -- Shift
-    -- Druid
-    [1850] = true, -- Dash
-    [252216] = true, -- Tiger Dash
-    -- Evoker
-    [358267] = true, -- Hover
-    -- Hunter
-    [186257] = true, -- Aspect of the Cheetah
-    -- Mage
-    [212653] = true, -- Shimmer
-    [1953] = true, -- Blink
-    -- Monk
-    [119085] = true, -- Chi Torpedo
-    [361138] = true, -- Roll
-    -- Paladin
-    [190784] = true, -- Divine Steed
-    -- Priest lmao
-    [73325] = false, -- Leap of Faith
-    -- Rogue
-    [2983] = true, -- Sprint
-    -- Shaman
-    [192063] = true, -- Gust of Wind
-    [58875] = true, -- Spirit Walk
-    [79206] = true, -- Spiritwalker's Grace
-    -- Warlock
-    [48020] = true, -- Demonic Circle: Teleport
-    -- Warrior
-    [6544] = true, -- Heroic Leap
+    DEATHKNIGHT = {
+        48265, -- Death's Advance
+    },
+    DEMONHUNTER = {
+        195072, -- Fel Rush
+        189110, -- Infernal Strike
+        1234796, -- Shift
+    },
+    DRUID = {
+        1850, -- Dash
+        252216, -- Tiger Dash
+    },
+    EVOKER = {
+        358267, -- Hover
+    },
+    HUNTER = {
+        186257, -- Aspect of the Cheetah
+    },
+    MAGE = {
+        212653, -- Shimmer
+        1953, -- Blink
+    },
+    MONK = {
+        119085, -- Chi Torpedo
+        361138, -- Roll
+    },
+    PALADIN = {
+        190784, -- Divine Steed
+    },
+    PRIEST = {
+        73325, -- Leap of Faith
+    },
+    ROGUE = {
+        2983, -- Sprint
+    },
+    SHAMAN = {
+        192063, -- Gust of Wind
+        58875, -- Spirit Walk
+        79206, -- Spiritwalker's Grace
+    },
+    WARLOCK = {
+        48020, -- Demonic Circle: Teleport
+    },
+    WARRIOR = {
+        6544, -- Heroic Leap
+    },
 }
+
+MovementAlert.timeSpiralAbilities = timeSpiralAbilities
+
+-- Priest lmao
+local timeSpiralDefaultOff = {
+    [73325] = true, -- Leap of Faith
+}
+
+MovementAlert.timeSpiralAbilitiesBySpell = {}
+for _, spellIds in pairs(timeSpiralAbilities) do
+    for _, spellId in ipairs(spellIds) do
+        MovementAlert.timeSpiralAbilitiesBySpell[spellId] = not timeSpiralDefaultOff[spellId]
+    end
+end
 
 local spellsThatTriggerGlows = {
 	DEMONHUNTER = {
@@ -85,6 +126,41 @@ local spellsWithOwnGCD = {
 	[1234796] = 0.8
 }
 
+function MovementAlert:GetMovementSpellChoices(specId)
+    return specId and movementAbilitiesBySpec[specId]
+end
+
+function MovementAlert:IsTimeSpiralSpell(spellId)
+    return self.timeSpiralAbilitiesBySpell[spellId] ~= nil
+end
+
+function MovementAlert:IsTimeSpiralSpellTracked(spellId)
+    if not self:IsTimeSpiralSpell(spellId) then
+        return false
+    end
+
+    local tracked = self.db.timeSpiralSpells[spellId]
+
+    if tracked == nil then
+        return self.timeSpiralAbilitiesBySpell[spellId]
+    end
+
+    return tracked
+end
+
+function MovementAlert:IsSpellTracked(specId, spellId)
+    local trackedSpells = self.db.trackedSpells[specId]
+    local tracked = trackedSpells and trackedSpells[spellId]
+
+    return tracked
+end
+
+function MovementAlert:GetCurrentSpecId()
+    local specialization = GetSpecialization()
+
+    return specialization and (GetSpecializationInfo(specialization))
+end
+
 local function OnUpdate(self, elapsed, ...)
     if not self.timeSinceLastUpdate then
         self.timeSinceLastUpdate = 0
@@ -105,25 +181,15 @@ local function OnUpdate(self, elapsed, ...)
                 ))
                 self.text:SetText(timeSpiralText)
                 self.text:Show()
-            elseif self.movementId and self.movementName then
-                local cdInfo = C_Spell.GetSpellCooldown(self.movementId)
+            else
+                local spell, cdInfo = self:GetMovementSpellOnCooldown()
 
-                if
-                    not self.ignoreMovementCd
-                    and cdInfo
-                    and cdInfo.timeUntilEndOfStartRecovery
-                    and not cdInfo.isOnGCD
-                    -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
-                    -- WL teleport isOnGCD exists while on gcd and then is nil
-                    and (cdInfo.isOnGCD ~= nil or ItruliaQoL.PlayerClass == "WARLOCK")
-                then
-                    self.text:SetText("No " .. self.movementName .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
+                if spell then
+                    self.text:SetText("No " .. spell.name .. "\n" .. string.format("%." .. MovementAlert.db.precision .. "f", cdInfo.timeUntilEndOfStartRecovery))
                     self.text:Show()
                 else
                     self.text:Hide()
                 end
-            else
-                self.text:Hide()
             end
         end
 
@@ -145,7 +211,7 @@ local function OnEvent(self, event, ...)
     if MovementAlert.db.showTimeSpiral then
         local spellId = ...
         if event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" and not self.ignoreGlow then
-            if self.timeSpiralAbilities[spellId] then
+            if MovementAlert:IsTimeSpiralSpellTracked(spellId) then
                 self.timeSpiralOn = GetTime();
 
                 if MovementAlert.db.timeSpiralPlaySound and MovementAlert.db.timeSpiralSound then
@@ -155,7 +221,9 @@ local function OnEvent(self, event, ...)
                 end
             end
         elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
-            if self.timeSpiralAbilities[spellId] then
+            -- Membership rather than the filter, so a spell switched off mid glow
+            -- still clears the alert it started.
+            if MovementAlert:IsTimeSpiralSpell(spellId) then
                 self.timeSpiralOn = nil;
             end
         elseif event == "UNIT_SPELLCAST_SENT" then
@@ -186,15 +254,13 @@ function MovementAlert:GenerateFrame(name, parent)
     local frame = CreateFrame("frame", name, parent or UIParent)
     PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 300)
     PixelUtil.SetSize(frame, 28, 28)
-    frame.movementId = nil;
     frame.movementName = nil;
+    frame.movementSpells = {}
     frame.ignoreMovementCd = false
     frame.spellsToIgnoreGlowsFrom = {}
     frame.timeSpiralOn = false;
     frame.ignoreGlow = false
 
-    frame.movementAbilities = movementAbilities
-    frame.timeSpiralAbilities = timeSpiralAbilities
     frame.spellsThatTriggerGlows = spellsThatTriggerGlows
     frame.spellsThatHaveTheirOwnGCD = spellsWithOwnGCD
 
@@ -205,38 +271,50 @@ function MovementAlert:GenerateFrame(name, parent)
     frame.text:SetJustifyH("CENTER")
     frame.text:Hide();
 
-    function frame:GetSpellToCheck()
-        local class = ItruliaQoL.PlayerClass
-        local specId = select(1, GetSpecializationInfo(GetSpecialization()))
-        local spells = self.movementAbilities[class]
+    -- Every tracked ability the character actually has, in list order, so the list
+    -- doubles as the priority the alert reports them in.
+    function frame:GetSpellsToCheck()
+        local specId = MovementAlert:GetCurrentSpecId()
+        local spellIds = MovementAlert:GetMovementSpellChoices(specId)
+        local spells = {}
 
-        if not spells or not specId then
-            return nil
-        end
-
-        local spellIds = spells[specId]
         if not spellIds then
-            return nil
+            return spells
         end
 
-        local spellId
-        for _, spell in ipairs(spellIds) do
-            if spell and ItruliaQoL:IsSpellKnown(spell) then
-                spellId = spell
-                break
+        for _, spellId in ipairs(spellIds) do
+            local spellInfo = MovementAlert:IsSpellTracked(specId, spellId)
+                and ItruliaQoL:IsSpellKnown(spellId)
+                and C_Spell.GetSpellInfo(spellId)
+
+            if spellInfo then
+                spells[#spells + 1] = {id = spellId, name = spellInfo.name}
             end
         end
 
-        if not spellId then
+        return spells
+    end
+
+    function frame:GetMovementSpellOnCooldown()
+        if self.ignoreMovementCd or not self.movementSpells then
             return nil
         end
 
-        local spellInfo = C_Spell.GetSpellInfo(spellId)
-        if not spellInfo then
-            return nil
+        for _, spell in ipairs(self.movementSpells) do
+            local cdInfo = C_Spell.GetSpellCooldown(spell.id)
+
+            if cdInfo
+                and cdInfo.timeUntilEndOfStartRecovery
+                and not cdInfo.isOnGCD
+                -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
+                -- WL teleport isOnGCD exists while on gcd and then is nil
+                and (cdInfo.isOnGCD ~= nil or ItruliaQoL.PlayerClass == "WARLOCK")
+            then
+                return spell, cdInfo
+            end
         end
 
-        return spellId
+        return nil
     end
 
     function frame:GetSpellsToIgnoreGlowsFrom()
@@ -263,9 +341,10 @@ function MovementAlert:GenerateFrame(name, parent)
     end
 
     function frame:CacheMovementId()
-        self.movementId = self:GetSpellToCheck()
-        local spellInfo = self.movementId and C_Spell.GetSpellInfo(self.movementId)
-        self.movementName = spellInfo and spellInfo.name
+        self.movementSpells = self:GetSpellsToCheck()
+
+        local first = self.movementSpells[1]
+        self.movementName = first and first.name
         self.spellsToIgnoreGlowsFrom = self:GetSpellsToIgnoreGlowsFrom()
     end
 
@@ -342,12 +421,19 @@ function MovementAlert:OnInitialize()
 
     -- Migration
     self.db.timeSpiralTTSVoice = self.db.timeSpiralTTSVoice or self:GetDefaults().timeSpiralTTSVoice
+    self.db.trackedSpells = self.db.trackedSpells or self:GetDefaults().trackedSpells
+    self.db.timeSpiralSpells = self.db.timeSpiralSpells or self:GetDefaults().timeSpiralSpells
 end
 
 function MovementAlert:RefreshConfig()
     local profile = ItruliaQoL.db.profile
     profile.MovementAlert = profile.MovementAlert or self:GetDefaults()
     self.db = profile.MovementAlert
+
+    -- Migration
+    self.db.timeSpiralTTSVoice = self.db.timeSpiralTTSVoice or self:GetDefaults().timeSpiralTTSVoice
+    self.db.trackedSpells = self.db.trackedSpells or self:GetDefaults().trackedSpells
+    self.db.timeSpiralSpells = self.db.timeSpiralSpells or self:GetDefaults().timeSpiralSpells
 
     if self.db.enabled then
         local frame = self:EnsureFrame()

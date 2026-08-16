@@ -4,6 +4,98 @@ local LSM = ItruliaQoL.LSM
 local moduleName = "MovementAlert"
 local MovementAlert = ItruliaQoL:GetModule(moduleName)
 
+local function SpellString(item)
+    if not item.icon then
+        return item.label
+    end
+
+    return string.format("|T%s:16:16:0:0:64:64:5:59:5:59|t %s", item.icon, item.label)
+end
+
+local function createTimeSpiralSpellOptions(onChange)
+    local args = {}
+
+    for classIndex, class in ipairs(MovementAlert:GetTimeSpiralClasses()) do
+        local values = {}
+        local order = {}
+
+        for index, item in ipairs(MovementAlert:GetTimeSpiralSpellItems(class)) do
+            values[item.key] = SpellString(item)
+            order[index] = item.key
+        end
+
+        args["class" .. class.classFile] = {
+            order = classIndex,
+            type = "multiselect",
+            dialogControl = "ItruliaMultiselect",
+            arg = order,
+            name = class.colorString .. class.className .. "|r",
+            values = values,
+            get = function(_, spellId)
+                return MovementAlert:IsTimeSpiralSpellTracked(spellId)
+            end,
+            set = function(_, spellId, value)
+                MovementAlert:SetTimeSpiralSpellTracked(spellId, value)
+                onChange()
+            end,
+            disabled = function()
+                return not MovementAlert.db.showTimeSpiral
+            end,
+        }
+    end
+
+    return args
+end
+
+-- One group per class, one multiselect per spec, so every spec can be set up from
+-- any character rather than only the one that plays it.
+local function createTrackedSpellOptions(onChange)
+    local args = {}
+
+    for classIndex, class in ipairs(MovementAlert:GetTrackedSpecs()) do
+        local specArgs = {}
+
+        for specIndex, spec in ipairs(class.specs) do
+            local values = {}
+            local order = {}
+
+            for index, item in ipairs(MovementAlert:GetTrackedSpellItems(spec.specId)) do
+                values[item.key] = SpellString(item)
+                order[index] = item.key
+            end
+
+            specArgs["spec" .. spec.specId] = {
+                order = specIndex,
+                type = "multiselect",
+                -- A checkbox dropdown rather than the default row of checkboxes, so
+                -- the list stays as compact as the EllesmereUI page's. `arg` is the
+                -- entry order it lists them in, which is the priority they alert in.
+                dialogControl = "ItruliaMultiselect",
+                arg = order,
+                name = spec.specName,
+                values = values,
+                get = function(_, spellId)
+                    return MovementAlert:IsSpellTracked(spec.specId, spellId)
+                end,
+                set = function(_, spellId, value)
+                    MovementAlert:SetSpellTracked(spec.specId, spellId, value)
+                    onChange()
+                end,
+            }
+        end
+
+        args["class" .. class.classFile] = {
+            order = classIndex,
+            type = "group",
+            name = class.colorString .. class.className .. "|r",
+            inline = true,
+            args = specArgs,
+        }
+    end
+
+    return args
+end
+
 function MovementAlert:GetOptions(onChange)
     return {
         order = 2,
@@ -88,6 +180,26 @@ function MovementAlert:GetOptions(onChange)
                         args = ItruliaQoL:createFontOptions(MovementAlert.db.font, function()
                             onChange()
                         end)
+                    },
+                }
+            },
+            trackedSpells = {
+                order = 15,
+                type = "group",
+                name = MovementAlert.pageTrackedSpells,
+                args = {
+                    description = {
+                        type = "description",
+                        name = "The alert shows the first ability a spec has that is checked here, so the order of a spec's abilities is its priority\n\n",
+                        width = "full",
+                        order = 1,
+                    },
+                    classes = {
+                        type = "group",
+                        name = "",
+                        order = 2,
+                        inline = true,
+                        args = createTrackedSpellOptions(onChange),
                     },
                 }
             },
@@ -253,6 +365,26 @@ function MovementAlert:GetOptions(onChange)
                         disabled = function()
                             return not MovementAlert.db.showTimeSpiral or MovementAlert.db.timeSpiralPlaySound
                         end,
+                    },
+                }
+            },
+            timeSpiralSpells = {
+                order = 25,
+                type = "group",
+                name = MovementAlert.pageTimeSpiralSpells,
+                args = {
+                    description = {
+                        type = "description",
+                        name = "The abilities whose proc counts as time spiral. Every class is listed, so a spec can be set up from any character\n\n",
+                        width = "full",
+                        order = 1,
+                    },
+                    classes = {
+                        type = "group",
+                        name = "",
+                        order = 2,
+                        inline = true,
+                        args = createTimeSpiralSpellOptions(onChange),
                     },
                 }
             }

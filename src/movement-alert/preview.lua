@@ -4,12 +4,14 @@ local moduleName = "MovementAlert"
 local MovementAlert = ItruliaQoL:GetModule(moduleName)
 
 MovementAlert.pageDisplay = "Movement Alert"
+MovementAlert.pageTrackedSpells = "Tracked Spells"
 MovementAlert.pageTimeSpiral = "Time Spiral"
+MovementAlert.pageTimeSpiralSpells = "Spiral Spells"
 
 function MovementAlert:PreparePreview(frame, page)
     frame:CacheMovementId()
 
-    if page == self.pageTimeSpiral then
+    if page == self.pageTimeSpiral or page == self.pageTimeSpiralSpells then
         frame.text:SetText(CreateColor(
             self.db.timeSpiralColor.r,
             self.db.timeSpiralColor.g,

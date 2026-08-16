@@ -316,14 +316,17 @@ local hosts = {
             return self.EUI and self.EUI.ShowModule and true or false
         end,
         open = function(self)
-            -- Each module is its own EllesmereUI row now, so open the General one
-            -- (see integrations/ellesmere/ellesmere.lua's addEntry keys).
-            self.EUI:ShowModule(addonName .. "_General")
+            -- Back to the row it was left on, General on the first open of the
+            -- session (see integrations/ellesmere/ellesmere.lua's addEntry keys).
+            -- EllesmereUI restores that row's own tab.
+            local moduleKey = self:GetLastEUIModule() or (addonName .. "_General")
+
+            self.EUI:ShowModule(moduleKey)
 
             -- Our group sits below EllesmereUI's own suite, so the row we just
             -- selected is off screen until the sidebar is scrolled to it.
             if self.ScrollEUISidebarToGroup then
-                self:ScrollEUISidebarToGroup()
+                self:ScrollEUISidebarToGroup(moduleKey)
             end
         end,
     },

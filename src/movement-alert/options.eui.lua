@@ -3,10 +3,75 @@ local addonName, ItruliaQoL = ...
 local moduleName = "MovementAlert"
 local MovementAlert = ItruliaQoL:GetModule(moduleName)
 
-MovementAlert.EUIPages = { MovementAlert.pageDisplay, MovementAlert.pageTimeSpiral }
+MovementAlert.EUIPages = {
+    MovementAlert.pageDisplay,
+    MovementAlert.pageTrackedSpells,
+    MovementAlert.pageTimeSpiral,
+    MovementAlert.pageTimeSpiralSpells,
+}
 
 function MovementAlert:GetEUIOptions(pageName)
     local function apply() ItruliaQoL:ApplyModuleStyles(moduleName) end
+
+    if pageName == MovementAlert.pageTimeSpiralSpells then
+        local function spiralOff()
+            return not MovementAlert.db.showTimeSpiral
+        end
+
+        local rows = {}
+
+        for _, class in ipairs(MovementAlert:GetTimeSpiralClasses()) do
+            rows[#rows + 1] = {
+                type = "multiselect",
+                label = class.colorString .. class.className .. "|r",
+                tooltip = "A proc of one of these is what the alert reports as time spiral",
+                items = MovementAlert:GetTimeSpiralSpellItems(class),
+                disabled = spiralOff,
+                disabledTooltip = "Time spiral",
+                get = function(spellId)
+                    return MovementAlert:IsTimeSpiralSpellTracked(spellId)
+                end,
+                set = function(spellId, value)
+                    MovementAlert:SetTimeSpiralSpellTracked(spellId, value)
+                    apply()
+                end,
+            }
+        end
+
+        return {
+            name = "Movement Alert",
+            rows = rows,
+        }
+    end
+
+    if pageName == MovementAlert.pageTrackedSpells then
+        local rows = {}
+
+        for _, class in ipairs(MovementAlert:GetTrackedSpecs()) do
+            rows[#rows + 1] = { header = class.colorString .. class.className .. "|r" }
+
+            for _, spec in ipairs(class.specs) do
+                rows[#rows + 1] = {
+                    type = "multiselect",
+                    label = spec.specName,
+                    tooltip = "The alert shows the first of these abilities this spec has, so their order is the priority",
+                    items = MovementAlert:GetTrackedSpellItems(spec.specId),
+                    get = function(spellId)
+                        return MovementAlert:IsSpellTracked(spec.specId, spellId)
+                    end,
+                    set = function(spellId, value)
+                        MovementAlert:SetSpellTracked(spec.specId, spellId, value)
+                        apply()
+                    end,
+                }
+            end
+        end
+
+        return {
+            name = "Movement Alert",
+            rows = rows,
+        }
+    end
 
     if pageName == MovementAlert.pageTimeSpiral then
         local function spiralOff()

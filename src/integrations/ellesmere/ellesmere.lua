@@ -321,6 +321,68 @@ local function attachEUICog(region, cog)
     end)
 end
 
+-- A checkbox dropdown, EllesmereUI's own widget for a setting that is a set rather
+-- than one value: the closed control summarises the checked entries ("None", "All",
+-- or the names), the open menu is a list of checkboxes. `items` are its entries,
+-- { key =, label =, icon = <texture?> } plus { isHeader = true, label = } to group
+-- them, and `get`/`set` take the key.
+--
+-- The control hangs off the row's left region, right-aligned, the way EllesmereUI's
+-- own pages place theirs. Nothing is built during a hidden search prebuild: those
+-- pages are thrown away, and the widget registers a refresh closure that would
+-- outlive them.
+local function attachEUIMultiSelect(region, item)
+    local EUI = ItruliaQoL.EUI
+
+    if not region or not item.items or #item.items == 0 then
+        return
+    end
+
+    if not (EUI and EUI.BuildVisOptsCBDropdown) or EUI._prebuilding then
+        return
+    end
+
+    local PP = EUI.PanelPP or EUI.PP
+
+    local dropdown, refresh = EUI.BuildVisOptsCBDropdown(
+        region,
+        item.width or 210,
+        region:GetFrameLevel() + 2,
+        item.items,
+        item.get,
+        wrapPageRefresh(item.set, item.refresh, item.rebuild),
+        nil,
+        item.maxVisible or 10,
+        item.searchable and true or false
+    )
+
+    PP.Point(dropdown, "RIGHT", region, "RIGHT", -20, 0)
+    region._control = dropdown
+
+    if refresh and EUI.RegisterWidgetRefresh then
+        EUI.RegisterWidgetRefresh(refresh)
+    end
+
+    if not item.disabled then
+        return
+    end
+
+    -- The widget has no disabled state of its own, so it gets the one EllesmereUI's
+    -- own halves apply: the control dims and stops taking clicks.
+    local function updateState()
+        local off = item.disabled() and true or false
+
+        dropdown:SetAlpha(off and 0.3 or 1)
+        dropdown:EnableMouse(not off)
+    end
+
+    if EUI.RegisterWidgetRefresh then
+        EUI.RegisterWidgetRefresh(updateState)
+    end
+
+    updateState()
+end
+
 -- Manual settings list (options.eui.lua).
 --
 -- A module can hand-author its EllesmereUI settings by defining
@@ -337,6 +399,7 @@ end
 --   { type = "toggle",  label=, tooltip=, disabled=, get=, set= }
 --   { type = "slider",  label=, min=, max=, step=, disabled=, get=, set= }
 --   { type = "select",  label=, values=, order=, disabled=, get=, set= }
+--   { type = "multiselect", label=, items=, get=, set= }    -- checkbox dropdown
 --   { type = "color",   label=, hasAlpha=, get=, set= }       -- get -> r,g,b,a ; set(r,g,b,a)
 --   { type = "input",   label=, width=, disabled=, get=, set= }
 --   { type = "execute", label=, disabled=, func= }
@@ -496,6 +559,17 @@ function ItruliaQoL:RenderEUIList(widgets, parent, y, rows)
             y = y - h
         elseif item.type == "icons" then
             _, h = self:RenderEUIIconGrid(parent, y, item.items or {})
+            y = y - h
+        elseif item.type == "multiselect" then
+            row, h = widgets:DualRow(parent, y, {
+                type = "label",
+                text = item.label,
+                tooltip = item.tooltip,
+                disabled = item.disabled,
+                disabledTooltip = item.disabledTooltip,
+                rawTooltip = item.rawTooltip,
+            })
+            attachEUIMultiSelect(row._leftRegion, item)
             y = y - h
         else
             -- Anything else is a single control on its own full-width row.
@@ -1842,52 +1916,75 @@ end
 -- outright is safe here: the wheel handler only follows its own target while its
 -- animation is running, and opening the panel never leaves it running.
 --
--- Deferred a frame because on a cold open the rows are anchored during the same
--- call that gets us here (CreateMainFrame -> RefreshSidebarStates), and their
--- GetTop() only means anything once the layout has run.
+-- Retried rather than deferred once, because how many frames it takes before the
+-- sidebar can be measured depends on how the panel was reached. Opening it later in
+-- a session only needs the one frame: the rows exist and are only repositioned. The
+-- first open of a session builds the whole panel a frame after ShowModule was called
+-- (EllesmereUI splits that work, see its _SplitFirstOpen), so on that path the rows
+-- have only just been created when the first attempt runs -- GetTop() and the scroll
+-- range are both still unset, and a single attempt would silently give up.
 local sidebarScrollMargin = 6
+local sidebarScrollAttempts = 20
 
-function ItruliaQoL:ScrollEUISidebarToGroup()
+function ItruliaQoL:ScrollEUISidebarToGroup(moduleKey, targetGroupKey)
     local EUI = self.EUI
 
     if not EUI then
         return
     end
 
-    C_Timer.After(0, function()
+    local attempts = 0
+
+    local function scroll()
+        attempts = attempts + 1
+
         local sf = EUI._addonScrollFrame
         local child = EUI._addonScrollChild
         local headers = EUI._sidebarGroupButtons
-        local header = headers and headers[groupKey]
+        local header = headers and headers[targetGroupKey or groupKey]
+        local childTop = child and child:GetTop()
+        local headerTop = header and header:IsShown() and header:GetTop()
+        local maxScroll = (sf and EUI.SafeScrollRange and EUI.SafeScrollRange(sf)) or 0
 
-        -- Hidden means the sidebar search has filtered our group out; whatever the
-        -- player is searching for owns the scroll position in that case.
-        if not (sf and child and header and header:IsShown()) then
+        -- Not measurable yet, or the sidebar search has filtered our group out. The
+        -- first is worth waiting a frame for, the second never resolves, so both get
+        -- the same bounded retry and whatever the player is searching for keeps the
+        -- scroll position.
+        if not (sf and childTop and headerTop) or maxScroll <= 0 then
+            if attempts < sidebarScrollAttempts then
+                C_Timer.After(0, scroll)
+            end
+
             return
         end
 
-        local childTop, headerTop = child:GetTop(), header:GetTop()
+        local target = childTop - headerTop - sidebarScrollMargin
 
-        if not (childTop and headerTop) then
-            return
+        -- The group header at the top is only the starting point: the row the panel
+        -- opened at can sit below the fold in a group this long, and a sidebar that
+        -- does not show the selected row is worse than one scrolled a little further.
+        local rows = EUI._sidebarButtons
+        local row = moduleKey and rows and rows[moduleKey]
+        local rowBottom = row and row:IsShown() and row:GetBottom()
+
+        if rowBottom then
+            local lowest = childTop - rowBottom - sf:GetHeight() + sidebarScrollMargin
+
+            if lowest > target then
+                target = lowest
+            end
         end
 
-        local maxScroll = EUI.SafeScrollRange and EUI.SafeScrollRange(sf) or 0
-
-        if maxScroll <= 0 then
-            return
-        end
-
-        local target = math.max(0, math.min(maxScroll, childTop - headerTop - sidebarScrollMargin))
-
-        sf:SetVerticalScroll(target)
+        sf:SetVerticalScroll(math.max(0, math.min(maxScroll, target)))
 
         local refreshThumb = sf:GetScript("OnScrollRangeChanged")
 
         if refreshThumb then
             refreshThumb(sf)
         end
-    end)
+    end
+
+    C_Timer.After(0, scroll)
 end
 
 -- Per-module enable switch on the sidebar row itself, so a module can be turned on
@@ -2118,6 +2215,28 @@ end
 
 -- Build and register the EllesmereUI rows. Called from init.lua's
 -- RegisterOptions with the fully-built AceConfig `parentOptions`.
+-- The row a slash command reopens its group at, remembered for the session.
+-- EllesmereUI keeps the tab within a module itself (_lastPagePerModule), so the row
+-- is all we track. Per group, so the sibling addons that borrow this integration
+-- (ItruliaUI, ItruliaEUI) each remember their own without seeing each other's.
+local lastEUIModuleKeys = {}
+
+function ItruliaQoL:RememberEUIModule(folderName, targetGroupKey)
+    lastEUIModuleKeys[targetGroupKey or groupKey] = folderName
+end
+
+function ItruliaQoL:GetLastEUIModule(targetGroupKey)
+    local EUI = self.EUI
+    local registered = EUI and EUI._modules
+    local remembered = lastEUIModuleKeys[targetGroupKey or groupKey]
+
+    if remembered and registered and registered[remembered] then
+        return remembered
+    end
+
+    return nil
+end
+
 function ItruliaQoL:RegisterEUI(parentOptions)
     local EUI = self.EUI
 
@@ -2328,6 +2447,12 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     -- RefreshSidebarStates before returning -- so a post-hook on them is the
     -- earliest point at which every row is present. Attaching is idempotent, so
     -- firing on every open (and on Toggle's close) costs nothing.
+    local ours = {}
+
+    for _, entry in ipairs(entries) do
+        ours[entry.key] = true
+    end
+
     if not self._euiSwitchHooked then
         self._euiSwitchHooked = true
 
@@ -2341,9 +2466,15 @@ function ItruliaQoL:RegisterEUI(parentOptions)
             end
         end
 
-        -- SelectModule recolours the outgoing and incoming labels itself.
+        -- SelectModule recolours the outgoing and incoming labels itself. It is also
+        -- where the row `/itrulia` reopens is remembered from -- EllesmereUI keeps
+        -- the tab per module itself, so the row is all we have to hold on to.
         if EUI.SelectModule then
-            hooksecurefunc(EUI, "SelectModule", function()
+            hooksecurefunc(EUI, "SelectModule", function(_, folderName)
+                if ours[folderName] then
+                    ItruliaQoL:RememberEUIModule(folderName)
+                end
+
                 ItruliaQoL:RefreshEUISidebarRows(entries)
             end)
         end
