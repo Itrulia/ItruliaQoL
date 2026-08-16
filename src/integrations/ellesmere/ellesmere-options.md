@@ -407,9 +407,22 @@ Every module with an `options.eui.lua` gets **its own row** in EllesmereUI's
 sidebar, under an "Itrulia QoL" group appended after EllesmereUI's own groups.
 There are no shared category pages — the old `MODULE_PAGE` bucketing (Indicators /
 Alerts / Utility) is gone, and nothing needs registering to place a new module: add
-`options.eui.lua` and the row appears. Row order follows the module group's
-AceConfig `order`, then name. Two rows are built in: **General**, and **Profiles**
-(which holds the Profiles and Import / Export tabs).
+`options.eui.lua` and the row appears. Rows are sorted alphabetically by the name
+they show; the AceConfig `order` fields are ignored here on purpose, because the
+themed grouping they give the standalone tree reads as arbitrary in a flat sidebar.
+Two rows are built in: **General**, and **Profiles** (which holds the Profiles and
+Import / Export tabs).
+
+A module can leave that alphabetical run by setting `EUISortLast`, which parks its
+row after every other module and before Profiles:
+
+```lua
+Misc.EUISortLast = true
+```
+
+`Misc` is the one module using it today: a catch-all belongs at the end of the list
+rather than filed under M. It is ignored on a member of a combined row, which sorts
+under the combined row's name.
 
 ### The panel header
 

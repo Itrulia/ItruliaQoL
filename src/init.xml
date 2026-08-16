@@ -36,5 +36,7 @@
 	<Include file="macro-factory\init.xml"/>
 	<Include file="raid-frame-manager\init.xml"/>
 
+	<Include file="misc\init.xml"/>
+
 	<Script file="cdm-slash.lua"/>
 </Ui>

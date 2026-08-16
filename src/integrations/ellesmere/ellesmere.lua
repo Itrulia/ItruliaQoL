@@ -2166,7 +2166,28 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         return combined and combined.display or displayFor(key)
     end
 
+    -- A module can opt out of the alphabetical run with EUISortLast, which parks it
+    -- between the last module and Profiles. Misc uses it: a catch-all row reads as
+    -- the end of the list, not as something filed under M.
+    local function sortWeight(key)
+        local combined = combinedByModule[key]
+
+        if combined then
+            return 0
+        end
+
+        local module = self:GetModule(key, true)
+
+        return module and module.EUISortLast and 1 or 0
+    end
+
     table.sort(moduleKeys, function(a, b)
+        local wa, wb = sortWeight(a), sortWeight(b)
+
+        if wa ~= wb then
+            return wa < wb
+        end
+
         local na, nb = sidebarName(a), sidebarName(b)
 
         -- Equal names means two members of one combined row. It is emitted once
