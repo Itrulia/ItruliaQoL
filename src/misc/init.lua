@@ -3,9 +3,6 @@ local moduleName = "Misc"
 
 local Misc = ItruliaQoL:NewModule(moduleName)
 
--- Catch-all row, so it sits at the end of the EllesmereUI sidebar rather than under M.
-Misc.EUISortLast = true
-
 Misc.AuctionHouseFilters = {
     [Enum.AuctionHouseFilter.UsableOnly] = true,
     [Enum.AuctionHouseFilter.CurrentExpansionOnly] = true,

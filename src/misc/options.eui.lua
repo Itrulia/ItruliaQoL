@@ -2,6 +2,8 @@ local addonName, ItruliaQoL = ...
 
 local moduleName = "Misc"
 local Misc = ItruliaQoL:GetModule(moduleName)
+-- Catch-all row, so it sits at the end of the EllesmereUI sidebar rather than under M.
+Misc.EUISortLast = true
 
 function Misc:GetEUIOptions()
     return {
