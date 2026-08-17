@@ -75,7 +75,7 @@ function FocusInterruptIndicator:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(FocusInterruptIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return FocusInterruptIndicator.db.font end, function() 
                     onChange()
                 end)
             },

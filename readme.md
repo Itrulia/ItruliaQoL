@@ -16,6 +16,7 @@ Combat related:
 - Displays a combat timer (disabled by default)
 - Display if you are currently stealthed (disabled by default)
 - Display if you are in the correct druid form or warrior stance (disabled by default)
+- Display a reminder while your death knight weapons carry a runeforge your build does not want (disabled by default)
 - Display healer mana (disabled by default)
 - Display if you are missing a target (disabled by default)
 - Display a reminder if you have potion ready (disabled by default)

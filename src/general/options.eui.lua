@@ -6,7 +6,9 @@ function ItruliaQoL:GetGeneralEUIOptions()
     local all = ItruliaQoL.db.profile.all
     if all and all.font then
         rows[#rows + 1] = {
-            rows = ItruliaQoL:EUIFontRows(all.font, function() end, { strata = true, level = true }),
+            -- Read through the db rather than the local: `all` belongs to the profile
+            -- that is current right now, and switching profiles replaces it.
+            rows = ItruliaQoL:EUIFontRows(function() return ItruliaQoL.db.profile.all.font end, function() end, { strata = true, level = true }),
         }
         rows[#rows + 1] = {
             type = "execute",

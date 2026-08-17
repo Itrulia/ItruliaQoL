@@ -109,7 +109,7 @@ function PotionAlert:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(PotionAlert.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return PotionAlert.db.font end, function() 
                     onChange()
                 end)
             },

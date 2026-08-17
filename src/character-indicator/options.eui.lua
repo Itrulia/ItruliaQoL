@@ -44,6 +44,6 @@ function CharacterIndicator:GetEUIOptions()
 
     return {
         name = "Character Indicator",
-        rows = ItruliaQoL:EUIFontRows(CharacterIndicator.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return CharacterIndicator.db.font end, apply, nil, { displayRow }),
     }
 end

@@ -249,6 +249,6 @@ function MovementAlert:GetEUIOptions(pageName)
 
     return {
         name = "Movement Alert",
-        rows = ItruliaQoL:EUIFontRows(MovementAlert.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return MovementAlert.db.font end, apply, nil, { displayRow }),
     }
 end

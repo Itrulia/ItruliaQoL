@@ -34,7 +34,7 @@ function FriendlyNameplates:GetOptions(onChange)
                 name = "",
                 order = 3,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(FriendlyNameplates.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return FriendlyNameplates.db.font end, function() 
                     onChange()
                 end, {
                     justifyH = ItruliaQoL.MergeDeep_Delete_Key,

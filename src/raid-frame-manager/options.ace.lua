@@ -296,7 +296,7 @@ function RaidFrameManager:GetOptions(onChange)
                         name = "",
                         order = 5,
                         inline = true,
-                        args = ItruliaQoL:createFontOptions(RaidFrameManager.db.font, function()
+                        args = ItruliaQoL:createFontOptions(function() return RaidFrameManager.db.font end, function()
                             onChange()
                         end)
                     },

@@ -437,6 +437,20 @@ function ItruliaQoL:RenderEUIList(widgets, parent, y, rows)
             return { type = "spacer" }
         end
 
+        -- The checkbox dropdown is not one of EllesmereUI's DualRow types: the half is
+        -- the label alone and the control is hung off its region afterwards, by
+        -- attachRowControls below.
+        if item.type == "multiselect" then
+            return {
+                type = "label",
+                text = item.label,
+                tooltip = item.tooltip,
+                disabled = item.disabled,
+                disabledTooltip = item.disabledTooltip,
+                rawTooltip = item.rawTooltip,
+            }
+        end
+
         if item.type == "toggle" then
             return {
                 type = "toggle",
@@ -535,14 +549,29 @@ function ItruliaQoL:RenderEUIList(widgets, parent, y, rows)
         return nil
     end
 
+    -- Everything a half needs on top of its DualRow config: the checkbox dropdown,
+    -- which EllesmereUI has no DualRow type for, and the cogwheel. In that order, so
+    -- the cog chains off the dropdown and lands left of it rather than under it.
+    local function attachRowControls(region, item)
+        if not (region and item) then
+            return
+        end
+
+        if item.type == "multiselect" then
+            attachEUIMultiSelect(region, item)
+        end
+
+        attachEUICog(region, item.cog)
+    end
+
     local row
 
     for _, item in ipairs(rows) do
         if item.pair then
             -- Two controls sharing one row, each getting half the width.
             row, h = widgets:DualRow(parent, y, halfConfig(item.pair[1]), halfConfig(item.pair[2]))
-            attachEUICog(row._leftRegion, item.pair[1] and item.pair[1].cog)
-            attachEUICog(row._rightRegion, item.pair[2] and item.pair[2].cog)
+            attachRowControls(row._leftRegion, item.pair[1])
+            attachRowControls(row._rightRegion, item.pair[2])
             y = y - h
         elseif item.rows then
             if item.header then
@@ -560,24 +589,13 @@ function ItruliaQoL:RenderEUIList(widgets, parent, y, rows)
         elseif item.type == "icons" then
             _, h = self:RenderEUIIconGrid(parent, y, item.items or {})
             y = y - h
-        elseif item.type == "multiselect" then
-            row, h = widgets:DualRow(parent, y, {
-                type = "label",
-                text = item.label,
-                tooltip = item.tooltip,
-                disabled = item.disabled,
-                disabledTooltip = item.disabledTooltip,
-                rawTooltip = item.rawTooltip,
-            })
-            attachEUIMultiSelect(row._leftRegion, item)
-            y = y - h
         else
             -- Anything else is a single control on its own full-width row.
             local cfg = halfConfig(item)
 
             if cfg then
                 row, h = widgets:DualRow(parent, y, cfg)
-                attachEUICog(row._leftRegion, item.cog)
+                attachRowControls(row._leftRegion, item)
                 y = y - h
             end
         end
@@ -836,7 +854,7 @@ end
 -- Font family dropdown data in EllesmereUI's native format: the label is the
 -- font NAME and each item previews in its own font (values[name] = { text, font }),
 -- instead of showing the raw file path. Keyed by LSM font name, so it stays
--- compatible with fontObject.fontFamily and LSM:Fetch.
+-- compatible with the stored fontFamily and LSM:Fetch.
 function ItruliaQoL:EUIFontValues()
     local vals, order = {}, {}
 
@@ -851,7 +869,9 @@ function ItruliaQoL:EUIFontValues()
 end
 
 -- A single EllesmereUI-native "Font" dropdown row (name label + per-font preview).
-function ItruliaQoL:EUIFontFamilyRow(font, apply)
+-- `getFont` returns the font settings table rather than being it, for the reason
+-- given on EUIFontRows below.
+function ItruliaQoL:EUIFontFamilyRow(getFont, apply)
     local vals, order = self:EUIFontValues()
 
     return {
@@ -860,10 +880,10 @@ function ItruliaQoL:EUIFontFamilyRow(font, apply)
         values = vals,
         order = order,
         get = function()
-            return font.fontFamily
+            return getFont().fontFamily
         end,
         set = function(v)
-            font.fontFamily = v
+            getFont().fontFamily = v
 
             if apply then
                 apply()
@@ -1060,14 +1080,21 @@ end
 -- `lead` is an optional list of rows to put in front of the dropdowns, joining the
 -- same two-to-a-row flow rather than sitting above it -- for a module whose own
 -- text settings (a colour, say) belong with the font ones.
-function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
+--
+-- `getFont` returns the font settings table, rather than being that table. The table
+-- a module edits is not the same one forever -- switching profiles points the module
+-- at the new profile's, and so does resetting a module or copying one over from
+-- another profile -- and a row holding the old one would read and write a table
+-- nothing else points at any more. These rows are rebuilt on every page draw, so it
+-- matters less here than in createFontOptions, but the two keep the same contract.
+function ItruliaQoL:EUIFontRows(getFont, apply, exclude, lead)
     exclude = exclude or {}
 
     -- A slug outline draws its own backdrop, so the shadow settings do nothing.
     -- They stay on the Outline cog, greyed out with that explanation, rather than
     -- the cog itself coming and going as the outline changes.
     local function slug()
-        return font.fontOutline == "OUTLINESLUG"
+        return getFont().fontOutline == "OUTLINESLUG"
     end
 
     local slugTip = "A slug outline draws its own backdrop, so a text shadow has no effect."
@@ -1106,10 +1133,10 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         max = 68,
         step = 1,
         get = function()
-            return font.fontSize
+            return getFont().fontSize
         end,
         set = function(v)
-            font.fontSize = v
+            getFont().fontSize = v
             apply()
         end,
     }
@@ -1118,10 +1145,10 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         label = "Justify",
         values = self.JustifyHSettings,
         get = function()
-            return font.justifyH or "CENTER"
+            return getFont().justifyH or "CENTER"
         end,
         set = function(v)
-            font.justifyH = v
+            getFont().justifyH = v
             apply()
         end,
     }
@@ -1135,10 +1162,10 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         disabledTooltip = slugTip,
         rawTooltip = true,
         get = function()
-            return font.fontShadowXOffset
+            return getFont().fontShadowXOffset
         end,
         set = function(v)
-            font.fontShadowXOffset = v
+            getFont().fontShadowXOffset = v
             apply()
         end,
     }
@@ -1152,10 +1179,10 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         disabledTooltip = slugTip,
         rawTooltip = true,
         get = function()
-            return font.fontShadowYOffset
+            return getFont().fontShadowYOffset
         end,
         set = function(v)
-            font.fontShadowYOffset = v
+            getFont().fontShadowYOffset = v
             apply()
         end,
     }
@@ -1167,11 +1194,11 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         disabledTooltip = slugTip,
         rawTooltip = true,
         get = function()
-            local color = font.fontShadowColor
+            local color = getFont().fontShadowColor
             return color.r, color.g, color.b, color.a
         end,
         set = function(r, g, b, a)
-            font.fontShadowColor = { r = r, g = g, b = b, a = a }
+            getFont().fontShadowColor = { r = r, g = g, b = b, a = a }
             apply()
         end,
     }
@@ -1189,7 +1216,7 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         add("size", sizeRow)
         add("justify", justifyRow)
     else
-        local fontRow = self:EUIFontFamilyRow(font, apply)
+        local fontRow = self:EUIFontFamilyRow(getFont, apply)
         fontRow.cog = cogSpec("Font Settings", {
             { "size", sizeRow },
             { "justify", justifyRow },
@@ -1215,10 +1242,10 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
             label = "Outline",
             values = self.OutlineSettings,
             get = function()
-                return font.fontOutline or "NONE"
+                return getFont().fontOutline or "NONE"
             end,
             set = function(v)
-                font.fontOutline = (v ~= "NONE") and v or nil
+                getFont().fontOutline = (v ~= "NONE") and v or nil
                 apply()
             end,
         }
@@ -1236,10 +1263,10 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
         max = 10,
         step = 1,
         get = function()
-            return font.frameLevel or 1
+            return getFont().frameLevel or 1
         end,
         set = function(v)
-            font.frameLevel = v
+            getFont().frameLevel = v
             apply()
         end,
     }
@@ -1252,10 +1279,10 @@ function ItruliaQoL:EUIFontRows(font, apply, exclude, lead)
             label = "Frame Strata",
             values = self.FrameStrataSettings,
             get = function()
-                return font.frameStrata or "BACKGROUND"
+                return getFont().frameStrata or "BACKGROUND"
             end,
             set = function(v)
-                font.frameStrata = v
+                getFont().frameStrata = v
                 apply()
             end,
         }

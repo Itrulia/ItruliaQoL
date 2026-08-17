@@ -75,7 +75,7 @@ function StanceAlert:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(StanceAlert.db.font, function()
+                args = ItruliaQoL:createFontOptions(function() return StanceAlert.db.font end, function()
                     onChange()
                 end)
             },

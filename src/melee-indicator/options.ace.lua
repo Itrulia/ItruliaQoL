@@ -75,7 +75,7 @@ function MeleeIndicator:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(MeleeIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return MeleeIndicator.db.font end, function() 
                     onChange()
                 end)
             },

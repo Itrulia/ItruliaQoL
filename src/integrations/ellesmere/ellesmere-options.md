@@ -210,8 +210,13 @@ checkbox list, the same widget its pages use for their class and spec pickers:
 `width` sizes the closed control (default 210), `maxVisible` how many entries the
 menu shows before it scrolls (default 10), and `searchable = true` adds a search
 box. `disabled` dims the dropdown and stops it opening, with `disabledTooltip` on
-the row's label as usual. Unlike the other controls it takes a whole row of its
-own, so it cannot be half of a `pair`, and it carries no `cog`.
+the row's label as usual.
+
+It may be half of a `pair` like any other control, which is how `RuneforgeAlert`
+puts a setup's main hand and off hand side by side. EllesmereUI has no DualRow type
+for it, so the half is really the label alone with the dropdown hung off its region
+afterwards. A half is still wide enough for the default `width` next to its label,
+so only a long label needs a smaller one.
 
 The dropdown is skipped during EllesmereUI's hidden search prebuild, which throws
 its pages away; the rest of the row still renders, so the setting keeps its label
@@ -345,32 +350,39 @@ Prefer `refresh` where it is enough: a rebuild reallocates every widget on the p
 
 ## Shared helpers (`ellesmere.lua`)
 
-- **`ItruliaQoL:EUIFontRows(fontObj, apply)`** → the full font block as a list of
+- **`ItruliaQoL:EUIFontRows(getFont, apply)`** → the full font block as a list of
   rows: Font, Outline and Frame Strata, two to a row, each with the rest on its
   cogwheel (Size and Justify, Shadow X/Y/Colour, Frame Level). Drop it into a
   `{ header = "Font", rows = ... }` group:
   ```lua
-  { header = "Font", rows = ItruliaQoL:EUIFontRows(CombatTimer.db.font, apply) },
+  { header = "Font", rows = ItruliaQoL:EUIFontRows(function() return CombatTimer.db.font end, apply) },
   ```
+  `getFont` **returns** the font table, it is not the table. Never pass
+  `M.db.font` directly: the table a module edits is replaced whenever the profile
+  changes, and whenever the module is reset or copied over from another profile,
+  so a row holding the old one would read and write a table nothing else points at.
+  The same rule applies to `createFontOptions` in `options.ace.lua`, where it
+  matters more — those options are built once at login and never rebuilt.
+
   A fourth argument, `lead`, is a list of rows to put in front of the dropdowns,
   joining the same two-to-a-row flow instead of sitting above it — for a module
   whose own text settings belong with the font ones (Death Alert leads with its
   colour, so the page is Color | Font, Outline | Frame Strata and needs no
   section header):
   ```lua
-  rows = ItruliaQoL:EUIFontRows(DeathAlert.db.font, apply, nil, { colorRow }),
+  rows = ItruliaQoL:EUIFontRows(function() return DeathAlert.db.font end, apply, nil, { colorRow }),
   ```
   `exclude` still keys every setting individually (`size`, `justify`, `shadowX`,
   …) even where it is no longer its own row, and a cog setting falls back to a
   full row if the row hosting its cog is the excluded one. A slug outline greys the
   shadow settings out with an explanation rather than removing them, so the
   cogwheel stays put as the outline changes.
-- **`ItruliaQoL:EUIFontFamilyRow(fontObj, apply)`** → just the font-family
+- **`ItruliaQoL:EUIFontFamilyRow(getFont, apply)`** → just the font-family
   dropdown row (font **name** label + a per-font preview, EllesmereUI-style). Use
   it when you want a reduced font block; add the size as its `cog` (see **`cog`**
   above) to match how the full block presents it:
   ```lua
-  local fontRow = ItruliaQoL:EUIFontFamilyRow(M.db.font, apply)
+  local fontRow = ItruliaQoL:EUIFontFamilyRow(function() return M.db.font end, apply)
   fontRow.cog = { title = "Font Settings", rows = {
       { type = "slider", label = "Size", min = 1, max = 68, step = 1,
         get = function() return M.db.font.fontSize end,
@@ -694,7 +706,7 @@ function CombatTimer:GetEUIOptions()
             },
             {
                 header = "Font",
-                rows = ItruliaQoL:EUIFontRows(CombatTimer.db.font, apply),
+                rows = ItruliaQoL:EUIFontRows(function() return CombatTimer.db.font end, apply),
             },
         },
     }

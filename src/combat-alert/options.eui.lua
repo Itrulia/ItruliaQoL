@@ -84,6 +84,6 @@ function CombatAlert:GetEUIOptions()
 
     return {
         name = "Combat Alert",
-        rows = ItruliaQoL:EUIFontRows(CombatAlert.db.font, apply, nil, { startsRow, endsRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return CombatAlert.db.font end, apply, nil, { startsRow, endsRow }),
     }
 end

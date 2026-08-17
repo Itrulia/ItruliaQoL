@@ -88,6 +88,6 @@ function HealerManaIndicator:GetEUIOptions(pageName)
 
     return {
         name = "Healer Mana Indicator",
-        rows = ItruliaQoL:EUIFontRows(HealerManaIndicator.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return HealerManaIndicator.db.font end, apply, nil, { displayRow }),
     }
 end

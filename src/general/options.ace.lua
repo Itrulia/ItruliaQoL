@@ -29,7 +29,7 @@ function ItruliaQoL:GetGeneralOptions()
                     type = "group",
                     name = "Font",
                     inline = true,
-                    args = ItruliaQoL:createFontOptions(ItruliaQoL.db.profile.all.font, function() end, {
+                    args = ItruliaQoL:createFontOptions(function() return ItruliaQoL.db.profile.all.font end, function() end, {
                         frameStrata = ItruliaQoL.MergeDeep_Delete_Key,
                         frameLevel = ItruliaQoL.MergeDeep_Delete_Key,
                         applyAll = {

@@ -44,6 +44,6 @@ function StealthIndicator:GetEUIOptions()
 
     return {
         name = "Stealth Indicator",
-        rows = ItruliaQoL:EUIFontRows(StealthIndicator.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return StealthIndicator.db.font end, apply, nil, { displayRow }),
     }
 end

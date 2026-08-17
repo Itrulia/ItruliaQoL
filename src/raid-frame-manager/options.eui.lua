@@ -242,7 +242,7 @@ local function displayRows(apply, onChange)
         },
         {
             header = "Font",
-            rows = ItruliaQoL:EUIFontRows(RaidFrameManager.db.font, apply, nil, { buttonColorRow, textColorRow }),
+            rows = ItruliaQoL:EUIFontRows(function() return RaidFrameManager.db.font end, apply, nil, { buttonColorRow, textColorRow }),
         },
     }
 end

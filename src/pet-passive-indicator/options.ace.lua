@@ -75,7 +75,7 @@ function PetPassiveIndicator:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(PetPassiveIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return PetPassiveIndicator.db.font end, function() 
                     onChange()
                 end)
             }

@@ -58,7 +58,7 @@ function NoTargetIndicator:GetEUIOptions()
         },
     }
 
-    for _, row in ipairs(ItruliaQoL:EUIFontRows(NoTargetIndicator.db.font, apply, nil, { displayRow })) do
+    for _, row in ipairs(ItruliaQoL:EUIFontRows(function() return NoTargetIndicator.db.font end, apply, nil, { displayRow })) do
         rows[#rows + 1] = row
     end
 

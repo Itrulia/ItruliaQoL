@@ -44,6 +44,6 @@ function RepairIndicator:GetEUIOptions()
 
     return {
         name = "Repair Indicator",
-        rows = ItruliaQoL:EUIFontRows(RepairIndicator.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return RepairIndicator.db.font end, apply, nil, { displayRow }),
     }
 end

@@ -5,7 +5,7 @@ local Misc = ItruliaQoL:GetModule(moduleName)
 
 function Misc:GetDefaults()
     return {
-        enabled = true,
+        enabled = false,
         auctionHouseFilters = {
             enabled = false,
         },

@@ -44,6 +44,6 @@ function StanceAlert:GetEUIOptions()
 
     return {
         name = "Stance Alert",
-        rows = ItruliaQoL:EUIFontRows(StanceAlert.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return StanceAlert.db.font end, apply, nil, { displayRow }),
     }
 end

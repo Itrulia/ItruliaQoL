@@ -44,6 +44,6 @@ function MeleeIndicator:GetEUIOptions()
 
     return {
         name = "Melee Indicator",
-        rows = ItruliaQoL:EUIFontRows(MeleeIndicator.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return MeleeIndicator.db.font end, apply, nil, { displayRow }),
     }
 end

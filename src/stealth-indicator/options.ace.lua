@@ -75,7 +75,7 @@ function StealthIndicator:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(StealthIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return StealthIndicator.db.font end, function() 
                     onChange()
                 end)
             },

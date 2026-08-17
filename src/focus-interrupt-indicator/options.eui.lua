@@ -119,6 +119,6 @@ function FocusInterruptIndicator:GetEUIOptions(pageName)
 
     return {
         name = "Focus Interrupt",
-        rows = ItruliaQoL:EUIFontRows(FocusInterruptIndicator.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return FocusInterruptIndicator.db.font end, apply, nil, { displayRow }),
     }
 end

@@ -139,7 +139,7 @@ local function displayRows(apply, onChange)
         },
         {
             header = "Font",
-            rows = ItruliaQoL:EUIFontRows(KeystoneLister.db.font, apply, nil, { buttonColorRow, textColorRow }),
+            rows = ItruliaQoL:EUIFontRows(function() return KeystoneLister.db.font end, apply, nil, { buttonColorRow, textColorRow }),
         },
     }
 end

@@ -177,7 +177,7 @@ function MovementAlert:GetOptions(onChange)
                         name = "",
                         order = 5,
                         inline = true,
-                        args = ItruliaQoL:createFontOptions(MovementAlert.db.font, function()
+                        args = ItruliaQoL:createFontOptions(function() return MovementAlert.db.font end, function()
                             onChange()
                         end)
                     },

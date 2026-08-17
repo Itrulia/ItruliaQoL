@@ -80,7 +80,7 @@ function CombatTimer:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(CombatTimer.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return CombatTimer.db.font end, function() 
                     onChange()
                 end)
             },

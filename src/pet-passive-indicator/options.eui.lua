@@ -59,6 +59,6 @@ function PetPassiveIndicator:GetEUIOptions()
 
     return {
         name = "Pet Passive",
-        rows = ItruliaQoL:EUIFontRows(PetPassiveIndicator.db.font, apply, nil, { enableRow, displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return PetPassiveIndicator.db.font end, apply, nil, { enableRow, displayRow }),
     }
 end

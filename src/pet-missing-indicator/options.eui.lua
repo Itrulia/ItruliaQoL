@@ -59,6 +59,6 @@ function PetMissingIndicator:GetEUIOptions()
 
     return {
         name = "Pet Missing",
-        rows = ItruliaQoL:EUIFontRows(PetMissingIndicator.db.font, apply, nil, { enableRow, displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return PetMissingIndicator.db.font end, apply, nil, { enableRow, displayRow }),
     }
 end

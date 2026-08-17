@@ -108,7 +108,7 @@ function HealerManaIndicator:GetOptions(onChange)
                 name = "",
                 order = 6,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(HealerManaIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return HealerManaIndicator.db.font end, function() 
                     onChange()
                 end)
             },

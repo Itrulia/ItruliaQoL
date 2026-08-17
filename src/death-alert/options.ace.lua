@@ -204,7 +204,7 @@ function DeathAlert:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(DeathAlert.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return DeathAlert.db.font end, function() 
                     onChange()
                 end)
             },

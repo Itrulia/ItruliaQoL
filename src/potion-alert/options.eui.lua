@@ -152,6 +152,6 @@ function PotionAlert:GetEUIOptions(pageName)
 
     return {
         name = "Potion Alert",
-        rows = ItruliaQoL:EUIFontRows(PotionAlert.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return PotionAlert.db.font end, apply, nil, { displayRow }),
     }
 end

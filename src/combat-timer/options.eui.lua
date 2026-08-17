@@ -49,6 +49,6 @@ function CombatTimer:GetEUIOptions()
 
     return {
         name = "Combat Timer",
-        rows = ItruliaQoL:EUIFontRows(CombatTimer.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return CombatTimer.db.font end, apply, nil, { displayRow }),
     }
 end

@@ -88,9 +88,17 @@ function ItruliaQoL:TTSVoiceOption(order, get, set, disabled)
     }
 end
 
-function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
+-- `getFont` returns the font settings table, rather than being that table.
+--
+-- The options are built once, at login, but the table they edit is not the same one
+-- forever: switching profiles points the module at the new profile's table, and so
+-- does resetting a module or copying one over from another profile. A captured
+-- table would leave every control below reading and writing one that nothing else
+-- points at any more, so the panel would show the old profile's font and edits to it
+-- would go nowhere. Reading it per call is what keeps them on the live one.
+function ItruliaQoL:createFontOptions(getFont, onChange, additionalOptions)
     local function shadowHidden()
-        return fontObject.fontOutline == "OUTLINESLUG"
+        return getFont().fontOutline == "OUTLINESLUG"
     end
 
     return ItruliaQoL:MergeDeep({
@@ -103,10 +111,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             step = 1,
             width = 0.75,
             get = function()
-                return fontObject.fontSize
+                return getFont().fontSize
             end,
             set = function(_, value)
-                fontObject.fontSize = value
+                getFont().fontSize = value
                 
                 if onChange then
                     onChange()
@@ -121,10 +129,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             name = "Font",
             values = LSM:HashTable("font"),
             get = function()
-                return fontObject.fontFamily
+                return getFont().fontFamily
             end,
             set = function(_, value)
-                fontObject.fontFamily = value
+                getFont().fontFamily = value
                 
                 if onChange then
                     onChange()
@@ -138,10 +146,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             name = "Outline",
             values = ItruliaQoL.OutlineSettings,
             get = function()
-                return fontObject.fontOutline
+                return getFont().fontOutline
             end,
             set = function(_, value)
-                fontObject.fontOutline = value ~= "NONE" and value or nil
+                getFont().fontOutline = value ~= "NONE" and value or nil
                 
                 if onChange then
                     onChange()
@@ -155,10 +163,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             width = 0.75,
             values = ItruliaQoL.JustifyHSettings,
             get = function()
-                return fontObject.justifyH or ItruliaQoL.JustifyHSettings.CENTER
+                return getFont().justifyH or ItruliaQoL.JustifyHSettings.CENTER
             end,
             set = function(_, value)
-                fontObject.justifyH = value
+                getFont().justifyH = value
                 
                 if onChange then
                     onChange()
@@ -181,10 +189,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             max = 5,
             step = 1,
             get = function()
-                return fontObject.fontShadowXOffset
+                return getFont().fontShadowXOffset
             end,
             set = function(_, value)
-                fontObject.fontShadowXOffset = value
+                getFont().fontShadowXOffset = value
                 
                 if onChange then
                     onChange()
@@ -201,10 +209,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             max = 5,
             step = 1,
             get = function()
-                return fontObject.fontShadowYOffset
+                return getFont().fontShadowYOffset
             end,
             set = function(_, value)
-                fontObject.fontShadowYOffset = value
+                getFont().fontShadowYOffset = value
                 
                 if onChange then
                     onChange()
@@ -219,11 +227,11 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             name = "Shadow Color",
             hasAlpha = true,
             get = function()
-                local color = fontObject.fontShadowColor
+                local color = getFont().fontShadowColor
                 return color.r, color.g, color.b, color.a
             end,
             set = function(_, r, g, b, a)
-                fontObject.fontShadowColor = {
+                getFont().fontShadowColor = {
                     r = r,
                     g = g,
                     b = b,
@@ -249,10 +257,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             name = "Frame strata",
             values = ItruliaQoL.FrameStrataSettings,
             get = function()
-                return fontObject.frameStrata or ItruliaQoL.FrameStrataSettings.BACKGROUND
+                return getFont().frameStrata or ItruliaQoL.FrameStrataSettings.BACKGROUND
             end,
             set = function(_, value)
-                fontObject.frameStrata = value
+                getFont().frameStrata = value
                 
                 if onChange then
                     onChange()
@@ -268,10 +276,10 @@ function ItruliaQoL:createFontOptions(fontObject, onChange, additionalOptions)
             max = 10,
             step = 1,
             get = function()
-                return fontObject.frameLevel or 1
+                return getFont().frameLevel or 1
             end,
             set = function(_, value)
-                fontObject.frameLevel = value
+                getFont().frameLevel = value
                 
                 if onChange then
                     onChange()

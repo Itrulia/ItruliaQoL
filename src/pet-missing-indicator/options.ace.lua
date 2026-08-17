@@ -75,7 +75,7 @@ function PetMissingIndicator:GetOptions(onChange)
                 name = "",
                 order = 5,
                 inline = true,
-                args = ItruliaQoL:createFontOptions(PetMissingIndicator.db.font, function() 
+                args = ItruliaQoL:createFontOptions(function() return PetMissingIndicator.db.font end, function() 
                     onChange()
                 end)
             }

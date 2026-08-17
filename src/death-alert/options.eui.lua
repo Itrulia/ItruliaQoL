@@ -274,6 +274,6 @@ function DeathAlert:GetEUIOptions(pageName)
 
     return {
         name = "Death Alert",
-        rows = ItruliaQoL:EUIFontRows(DeathAlert.db.font, apply, nil, { displayRow }),
+        rows = ItruliaQoL:EUIFontRows(function() return DeathAlert.db.font end, apply, nil, { displayRow }),
     }
 end
