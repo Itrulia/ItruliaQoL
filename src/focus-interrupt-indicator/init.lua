@@ -70,7 +70,7 @@ function FocusInterruptIndicator:GenerateFrame(frameName, parent)
             return
         end
 
-        local name, _, _, _, _, _, _, notInterruptible = UnitChannelInfo("focus")
+        local name, _, _, _, _, _, notInterruptible = UnitChannelInfo("focus")
         if not name then
             name, _, _, _, _, _, _, notInterruptible = UnitCastingInfo("focus")
         end
