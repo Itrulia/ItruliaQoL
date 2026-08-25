@@ -117,11 +117,18 @@ function HealerManaIndicator:GenerateFrame(frameName, parent)
                 lines = lines + 1
 
                 -- A live mana value can be a secret, and the string width is secret
-                -- with it; keep the width we already have rather than measuring.
+                -- with it. HasAnySecretAspect misses text-content secrecy, so the
+                -- measured value itself must be checked before any arithmetic, and
+                -- some builds deny the measurement outright instead.
                 if text:HasAnySecretAspect() then
                     hasSecret = true
                 else
-                    width = math.max(width, text:GetStringWidth())
+                    local measured, textWidth = pcall(text.GetStringWidth, text)
+                    if measured and not issecretvalue(textWidth) and type(textWidth) == "number" then
+                        width = math.max(width, textWidth)
+                    else
+                        hasSecret = true
+                    end
                 end
             end
         end

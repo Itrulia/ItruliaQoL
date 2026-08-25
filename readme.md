@@ -17,6 +17,8 @@ Combat related:
 - Display if you are currently stealthed (disabled by default)
 - Display if you are in the correct druid form or warrior stance (disabled by default)
 - Display a reminder while your death knight weapons carry a runeforge your build does not want (disabled by default)
+- Display a ring counting down the defensive you have active, coloured by how big it is and including the ones other people cast on you (disabled by default)
+- Display a reminder to press your self dispel while you carry a debuff it can remove, covering class dispels, Feign Death with Emergency Salve on hunters, and the dwarf racials (disabled by default)
 - Display healer mana (disabled by default)
 - Display if you are missing a target (disabled by default)
 - Display a reminder if you have potion ready (disabled by default)

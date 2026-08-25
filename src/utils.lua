@@ -67,8 +67,13 @@ function ItruliaQoL:IsSpellKnown(spellId)
 
     -- C_SpellBook.IsSpellInSpellBook might return false for w/e reason (like Fel Rush)
     -- C_SpellBook.IsSpellKnown doesn'parts work with overriden spells
-    
-    return C_SpellBook.IsSpellInSpellBook(spellId, Enum.SpellBookSpellBank.Player, false) or C_SpellBook.IsSpellKnown(spellId, Enum.SpellBookSpellBank.Player)
+    -- IsPlayerSpell is what answers for passive talents, which the spellbook may not
+    -- list. Deprecated, hence the existence check.
+
+    return C_SpellBook.IsSpellInSpellBook(spellId, Enum.SpellBookSpellBank.Player, false)
+        or C_SpellBook.IsSpellKnown(spellId, Enum.SpellBookSpellBank.Player)
+        or (IsPlayerSpell and IsPlayerSpell(spellId))
+        or false
 end
 
 function ItruliaQoL:SplitAndTrim(str)
@@ -211,23 +216,50 @@ function ItruliaQoL:IsChatLocked()
     return C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown()
 end
 
-function ItruliaQoL:CreateBorder(frame, r, g, b, a)
+-- static skips the event and script wiring: a border built inside an aura button's
+-- initializeFrame must not register events or scripts, since those are among the
+-- button tree's forbidden aspects and a throw there kills the engine's whole frame
+-- batch. Scripts on button children never dispatch anyway.
+function ItruliaQoL:CreateBorder(frame, r, g, b, a, static)
     local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     PixelUtil.SetPoint(border, "TOPLEFT", frame, "TOPLEFT", 0, 0)
     PixelUtil.SetPoint(border, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    border:SetBackdrop({
-        edgeFile = [[Interface\Buttons\WHITE8x8]],
-        bgFile = [[Interface\Buttons\WHITE8x8]],
-        edgeSize = PixelUtil.GetNearestPixelSize(1, border:GetEffectiveScale(), 1),
-    })
-    border:SetBackdropBorderColor(r or 0, g or 0, b or 0, a or 1)
-    border:SetBackdropColor(0, 0, 0, 0)
     border:SetFrameStrata(frame:GetFrameStrata())
     border:SetFrameLevel(frame:GetFrameLevel() + 2)
+    border.borderColor = {r or 0, g or 0, b or 0, a or 1}
+
+    function border:UpdateSize()
+        local edgeSize = PixelUtil.GetNearestPixelSize(1, self:GetEffectiveScale(), 1)
+
+        if self.edgeSize == edgeSize then
+            return
+        end
+
+        self.edgeSize = edgeSize
+
+        self:SetBackdrop({
+            edgeFile = [[Interface\Buttons\WHITE8x8]],
+            bgFile = [[Interface\Buttons\WHITE8x8]],
+            edgeSize = edgeSize,
+        })
+
+        self:SetBackdropBorderColor(unpack(self.borderColor))
+        self:SetBackdropColor(0, 0, 0, 0)
+    end
 
     function border:SetBorderColor(r2, g2, b2, a2)
+        self.borderColor = {r2, g2, b2, a2 or 1}
         self:SetBackdropBorderColor(r2, g2, b2, a2 or 1)
     end
+
+    if not static then
+        border:RegisterEvent("UI_SCALE_CHANGED")
+        border:RegisterEvent("DISPLAY_SIZE_CHANGED")
+        border:SetScript("OnEvent", border.UpdateSize)
+        border:SetScript("OnSizeChanged", border.UpdateSize)
+    end
+
+    border:UpdateSize()
 
     return border
 end
@@ -264,10 +296,11 @@ function ItruliaQoL:CreateBackground(frame, r, g, b, a)
     background:SetAllPoints()
     background:SetFrameStrata(frame:GetFrameStrata())
     background:SetFrameLevel(math.max(frame:GetFrameLevel() - 1, 0))
+
+    -- No edgeFile here: CreateBorder draws the ring, and an uncolored backdrop
+    -- edge renders white, poking out whenever the two edge sizes disagree.
     background:SetBackdrop({
-        edgeFile = [[Interface\Buttons\WHITE8x8]],
         bgFile = [[Interface\Buttons\WHITE8x8]],
-        edgeSize = PixelUtil.GetNearestPixelSize(1, background:GetEffectiveScale(), 1),
     })
     background:SetBackdropColor(r or 0, g or 0, b or 0, a or 0.35)
 

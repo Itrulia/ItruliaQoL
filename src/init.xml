@@ -22,6 +22,8 @@
 	<Include file="potion-alert\init.xml"/>
 	<Include file="combat-timer\init.xml"/>
 	<Include file="movement-alert\init.xml"/>
+	<Include file="defensive-indicator\init.xml"/>
+	<Include file="self-dispel-alert\init.xml"/>
 	<Include file="healer-mana-indicator\init.xml"/>
 	<Include file="no-target-indicator\init.xml"/>
 	<Include file="repair-indicator\init.xml"/>
