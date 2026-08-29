@@ -221,7 +221,7 @@ end
 -- button tree's forbidden aspects and a throw there kills the engine's whole frame
 -- batch. Scripts on button children never dispatch anyway.
 function ItruliaQoL:CreateBorder(frame, r, g, b, a, static)
-    local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    local border = CreateFrame("frame", nil, frame, "BackdropTemplate")
     PixelUtil.SetPoint(border, "TOPLEFT", frame, "TOPLEFT", 0, 0)
     PixelUtil.SetPoint(border, "BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
     border:SetFrameStrata(frame:GetFrameStrata())
@@ -292,7 +292,7 @@ function ItruliaQoL:GetTTSVoiceOptions()
 end
 
 function ItruliaQoL:CreateBackground(frame, r, g, b, a)
-    local background = CreateFrame("Frame", "$parent_Background", frame, "BackdropTemplate")
+    local background = CreateFrame("frame", "$parent_Background", frame, "BackdropTemplate")
     background:SetAllPoints()
     background:SetFrameStrata(frame:GetFrameStrata())
     background:SetFrameLevel(math.max(frame:GetFrameLevel() - 1, 0))

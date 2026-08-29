@@ -17,7 +17,7 @@ local addonName, ItruliaQoL = ...
 -- Where preview frames live while nothing is showing them. WoW frames can never be
 -- destroyed, so parking -- hidden and out of the config window's frame tree -- is as
 -- close to freeing as the API allows.
-local previewPool = CreateFrame("Frame")
+local previewPool = CreateFrame("frame")
 previewPool:Hide()
 
 -- module -> the display frame currently hosting its preview. Nil for every module

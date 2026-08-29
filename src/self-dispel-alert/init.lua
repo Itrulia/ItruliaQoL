@@ -47,7 +47,7 @@ SelfDispelAlert.dispelTypes = {
 -- Layout is measured from a parked font string: the live alerts hang off engine aura
 -- buttons and refuse reads while auras are secret, and an object that took a secret
 -- refuses GetStringWidth afterwards.
-local measurePool = CreateFrame("Frame")
+local measurePool = CreateFrame("frame")
 measurePool:Hide()
 
 local measureText = measurePool:CreateFontString(nil, "BACKGROUND")
@@ -154,7 +154,7 @@ end
 -- event registrations are forbidden, and one throw inside initializeFrame silently
 -- kills the engine's whole frame batch.
 local function createAlertBorder(parent)
-    local border = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+    local border = CreateFrame("frame", nil, parent, "BackdropTemplate")
     PixelUtil.SetPoint(border, "TOPLEFT", parent, "TOPLEFT", 0, 0)
     PixelUtil.SetPoint(border, "BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0)
 
@@ -200,8 +200,7 @@ function SelfDispelAlert:CreateDisplay(parent)
 end
 
 function SelfDispelAlert:GetDisplaySize(display)
-    local db = self.db
-    local font = db.font
+    local font = self.db.font
     local text = self:GetDisplayText(display)
     local showText = text ~= ""
     local textWidth = 0
@@ -217,36 +216,35 @@ function SelfDispelAlert:GetDisplaySize(display)
 
     local width = 0
 
-    if db.showIcon then
-        width = db.iconSize
+    if self.db.showIcon then
+        width = self.db.iconSize
     end
 
     if showText then
         width = width + textWidth
 
-        if db.showIcon then
+        if self.db.showIcon then
             width = width + iconGap
         end
     end
 
-    local height = math.max(db.showIcon and db.iconSize or 0, textHeight)
+    local height = math.max(self.db.showIcon and self.db.iconSize or 0, textHeight)
 
     return math.max(width, 1), math.max(height, 1)
 end
 
 function SelfDispelAlert:StyleDisplay(display)
-    local db = self.db
-    local font = db.font
+    local font = self.db.font
     local fontFile = LSM:Fetch("font", font.fontFamily)
     local text = self:GetDisplayText(display)
     local showText = text ~= ""
-    local showIcon = db.showIcon
+    local showIcon = self.db.showIcon
     local width = self:GetDisplaySize(display)
 
     display.text:SetFont(fontFile, font.fontSize, font.fontOutline)
     display.text:SetText(text)
     display.text:SetJustifyH(font.justifyH or "CENTER")
-    display.text:SetTextColor(db.color.r, db.color.g, db.color.b, db.color.a)
+    display.text:SetTextColor(self.db.color.r, self.db.color.g, self.db.color.b, self.db.color.a)
     display.text:SetShown(showText)
 
     if font.fontOutline ~= "OUTLINESLUG" then
@@ -259,7 +257,7 @@ function SelfDispelAlert:StyleDisplay(display)
 
     display.icon:SetShown(showIcon)
     display.icon.texture:SetTexture(C_Spell.GetSpellTexture(self:GetDisplaySpellId(display)))
-    PixelUtil.SetSize(display.icon, db.iconSize, db.iconSize)
+    PixelUtil.SetSize(display.icon, self.db.iconSize, self.db.iconSize)
 
     display.icon.border:SetFrameStrata(display.icon:GetFrameStrata())
     display.icon.border:SetFrameLevel(display.icon:GetFrameLevel() + 2)
@@ -320,12 +318,11 @@ function SelfDispelAlert:GenerateFrame(name, parent)
     end
 
     function frame:UpdateStyles()
-        local db = SelfDispelAlert.db
-        local font = db.font
+        local font = SelfDispelAlert.db.font
 
         if not E then
             self:ClearAllPoints()
-            PixelUtil.SetPoint(self, db.point.point, self:GetParent() or UIParent, db.point.point, db.point.x, db.point.y)
+            PixelUtil.SetPoint(self, SelfDispelAlert.db.point.point, self:GetParent() or UIParent, SelfDispelAlert.db.point.point, SelfDispelAlert.db.point.x, SelfDispelAlert.db.point.y)
         end
 
         PixelUtil.SetSize(self, SelfDispelAlert:GetDisplaySize(self.display))

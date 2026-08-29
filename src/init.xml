@@ -38,6 +38,7 @@
 	<Include file="friendly-nameplates\init.xml"/>
 	<Include file="macro-factory\init.xml"/>
 	<Include file="raid-frame-manager\init.xml"/>
+	<Include file="summon-helper\init.xml"/>
 
 	<Include file="misc\init.xml"/>
 

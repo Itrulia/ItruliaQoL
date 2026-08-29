@@ -627,7 +627,7 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
     local rows = math.ceil(count / perRow)
     local height = topInset + rows * rowHeight
 
-    local frame = CreateFrame("Frame", nil, parent)
+    local frame = CreateFrame("frame", nil, parent)
     PP.Size(frame, availW, height)
     PP.Point(frame, "TOPLEFT", parent, "TOPLEFT", pad, y)
 
@@ -650,12 +650,12 @@ function ItruliaQoL:RenderEUIIconGrid(parent, y, items)
         tex:SetTexture(item.icon)
         tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
-        local bdr = CreateFrame("Frame", nil, btn)
+        local bdr = CreateFrame("frame", nil, btn)
         bdr:SetAllPoints()
         bdr:SetFrameLevel(btn:GetFrameLevel() + 1)
         PP.CreateBorder(bdr, 0, 0, 0, 1, 1)
 
-        local hoverBdr = CreateFrame("Frame", nil, btn)
+        local hoverBdr = CreateFrame("frame", nil, btn)
         PixelUtil.SetPoint(hoverBdr, "TOPLEFT", btn, "TOPLEFT", -1, 1)
         PixelUtil.SetPoint(hoverBdr, "BOTTOMRIGHT", btn, "BOTTOMRIGHT", 1, -1)
         hoverBdr:SetFrameLevel(btn:GetFrameLevel() + 2)
@@ -730,7 +730,7 @@ function ItruliaQoL:EUIPreviewHeaderBuilder(module, pageName)
     return function(hdr, hdrW)
         -- Clipped so an oversized preview (a long alert text, a wide bar) stays in the
         -- header strip instead of drawing over the page below it.
-        local display = CreateFrame("Frame", nil, hdr)
+        local display = CreateFrame("frame", nil, hdr)
         PixelUtil.SetSize(display, hdrW, previewHeaderHeight)
         PixelUtil.SetPoint(display, "CENTER", hdr, "CENTER", 0, 0)
         display:SetClipsChildren(true)
@@ -780,7 +780,7 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     local padX, padY = 12, 10
     local availW = parent:GetWidth() - pad * 2
 
-    local frame = CreateFrame("Frame", nil, parent)
+    local frame = CreateFrame("frame", nil, parent)
     PP.Point(frame, "TOPLEFT", parent, "TOPLEFT", pad, y)
     PP.Size(frame, availW, 1) -- provisional; resized once the text has wrapped
 
@@ -2134,10 +2134,8 @@ function ItruliaQoL:AttachEUISidebarSwitches(entries)
                 local enable = not anyOn()
 
                 for _, member in ipairs(members) do
-                    local db = member.module.db
-
-                    if db then
-                        db.enabled = enable
+                    if member.module.db then
+                        member.module.db.enabled = enable
 
                         if member.module.RefreshConfig then
                             member.module:RefreshConfig()

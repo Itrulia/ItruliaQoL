@@ -23,6 +23,7 @@ Combat related:
 - Display if you are missing a target (disabled by default)
 - Display a reminder if you have potion ready (disabled by default)
 - Display a reminder if you have to repair (disabled by default)
+- Highlight raid frames when someone asks for a summon (disabled by default)
 - Disable release unless you hold down control (disabled by default)
 
 Non combat related:

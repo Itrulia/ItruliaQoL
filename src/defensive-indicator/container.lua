@@ -224,7 +224,7 @@ function DefensiveIndicator:InitialiseWinnerButton(button)
 
     pcall(button.SetScale, button, 1)
 
-    local carrier = CreateFrame("Frame", nil, button)
+    local carrier = CreateFrame("frame", nil, button)
     PixelUtil.SetPoint(carrier, "CENTER", self.frame, "CENTER", 0, 0)
     PixelUtil.SetSize(carrier, 1, 1)
     carrier:EnableMouse(false)

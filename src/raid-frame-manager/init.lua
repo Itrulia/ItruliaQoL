@@ -185,13 +185,11 @@ local function OnEvent(self)
 end
 
 local function mouseoverAlpha(frame)
-    local db = RaidFrameManager.db
-
     if frame:IsMouseOver() then
-        return db.mouseoverAlpha or 1
+        return RaidFrameManager.db.mouseoverAlpha or 1
     end
 
-    return db.mouseoverFadeAlpha or 0
+    return RaidFrameManager.db.mouseoverFadeAlpha or 0
 end
 
 local function OnMouseoverUpdate(self, elapsed)
@@ -207,7 +205,7 @@ local function OnMouseoverUpdate(self, elapsed)
 end
 
 function RaidFrameManager:GenerateFrame(name, parent)
-    local frame = CreateFrame("Frame", name, parent or UIParent)
+    local frame = CreateFrame("frame", name, parent or UIParent)
     PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 0)
     PixelUtil.SetSize(frame, 58, 20)
     frame.buttons = {}
@@ -272,12 +270,11 @@ function RaidFrameManager:GenerateFrame(name, parent)
     end
 
     function frame:UpdateButtons()
-        local db = RaidFrameManager.db
         local specs = RaidFrameManager:GetButtonSpecs()
-        local horizontal = db.orientation ~= "VERTICAL"
-        local spacing = db.spacing
-        local paddingX, paddingY = db.paddingX, db.paddingY
-        local font = db.font
+        local horizontal = RaidFrameManager.db.orientation ~= "VERTICAL"
+        local spacing = RaidFrameManager.db.spacing
+        local paddingX, paddingY = RaidFrameManager.db.paddingX, RaidFrameManager.db.paddingY
+        local font = RaidFrameManager.db.font
         local justify = font.justifyH or "CENTER"
 
         -- The widest label sets the size for all of them: ragged buttons read as a
@@ -288,11 +285,11 @@ function RaidFrameManager:GenerateFrame(name, parent)
             local btn = self:AcquireButton(index)
 
             btn.spec = spec
-            btn.bg:SetColor(db.buttonColor.r, db.buttonColor.g, db.buttonColor.b, db.buttonColor.a)
+            btn.bg:SetColor(RaidFrameManager.db.buttonColor.r, RaidFrameManager.db.buttonColor.g, RaidFrameManager.db.buttonColor.b, RaidFrameManager.db.buttonColor.a)
 
             btn.text:SetText(spec.label)
             btn.text:SetFont(LSM:Fetch("font", font.fontFamily), font.fontSize, font.fontOutline)
-            btn.text:SetTextColor(db.textColor.r, db.textColor.g, db.textColor.b, db.textColor.a)
+            btn.text:SetTextColor(RaidFrameManager.db.textColor.r, RaidFrameManager.db.textColor.g, RaidFrameManager.db.textColor.b, RaidFrameManager.db.textColor.a)
             btn.text:SetJustifyH(justify)
             btn.text:ClearAllPoints()
 
@@ -389,9 +386,7 @@ function RaidFrameManager:GenerateFrame(name, parent)
             return
         end
 
-        local db = RaidFrameManager.db
-
-        if not db.enabled then
+        if not RaidFrameManager.db.enabled then
             self:Hide()
             self:UpdateMouseover()
 
@@ -406,15 +401,13 @@ function RaidFrameManager:GenerateFrame(name, parent)
     end
 
     function frame:UpdateStyles()
-        local db = RaidFrameManager.db
-
         if not E then
             self:ClearAllPoints()
-            PixelUtil.SetPoint(self, db.point.point, self:GetParent() or UIParent, db.point.point, db.point.x, db.point.y)
+            PixelUtil.SetPoint(self, RaidFrameManager.db.point.point, self:GetParent() or UIParent, RaidFrameManager.db.point.point, RaidFrameManager.db.point.x, RaidFrameManager.db.point.y)
         end
 
-        self:SetFrameStrata(db.font.frameStrata or "MEDIUM")
-        self:SetFrameLevel(db.font.frameLevel or 1)
+        self:SetFrameStrata(RaidFrameManager.db.font.frameStrata or "MEDIUM")
+        self:SetFrameLevel(RaidFrameManager.db.font.frameLevel or 1)
         self:UpdateButtons()
         self:UpdatePermissions()
     end
@@ -436,7 +429,7 @@ function RaidFrameManager:ApplyBlizzardVisibility()
 
     if self.db.enabled then
         if not hiddenParent then
-            hiddenParent = CreateFrame("Frame")
+            hiddenParent = CreateFrame("frame")
             hiddenParent:Hide()
         end
 

@@ -5,6 +5,7 @@ ItruliaQoL.C = LibStub("AceConfig-3.0")
 ItruliaQoL.CD = LibStub("AceConfigDialog-3.0")
 ItruliaQoL.LSM = LibStub("LibSharedMedia-3.0")
 ItruliaQoL.LEM = LibStub("LibEditMode")
+ItruliaQoL.LGF = LibStub("LibGetFrame-1.0")
 ItruliaQoL.testMode = false
 ItruliaQoL.E = ElvUI and unpack(ElvUI)
 ItruliaQoL.EUI = _G.EllesmereUI

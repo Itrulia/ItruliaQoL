@@ -105,7 +105,7 @@ local function Control_OnShow(frame)
 end
 
 local function Constructor()
-    local frame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    local frame = CreateFrame("frame", nil, UIParent, "BackdropTemplate")
     frame:Hide()
     frame:SetBackdrop({
         bgFile = [[Interface\Buttons\WHITE8x8]],
@@ -123,7 +123,7 @@ local function Constructor()
 
     -- Clipped so an oversized preview (a long alert text, a wide bar) stays inside the
     -- box instead of drawing over the rest of the options page.
-    local display = CreateFrame("Frame", nil, frame)
+    local display = CreateFrame("frame", nil, frame)
     PixelUtil.SetPoint(display, "TOPLEFT", display:GetParent() or UIParent, "TOPLEFT", 1, -labelHeight)
     PixelUtil.SetPoint(display, "BOTTOMRIGHT", display:GetParent() or UIParent, "BOTTOMRIGHT", -1, 1)
     display:SetClipsChildren(true)

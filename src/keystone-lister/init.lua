@@ -329,7 +329,7 @@ local function OnEvent(self, event)
 end
 
 function KeystoneLister:GenerateFrame(name, parent)
-    local frame = CreateFrame("Frame", name, parent or UIParent)
+    local frame = CreateFrame("frame", name, parent or UIParent)
     PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 0)
     PixelUtil.SetSize(frame, 80, 20)
 
