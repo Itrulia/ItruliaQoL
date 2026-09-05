@@ -920,10 +920,42 @@ end
 
 -- A single EllesmereUI-native "Statusbar texture" dropdown row (name label +
 -- per-texture preview). `row` is the usual select spec minus values/order:
---   { label?, tooltip?, disabled?, refresh?, get, set }
--- `get`/`set` read/write the LSM texture name.
+--   { label?, tooltip?, disabled?, refresh?, get, set, none? }
+-- `get`/`set` read/write the LSM texture name. With `none` set, a "None" entry
+-- (a string overrides the label) is pinned above the textures and maps to nil:
+-- `get` may return nil and `set` receives nil when it is picked, so "no texture
+-- stored" round-trips without the caller knowing the sentinel key.
 function ItruliaQoL:EUIStatusbarRow(row)
     local vals, order = self:EUIStatusbarValues()
+    local get, set = row.get, row.set
+
+    if row.none then
+        local noneKey = "__none__"
+        vals[noneKey] = type(row.none) == "string" and row.none or "None"
+        table.insert(order, 1, noneKey)
+
+        -- LSM:Fetch falls back to the default statusbar texture for unknown
+        -- keys, which would preview a texture behind the "None" entry.
+        local background = vals._menuOpts.background
+        vals._menuOpts.background = function(key)
+            if key == noneKey then
+                return nil
+            end
+
+            return background(key)
+        end
+
+        get = function()
+            return row.get() or noneKey
+        end
+        set = function(value)
+            if value == noneKey then
+                row.set(nil)
+            else
+                row.set(value)
+            end
+        end
+    end
 
     return {
         type = "select",
@@ -933,8 +965,8 @@ function ItruliaQoL:EUIStatusbarRow(row)
         order = order,
         disabled = row.disabled,
         refresh = row.refresh,
-        get = row.get,
-        set = row.set,
+        get = get,
+        set = set,
     }
 end
 

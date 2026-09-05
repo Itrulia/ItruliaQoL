@@ -397,10 +397,14 @@ Prefer `refresh` where it is enough: a rebuild reallocates every widget on the p
 - **`ItruliaQoL:EUIStatusbarRow(row)`** → a statusbar-texture dropdown row: the
   texture **name** as the label and the texture itself drawn behind each menu row
   as a preview. `row` is the usual select spec minus `values`/`order`
-  (`label?`, `tooltip?`, `disabled?`, `refresh?`, `get`, `set`); `label` defaults
-  to `"Statusbar texture"`:
+  (`label?`, `tooltip?`, `disabled?`, `refresh?`, `get`, `set`, `none?`); `label`
+  defaults to `"Statusbar texture"`. With `none` set (truthy; a string overrides
+  the entry's "None" label), a "None" entry is pinned above the textures and maps
+  to nil: `get` may return nil and `set` receives nil when it is picked, so an
+  optional texture round-trips without the caller handling a sentinel key:
   ```lua
   ItruliaQoL:EUIStatusbarRow({
+      none = true,
       get = function() return M.db.statusbarTexture end,
       set = function(v) M.db.statusbarTexture = v; apply() end,
   }),

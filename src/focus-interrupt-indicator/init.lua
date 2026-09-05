@@ -10,6 +10,7 @@ local function OnEvent(self, event, unit, ...)
     self.active = false
 
     if ItruliaQoL.testMode then
+        self:SetAlpha(1)
         self.text:Show()
         self.text:SetAlpha(1)
         return
@@ -31,10 +32,12 @@ local function OnUpdate(self)
     if ItruliaQoL.testMode then
         self:SetAlpha(1)
         self.text:Show()
+        self.text:SetAlpha(1)
         return
     end
 
     if not self.active then
+        self:SetAlpha(1)
         self.text:Hide()
         self.text:SetAlpha(0)
         return

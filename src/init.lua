@@ -293,7 +293,7 @@ function ItruliaQoL:ToggleTestMode(enabled)
 
     for _, module in self:IterateModules() do
         if module.ToggleTestMode then
-            module:ToggleTestMode(enabled)
+            xpcall(module.ToggleTestMode, geterrorhandler(), module, enabled)
         end
     end
 end
