@@ -142,12 +142,69 @@ DefensiveIndicator.externalAuras = {
     {auraId = 33206}, -- Pain Suppression
 }
 
+if ItruliaQoL.isForever then
+    DefensiveIndicator.defensiveAuras = {
+        DRUID = {
+            {auraId = 22812}, -- Barkskin
+            {auraId = 22842, category = "MINOR"}, -- Frenzied Regeneration
+        },
+        HUNTER = {
+            {auraId = 19263}, -- Deterrence
+            {auraId = 5384, category = "MINOR", defaultOff = true}, -- Feign Death
+        },
+        MAGE = {
+            {auraId = 11958, category = "MASSIVE"}, -- Ice Block
+            {auraId = 11426, ranks = {13031, 13032, 13033}, category = "MINOR"}, -- Ice Barrier
+            {auraId = 1463, ranks = {8494, 8495, 10191, 10192, 10193}, category = "MINOR", defaultOff = true}, -- Mana Shield
+            {auraId = 6143, ranks = {8461, 8462, 10177}, category = "MINOR", defaultOff = true}, -- Frost Ward
+            {auraId = 543, ranks = {8457, 8458, 10223, 10225}, category = "MINOR", defaultOff = true}, -- Fire Ward
+        },
+        PALADIN = {
+            {auraId = 498, ranks = {5573}, category = "MASSIVE"}, -- Divine Protection
+            {auraId = 642, ranks = {1020}, category = "MASSIVE"}, -- Divine Shield
+            {auraId = 20925, ranks = {20927, 20928}, category = "MINOR", defaultOff = true}, -- Holy Shield
+        },
+        PRIEST = {
+            {auraId = 17, ranks = {592, 600, 3747, 6065, 6066, 10898, 10899, 10900, 10901}, category = "MINOR"}, -- Power Word: Shield
+            {auraId = 586, ranks = {9578, 9579, 9592, 10941, 10942}, category = "MINOR"}, -- Fade
+            {auraId = 27827, spellId = 20711, category = "MASSIVE"}, -- Spirit of Redemption
+        },
+        ROGUE = {
+            {auraId = 5277}, -- Evasion
+            {auraId = 11327, spellId = 1856, ranks = {11329}, category = "MINOR", defaultOff = true}, -- Vanish
+        },
+        WARLOCK = {
+            {auraId = 7812, spellId = 697, ranks = {19438, 19440, 19441, 19442, 19443}}, -- Sacrifice, cast by the Voidwalker
+            {auraId = 6229, ranks = {11739, 11740}, category = "MINOR", defaultOff = true}, -- Shadow Ward
+            {auraId = 25228, spellId = 19028, category = "MINOR", defaultOff = true}, -- Soul Link
+        },
+        WARRIOR = {
+            {auraId = 871, category = "MASSIVE"}, -- Shield Wall
+            {auraId = 12976, spellId = 12975}, -- Last Stand
+            {auraId = 2565, category = "MINOR", defaultOff = true}, -- Shield Block
+            {auraId = 18499, category = "MINOR", defaultOff = true}, -- Berserker Rage
+        },
+    }
+
+    DefensiveIndicator.externalAuras = {
+        -- Paladin
+        {auraId = 1022, ranks = {5599, 10278}}, -- Blessing of Protection
+        {auraId = 6940, ranks = {20729}}, -- Blessing of Sacrifice
+    }
+end
+
 DefensiveIndicator.defensiveAurasBySpell = {}
 DefensiveIndicator.auraCategories = {}
+DefensiveIndicator.rankBase = {}
 
 local function registerAura(entry, category)
     DefensiveIndicator.auraCategories[entry.auraId] = category
     DefensiveIndicator.defensiveAurasBySpell[entry.auraId] = not entry.defaultOff
+
+    for _, rankId in ipairs(entry.ranks or {}) do
+        DefensiveIndicator.auraCategories[rankId] = category
+        DefensiveIndicator.rankBase[rankId] = entry.auraId
+    end
 end
 
 for _, entries in pairs(DefensiveIndicator.defensiveAuras) do
@@ -169,6 +226,8 @@ function DefensiveIndicator:GetColor(category)
 end
 
 function DefensiveIndicator:IsAuraTracked(spellId)
+    spellId = self.rankBase[spellId] or spellId
+
     local tracked = self.db.trackedAuras[spellId]
 
     if tracked == nil then
@@ -183,7 +242,7 @@ function DefensiveIndicator:CacheKnownAuras()
     local changed = not self.knownAuras
     local previous = self.knownAuras or {}
 
-    for _, entry in ipairs(self.defensiveAuras[ItruliaQoL.PlayerClass] or {}) do
+    for _, entry in ipairs(self.defensiveAuras[ItruliaQoL.playerClass] or {}) do
         if ItruliaQoL:IsSpellKnown(entry.spellId or entry.auraId) then
             known[entry.auraId] = true
 
@@ -209,7 +268,7 @@ function DefensiveIndicator:IsAuraKnown(spellId)
         self:CacheKnownAuras()
     end
 
-    return self.knownAuras[spellId] or false
+    return self.knownAuras[self.rankBase[spellId] or spellId] or false
 end
 
 function DefensiveIndicator:UpdateKnownAuras()
@@ -228,11 +287,15 @@ function DefensiveIndicator:CacheTrackedAuras()
         for _, entry in ipairs(entries or {}) do
             if self:IsAuraTracked(entry.auraId) and self:IsAuraKnown(entry.auraId) then
                 tracked[#tracked + 1] = entry.auraId
+
+                for _, rankId in ipairs(entry.ranks or {}) do
+                    tracked[#tracked + 1] = rankId
+                end
             end
         end
     end
 
-    add(self.defensiveAuras[ItruliaQoL.PlayerClass])
+    add(self.defensiveAuras[ItruliaQoL.playerClass])
     add(self.externalAuras)
 
     self.trackedAuras = tracked
@@ -253,7 +316,7 @@ function DefensiveIndicator:GetSampleSpell()
         return tracked[1]
     end
 
-    local entries = self.defensiveAuras[ItruliaQoL.PlayerClass]
+    local entries = self.defensiveAuras[ItruliaQoL.playerClass]
 
     return entries and entries[1] and entries[1].auraId or 871
 end

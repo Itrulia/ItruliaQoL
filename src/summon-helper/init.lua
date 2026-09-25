@@ -233,7 +233,7 @@ function SummonHelper:ReleaseSummoned()
 end
 
 function SummonHelper:IsRitualReady()
-    if ItruliaQoL.PlayerClass ~= "WARLOCK" or not ItruliaQoL:IsSpellKnown(ritualOfSummoning) then
+    if ItruliaQoL.playerClass ~= "WARLOCK" or not ItruliaQoL:IsSpellKnown(ritualOfSummoning) then
         return false
     end
 

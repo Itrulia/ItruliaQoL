@@ -108,13 +108,13 @@ function ItruliaQoL:RegisterOptions()
 
 	local parentOptions = {
         type = "group",
-        name = "Itrulia QoL",
+        name = self.displayName,
         childGroups = "tree",
         args = options
     }
 
 	self.C:RegisterOptionsTable(addonName, parentOptions)
-    self.CD:AddToBlizOptions(addonName, "Itrulia QoL")
+    self.CD:AddToBlizOptions(addonName, self.displayName)
 
     for _, module in self:IterateModules() do
         if module.RegisterOptions then

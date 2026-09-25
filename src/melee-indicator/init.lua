@@ -7,48 +7,60 @@ local E = ItruliaQoL.E
 
 local MeleeIndicator = ItruliaQoL:NewModule(moduleName)
 
-local meleeSpells = {
-    DEATHKNIGHT = {
-        [250] = 49998,
-        [251] = 49998,
-        [252] = 49998,
-    },
-    DEMONHUNTER = {
-        [577] = 162794,
-        [581] = 344859
-    },
-    DRUID = {
-        [103] = 5221,
-        [104] = 33917,
-        [105] = 22568,
-    },
-    HUNTER = {
-        [255] = 186270,
-    },
-    MONK = {
-        [268] = 205523,
-        [269] = 205523,
-        [270] = 205523,
-    },
-    PALADIN = {
-        [65] = 415091,
-        [66] = 96231,
-        [70] = 96231,
-    },
-    ROGUE = {
-        [259] = 1752,
-        [260] = 1752,
-        [261] = 1752
-    },
-    SHAMAN = {
-        [263] = 73899
-    },
-    WARRIOR = {
-        [71] = 1715,
-        [72] = 1715,
-        [73] = 1715,
-    },
-}
+local meleeSpells
+
+if ItruliaQoL.isForever then
+    meleeSpells = {
+        DRUID = {1082, 6807},   -- Claw (cat), Maul (bear)
+        PALADIN = {17143},      -- Holy Strike
+        ROGUE = {1752},         -- Sinister Strike
+        SHAMAN = {17364},       -- Stormstrike
+        WARRIOR = {78, 1715},   -- Heroic Strike, Hamstring
+    }
+else
+    meleeSpells = {
+        DEATHKNIGHT = {
+            [250] = 49998, -- Death Strike
+            [251] = 49998, -- Death Strike
+            [252] = 49998, -- Death Strike
+        },
+        DEMONHUNTER = {
+            [577] = 162794, -- Chaos Strike
+            [581] = 344859, -- Demon's Bite
+        },
+        DRUID = {
+            [103] = 5221, -- Shred
+            [104] = 33917, -- Mangle
+            [105] = 22568, -- Ferocious Bite
+        },
+        HUNTER = {
+            [255] = 186270, -- Raptor Strike
+        },
+        MONK = {
+            [268] = 205523, -- Blackout Kick
+            [269] = 205523, -- Blackout Kick
+            [270] = 205523, -- Blackout Kick
+        },
+        PALADIN = {
+            [65] = 415091, -- Shield of the Righteous
+            [66] = 96231, -- Rebuke
+            [70] = 96231, -- Rebuke
+        },
+        ROGUE = {
+            [259] = 1752, -- Sinister Strike
+            [260] = 1752, -- Sinister Strike
+            [261] = 1752, -- Sinister Strike
+        },
+        SHAMAN = {
+            [263] = 73899, -- Primal Strike
+        },
+        WARRIOR = {
+            [71] = 1715, -- Hamstring
+            [72] = 1715, -- Hamstring
+            [73] = 1715, -- Hamstring
+        },
+    }
+end
 
 local function OnEvent(self, ...)
     self:CacheMeleeSpellId()
@@ -94,21 +106,35 @@ function MeleeIndicator:GenerateFrame(name, parent)
     frame.text:Hide()
 
     function frame:GetSpellToCheck()
-        local class = select(2, UnitClass("player"))
-        local specId = select(1, GetSpecializationInfo(GetSpecialization()))
-        local spells = self.meleeSpells[class]
+        local entry = self.meleeSpells[ItruliaQoL.playerClass]
 
-        if not spells or not specId then
+        if not entry then
             return nil
         end
 
-        local spellId = spells[specId]
-        if not spellId then
-            return nil
+        if ItruliaQoL.isForever then
+            local fallback = nil
+
+            for _, spellId in ipairs(entry) do
+                if ItruliaQoL:IsSpellKnown(spellId) then
+                    local usable, missingResources = C_Spell.IsSpellUsable(spellId)
+
+                    if usable or missingResources then
+                        return spellId
+                    end
+
+                    fallback = fallback or spellId
+                end
+            end
+
+            return fallback
         end
 
-        local spellInfo = C_Spell.GetSpellInfo(spellId)
-        if not spellInfo then
+        local specIndex = C_SpecializationInfo.GetSpecialization()
+        local specId = specIndex and C_SpecializationInfo.GetSpecializationInfo(specIndex)
+        local spellId = specId and entry[specId]
+
+        if not spellId or not C_Spell.GetSpellInfo(spellId) then
             return nil
         end
 
@@ -199,6 +225,8 @@ function MeleeIndicator:EnsureFrame()
 
     frame:RegisterEvent("PLAYER_ENTERING_WORLD")
     frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    frame:RegisterEvent("SPELLS_CHANGED")
+    frame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 
     if E then
         E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,

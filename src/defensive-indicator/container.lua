@@ -117,11 +117,15 @@ function DefensiveIndicator:GetTrackedIds(category)
             if self:GetAuraCategory(entry.auraId) == category and self:IsAuraTracked(entry.auraId) and self:IsAuraKnown(entry.auraId) then
                 ids = ids or {}
                 ids[entry.auraId] = true
+
+                for _, rankId in ipairs(entry.ranks or {}) do
+                    ids[rankId] = true
+                end
             end
         end
     end
 
-    add(self.defensiveAuras[ItruliaQoL.PlayerClass])
+    add(self.defensiveAuras[ItruliaQoL.playerClass])
 
     add(self.externalAuras)
 

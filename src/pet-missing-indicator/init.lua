@@ -7,24 +7,8 @@ local E = ItruliaQoL.E
 
 local PetMissingIndicator = ItruliaQoL:NewModule(moduleName)
 
-local petClasses = {
-    DEATHKNIGHT = {[250] = false, [251] = false, [252] = true},
-    DEMONHUNTER = {[577] = false, [581] = false, [1480] = false},
-    DRUID = {[102] = false, [103] = false, [104] = false, [105] = false},
-    EVOKER = {[1467] = false, [1468] = false, [1473] = false},
-    HUNTER = {[253] = true, [254] = 1223323, [255] = true},
-    MAGE = {[62] = false, [63] = false, [64] = 31687},
-    MONK = {[268] = false, [269] = false, [270] = false},
-    PALADIN = {[65] = false, [66] = false, [70] = false},
-    PRIEST = {[256] = false, [257] = false, [258] = false},
-    ROGUE = {[259] = false, [260] = false, [261] = false},
-    SHAMAN = {[262] = false, [263] = false, [264] = false},
-    WARLOCK = {[265] = true, [266] = true, [267] = true},
-    WARRIOR = {[71] = false, [72] = false, [73] = false}
-}
-
 local function OnEvent(self, event, ...)
-    local petSpec = self:IsPetSpec()
+    local petSpec = ItruliaQoL:IsPetSpec()
     local conditionsWherePetIsntShown = IsMounted() or UnitInVehicle("player") or UnitIsDeadOrGhost("player")
 
     if ItruliaQoL.testMode then
@@ -48,8 +32,6 @@ function PetMissingIndicator:GenerateFrame(name, parent)
     PixelUtil.SetPoint(frame, "CENTER", frame:GetParent() or UIParent, "CENTER", 0, 300)
     PixelUtil.SetSize(frame, 28, 28)
 
-    frame.petClasses = petClasses
-
     frame.text = frame:CreateFontString(nil, "OVERLAY")
     frame.text:SetPoint("CENTER")
     frame.text:SetFont(LSM:Fetch("font", "Expressway"), 28, "OUTLINE")
@@ -57,24 +39,6 @@ function PetMissingIndicator:GenerateFrame(name, parent)
     frame.text:SetTextColor(1, 1, 1)
     frame.text:SetJustifyH("CENTER")
     frame.text:Hide()
-
-    function frame:IsPetSpec()
-        local class = select(2, UnitClass("player"))
-        local specID = select(1, GetSpecializationInfo(GetSpecialization()))
-        local spells = self.petClasses[class]
-
-        if not spells or not specID then
-            return nil
-        end
-
-        local spellId = spells[specID]
-
-        if spellId == true or not spellId then
-            return spellId
-        end
-
-        return ItruliaQoL:IsSpellKnown(spellId)
-    end
 
     function frame:IsPetPassive()
         if not UnitExists("pet") then

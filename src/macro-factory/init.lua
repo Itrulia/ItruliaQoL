@@ -151,22 +151,10 @@ function MacroFactory:CreateOrUpdateMacro(name, body, perCharacter, icon)
 end
 
 function MacroFactory:GetClassInterruptSpellNames()
-    local specs = ItruliaQoL.interruptSpells[ItruliaQoL.PlayerClass]
-
-    if not specs then
-        return {}
-    end
-
-    local specIds = {}
-    for specId in pairs(specs) do
-        table.insert(specIds, specId)
-    end
-    table.sort(specIds)
-
     local names, seen = {}, {}
-    for _, specId in ipairs(specIds) do
-        local spellId = specs[specId]
-        local name = spellId and C_Spell.GetSpellName(spellId)
+
+    for _, spellId in ipairs(ItruliaQoL:GetClassInterruptSpells()) do
+        local name = C_Spell.GetSpellName(spellId)
 
         if name and not seen[name] then
             seen[name] = true

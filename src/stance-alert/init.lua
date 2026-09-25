@@ -51,7 +51,7 @@ StanceAlert.StanceCheckers = {
 }
 
 function StanceAlert:IsWrongStance()
-    local checker = StanceAlert.StanceCheckers[ItruliaQoL.PlayerClass]
+    local checker = StanceAlert.StanceCheckers[ItruliaQoL.playerClass]
 
     if not checker then
         return false
@@ -129,7 +129,7 @@ function StanceAlert:EnsureFrame()
     local frame = self:GenerateFrame(addonName .. moduleName)
     self.frame = frame
 
-    if StanceAlert.StanceCheckers[ItruliaQoL.PlayerClass] then
+    if StanceAlert.StanceCheckers[ItruliaQoL.playerClass] then
         frame:RegisterEvent("PLAYER_ENTERING_WORLD")
         frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
         frame:RegisterEvent("PLAYER_TALENT_UPDATE")

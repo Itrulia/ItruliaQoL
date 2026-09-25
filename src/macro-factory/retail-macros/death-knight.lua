@@ -2,7 +2,7 @@ local addonName, ItruliaQoL = ...
 local moduleName = "MacroFactory"
 local MacroFactory = ItruliaQoL:GetModule(moduleName)
 
-if ItruliaQoL.PlayerClass ~= "DEATHKNIGHT" then
+if ItruliaQoL.playerClass ~= "DEATHKNIGHT" then
     return
 end
 

@@ -2,7 +2,7 @@ local addonName, ItruliaQoL = ...
 local moduleName = "MacroFactory"
 local MacroFactory = ItruliaQoL:GetModule(moduleName)
 
-if ItruliaQoL.PlayerClass ~= "PRIEST" then
+if ItruliaQoL.playerClass ~= "PRIEST" then
     return
 end
 
@@ -15,7 +15,6 @@ MacroFactory:RegisterMacro({
         local body = table.concat({
             "#showtooltip Power Infusion",
             "/cast [@mouseover,help,nodead][@player] Power Infusion",
-            "/cast [known:Void Volley] Void Volley",
         }, "\n")
 
         MacroFactory:CreateOrUpdateMacro(name, body, true)

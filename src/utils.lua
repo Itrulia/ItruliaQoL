@@ -1,41 +1,171 @@
 local addonName, ItruliaQoL = ...
 
-ItruliaQoL.PlayerClass = select(2, UnitClass("player"));
+ItruliaQoL.playerClass = select(2, UnitClass("player"));
 
-ItruliaQoL.interruptSpells = {
-    DEATHKNIGHT = {[250] = 47528, [251] = 47528, [252] = 47528},
-    DEMONHUNTER = {[577] = 183752, [581] = 183752, [1480] = 183752},
-    DRUID = {[102] = 78675, [103] = 106839, [104] = 106839, [105] = nil},
-    EVOKER = {[1467] = 351338, [1468] = 351338, [1473] = 351338},
-    HUNTER = {[253] = 147362, [254] = 147362, [255] = 187707},
-    MAGE = {[62] = 2139, [63] = 2139, [64] = 2139},
-    MONK = {[268] = 116705, [269] = 116705, [270] = nil},
-    PALADIN = {[65] = nil, [66] = 96231, [70] = 96231},
-    PRIEST = {[256] = nil, [257] = nil, [258] = 15487},
-    ROGUE = {[259] = 1766, [260] = 1766, [261] = 1766},
-    SHAMAN = {[262] = 57994, [263] = 57994, [264] = 57994},
-    WARLOCK = {[265] = 19647, [266] = 119914, [267] = 19647},
-    WARRIOR = {[71] = 6552, [72] = 6552, [73] = 6552}
-}
+-- Forever runs the 12.x engine with vanilla content and reports a 1.60+ interface number (16001). 
+-- Classic Era reports 115xx and retail 12xxxx.
+ItruliaQoL.interfaceVersion = select(4, GetBuildInfo())
+ItruliaQoL.isForever = type(ItruliaQoL.interfaceVersion) == "number" and ItruliaQoL.interfaceVersion >= 16000 and ItruliaQoL.interfaceVersion < 20000
+
+if ItruliaQoL.isForever then
+    ItruliaQoL.displayName = "ItruliaQoL Foreva"
+    ItruliaQoL.displayNameColored = "|cffe9e9edItrulia|r|cff9184d9QoL|r |cff40a1afForeva|r"
+else
+    ItruliaQoL.displayName = "Itrulia QoL"
+    ItruliaQoL.displayNameColored = "|cffe9e9edItrulia|r |cff9184d9QoL|r"
+end
+
+if ItruliaQoL.isForever then
+    ItruliaQoL.interruptSpells = {
+        MAGE = {2139},          -- Counterspell
+        PRIEST = {15487},       -- Silence
+        ROGUE = {1766},         -- Kick
+        SHAMAN = {8042},        -- Earth Shock
+        WARLOCK = {19244},      -- Spell Lock (Felhunter)
+        WARRIOR = {6552, 72},   -- Pummel, Shield Bash
+    }
+else
+    ItruliaQoL.interruptSpells = {
+        DEATHKNIGHT = {[250] = 47528, [251] = 47528, [252] = 47528},
+        DEMONHUNTER = {[577] = 183752, [581] = 183752, [1480] = 183752},
+        DRUID = {[102] = 78675, [103] = 106839, [104] = 106839, [105] = nil},
+        EVOKER = {[1467] = 351338, [1468] = 351338, [1473] = 351338},
+        HUNTER = {[253] = 147362, [254] = 147362, [255] = 187707},
+        MAGE = {[62] = 2139, [63] = 2139, [64] = 2139},
+        MONK = {[268] = 116705, [269] = 116705, [270] = nil},
+        PALADIN = {[65] = nil, [66] = 96231, [70] = 96231},
+        PRIEST = {[256] = nil, [257] = nil, [258] = 15487},
+        ROGUE = {[259] = 1766, [260] = 1766, [261] = 1766},
+        SHAMAN = {[262] = 57994, [263] = 57994, [264] = 57994},
+        WARLOCK = {[265] = 19647, [266] = 119914, [267] = 19647},
+        WARRIOR = {[71] = 6552, [72] = 6552, [73] = 6552}
+    }
+end
+
+function ItruliaQoL:GetClassInterruptSpells()
+    local entry = self.interruptSpells[self.playerClass]
+    local spells = {}
+
+    if not entry then
+        return spells
+    end
+
+    if self.isForever then
+        for _, spellId in ipairs(entry) do
+            table.insert(spells, spellId)
+        end
+
+        return spells
+    end
+
+    local specIds = {}
+    for specId in pairs(entry) do
+        table.insert(specIds, specId)
+    end
+    table.sort(specIds)
+
+    local seen = {}
+    for _, specId in ipairs(specIds) do
+        local spellId = entry[specId]
+
+        if spellId and not seen[spellId] then
+            seen[spellId] = true
+            table.insert(spells, spellId)
+        end
+    end
+
+    return spells
+end
 
 function ItruliaQoL:GetInterruptSpell()
-    local class = select(2, UnitClass("player"))
-    local specId = select(1, GetSpecializationInfo(GetSpecialization()))
+    local entry = self.interruptSpells[self.playerClass]
 
-    return ItruliaQoL.interruptSpells[class][specId]
+    if not entry then
+        return nil
+    end
+
+    if self.isForever then
+        for _, spellId in ipairs(entry) do
+            if self:IsSpellKnown(spellId) then
+                return spellId
+            end
+        end
+
+        return entry[1]
+    end
+
+    local specIndex = C_SpecializationInfo.GetSpecialization()
+    local specId = specIndex and C_SpecializationInfo.GetSpecializationInfo(specIndex)
+
+    return specId and entry[specId] or nil
 end
+
 
 ItruliaQoL.battleRezSpells = {
     DEATHKNIGHT = 61999,  -- Raise Ally
-    DRUID = 20484,        -- Rebirth
+    DRUID = 20484,        -- Rebirth (same id in forever)
     PALADIN = 391054,     -- Intercession
     WARLOCK = 20707,      -- Soulstone
 }
 
 function ItruliaQoL:GetBattleRezSpell()
-    local class = select(2, UnitClass("player"))
+    return self.battleRezSpells[self.playerClass]
+end
 
-    return ItruliaQoL.battleRezSpells[class]
+if ItruliaQoL.isForever then
+    ItruliaQoL.petSpecs = {
+        HUNTER = {excludes = 415370}, -- Lone Wolf
+        WARLOCK = true,
+    }
+else
+    ItruliaQoL.petSpecs = {
+        DEATHKNIGHT = {[250] = false, [251] = false, [252] = true},
+        DEMONHUNTER = {[577] = false, [581] = false, [1480] = false},
+        DRUID = {[102] = false, [103] = false, [104] = false, [105] = false},
+        EVOKER = {[1467] = false, [1468] = false, [1473] = false},
+        HUNTER = {[253] = true, [254] = {requires = 1223323}, [255] = {excludes = 155228}}, -- Unbreakable Bond, Lone Wolf
+        MAGE = {[62] = false, [63] = false, [64] = {requires = 31687}}, -- Summon Water Elemental
+        MONK = {[268] = false, [269] = false, [270] = false},
+        PALADIN = {[65] = false, [66] = false, [70] = false},
+        PRIEST = {[256] = false, [257] = false, [258] = false},
+        ROGUE = {[259] = false, [260] = false, [261] = false},
+        SHAMAN = {[262] = false, [263] = false, [264] = false},
+        WARLOCK = {[265] = true, [266] = true, [267] = true},
+        WARRIOR = {[71] = false, [72] = false, [73] = false}
+    }
+end
+
+local function ResolvePetRule(rule)
+    if type(rule) ~= "table" then
+        return rule or false
+    end
+
+    if rule.requires then
+        return ItruliaQoL:IsSpellKnown(rule.requires)
+    end
+
+    if rule.excludes then
+        return not ItruliaQoL:IsSpellKnown(rule.excludes)
+    end
+
+    return false
+end
+
+function ItruliaQoL:IsPetSpec()
+    local entry = self.petSpecs[self.playerClass]
+
+    if not entry then
+        return false
+    end
+
+    if self.isForever then
+        return ResolvePetRule(entry)
+    end
+
+    local specIndex = C_SpecializationInfo.GetSpecialization()
+    local specId = specIndex and C_SpecializationInfo.GetSpecializationInfo(specIndex)
+
+    return ResolvePetRule(specId and entry[specId])
 end
 
 function ItruliaQoL:InDungeon()

@@ -160,7 +160,7 @@ function RuneforgeAlert:GetActiveSetup()
 end
 
 function RuneforgeAlert:IsWrongRuneforge()
-    if ItruliaQoL.PlayerClass ~= "DEATHKNIGHT" then
+    if ItruliaQoL.playerClass ~= "DEATHKNIGHT" then
         return false
     end
 
@@ -256,7 +256,7 @@ function RuneforgeAlert:EnsureFrame()
     local frame = self:GenerateFrame(addonName .. moduleName)
     self.frame = frame
 
-    if ItruliaQoL.PlayerClass == "DEATHKNIGHT" then
+    if ItruliaQoL.playerClass == "DEATHKNIGHT" then
         frame:RegisterEvent("PLAYER_ENTERING_WORLD")
         frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
         frame:RegisterEvent("PLAYER_TALENT_UPDATE")

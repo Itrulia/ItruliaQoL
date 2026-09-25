@@ -453,7 +453,12 @@ with a raw file path.
 ## Where the module appears
 
 Every module with an `options.eui.lua` gets **its own row** in EllesmereUI's
-sidebar, under an "Itrulia QoL" group appended after EllesmereUI's own groups.
+sidebar, under a group appended after EllesmereUI's own groups. The group is
+labelled with `ItruliaQoL.displayName` from `utils.lua`: "Itrulia QoL" on retail
+and "Itrulia Forever" on WoW Forever, coloured through
+`ItruliaQoL.displayNameColored` wherever EllesmereUI renders it as text. The same
+variable names the AceConfig tree, the Blizzard options entry, the chat prefix and
+the support note on the summary page.
 There are no shared category pages — the old `MODULE_PAGE` bucketing (Indicators /
 Alerts / Utility) is gone, and nothing needs registering to place a new module: add
 `options.eui.lua` and the row appears. Rows are sorted alphabetically by the name

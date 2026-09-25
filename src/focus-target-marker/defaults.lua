@@ -7,7 +7,7 @@ local FocusTargetMarker = ItruliaQoL:GetModule(moduleName)
 function FocusTargetMarker:GetDefaults()
     return {
         enabled = true,
-        announce = true,
+        announce = not ItruliaQoL.isForever,
         marker = 5,
     }
 end

@@ -20,7 +20,7 @@ local function ensureDummy(frame)
     })
     dummy:SetBackdropBorderColor(0, 0, 0, 1)
 
-    local classColor = C_ClassColor.GetClassColor(ItruliaQoL.PlayerClass)
+    local classColor = C_ClassColor.GetClassColor(ItruliaQoL.playerClass)
     dummy:SetBackdropColor(classColor.r, classColor.g, classColor.b, 1)
 
     dummy.name = dummy:CreateFontString(nil, "OVERLAY")

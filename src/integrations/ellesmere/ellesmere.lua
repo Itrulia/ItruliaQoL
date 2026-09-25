@@ -813,7 +813,7 @@ function ItruliaQoL:RenderEUIBetaNotice(parent, y)
     support:SetWidth(availW - padX * 2)
     support:SetJustifyH("LEFT")
     support:SetWordWrap(true)
-    support:SetText("Itrulia QoL is an inofficial module and not part of EllesmereUI. Please do not ask about it in the EllesmereUI Discord. Message Itrulia on Discord directly instead.")
+    support:SetText(ItruliaQoL.displayName .. " is an inofficial module and not part of EllesmereUI. Please do not ask about it in the EllesmereUI Discord. Message Itrulia on Discord directly instead.")
 
     -- Straight to the complete panel, styled like EllesmereUI's own "Unlock Mode"
     -- footer link: accent text that brightens on hover. The EllesmereUI panel is
@@ -1419,13 +1419,15 @@ end)
 
 -- Sidebar layout
 --
--- Every module gets its own row under an "Itrulia QoL" group header, matching
--- how EllesmereUI lists its own suite, so a module is one click away instead of
--- being buried on an arbitrary Indicators/Alerts/Utility page. Each row owns a
--- single page; the panel header already names the module, so pages don't need
--- distinct names beyond the two on the Profiles row.
+-- Every module gets its own row under a group header carrying the addon's
+-- display name (ItruliaQoL.displayName, "Itrulia QoL" on retail and "Itrulia
+-- Forever" on WoW Forever), matching how EllesmereUI lists its own suite, so a
+-- module is one click away instead of being buried on an arbitrary
+-- Indicators/Alerts/Utility page. Each row owns a single page; the panel header
+-- already names the module, so pages don't need distinct names beyond the two
+-- on the Profiles row.
 local groupKey   = "itrulia"
-local groupLabel = "Itrulia QoL"
+local groupLabel = ItruliaQoL.displayName
 
 -- The on-screen form of the name, in the addon's own colours (the same escape
 -- sequence as `## Title` in the .toc, so it reads the way the addon does in the
@@ -1434,13 +1436,13 @@ local groupLabel = "Itrulia QoL"
 --
 -- Embedded |cff codes win over SetTextColor, which is the point for the sidebar
 -- heading: EllesmereUI tints group labels with its accent colour (and re-applies
--- it from an accent callback), leaving "Itrulia QoL" indistinguishable from its
+-- it from an accent callback), leaving our group indistinguishable from its
 -- own groups.
 --
 -- Plain groupLabel stays the name wherever the string is not rendered text --
 -- the unlock-mode group, which EllesmereUI also keys movers by, and the sidebar
 -- search text, which is matched against the player's plain-text query.
-local groupLabelColored = "|cffe9e9edItrulia|r |cff9184d9QoL|r"
+local groupLabelColored = ItruliaQoL.displayNameColored
 
 local pageGeneral      = "General"
 local pageDisplay      = "Display"
@@ -1904,7 +1906,7 @@ function ItruliaQoL:InjectEUISidebar(entries)
         EUI._addonInfoByFolder[entry.key] = EUI._addonInfoByFolder[entry.key] or {
             folder = entry.key,
             display = entry.display,
-            search_name = entry.display .. " Itrulia QoL Itrulia",
+            search_name = entry.display .. " " .. groupLabel .. " Itrulia",
             alwaysLoaded = true,
         }
 

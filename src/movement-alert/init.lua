@@ -7,34 +7,50 @@ local E = ItruliaQoL.E
 
 local MovementAlert = ItruliaQoL:NewModule(moduleName)
 
-local movementAbilities = {
-    DEATHKNIGHT = {[250] = {48265, 212552}, [251] = {48265, 212552}, [252] = {48265, 212552}},
-    DEMONHUNTER = {[577] = {195072}, [581] = {189110}, [1480] = {1234796}},
-    DRUID = {[102] = {102401, 252216, 1850}, [103] = {102401, 252216, 1850}, [104] = {102401, 106898}, [105] = {102401, 252216, 1850}},
-    EVOKER = {[1467] = {358267}, [1468] = {358267}, [1473] = {358267}},
-    HUNTER = {[253] = {781, 186257}, [254] = {781, 186257}, [255] = {781, 186257}},
-    MAGE = {[62] = {212653, 1953}, [63] = {212653, 1953}, [64] = {212653, 1953}},
-    MONK = {[268] = {115008, 109132}, [269] = {109132}, [270] = {109132}},
-    PALADIN = {[65] = {190784} , [66] = {190784} , [70] = {190784} },
-    PRIEST = {[256] = {121536,73325}, [257] = {121536,73325}, [258] = {121536,73325}},
-    ROGUE = {[259] = {36554}, [260] = {195457}, [261] = {36554}},
-    SHAMAN = {[262] = {79206, 90328, 192063}, [263] = {90328, 192063}, [264] = {79206, 90328, 192063}},
-    WARLOCK = {[265] = {48020}, [266] = {48020}, [267] = {48020}},
-    WARRIOR = {[71] = {6544, 100}, [72] = {6544, 100}, [73] = {6544, 100}}
-}
+local movementAbilities
 
--- Spec ids are unique across classes, so the class layer above is only there to keep
--- the list readable. Exposed because defaults.lua seeds a profile from it and
--- options.shared.lua builds the options lists from it.
-local movementAbilitiesBySpec = {}
-
-for _, specs in pairs(movementAbilities) do
-    for specId, spellIds in pairs(specs) do
-        movementAbilitiesBySpec[specId] = spellIds
-    end
+if ItruliaQoL.isForever then
+    movementAbilities = {
+        DRUID = {1850},         -- Dash
+        MAGE = {1953},          -- Blink
+        ROGUE = {2983},         -- Sprint
+        WARRIOR = {100, 20252}, -- Charge, Intercept
+    }
+else
+    movementAbilities = {
+        DEATHKNIGHT = {[250] = {48265, 212552}, [251] = {48265, 212552}, [252] = {48265, 212552}},
+        DEMONHUNTER = {[577] = {195072}, [581] = {189110}, [1480] = {1234796}},
+        DRUID = {[102] = {102401, 252216, 1850}, [103] = {102401, 252216, 1850}, [104] = {102401, 106898}, [105] = {102401, 252216, 1850}},
+        EVOKER = {[1467] = {358267}, [1468] = {358267}, [1473] = {358267}},
+        HUNTER = {[253] = {781, 186257}, [254] = {781, 186257}, [255] = {781, 186257}},
+        MAGE = {[62] = {212653, 1953}, [63] = {212653, 1953}, [64] = {212653, 1953}},
+        MONK = {[268] = {115008, 109132}, [269] = {109132}, [270] = {109132}},
+        PALADIN = {[65] = {190784} , [66] = {190784} , [70] = {190784} },
+        PRIEST = {[256] = {121536,73325}, [257] = {121536,73325}, [258] = {121536,73325}},
+        ROGUE = {[259] = {36554}, [260] = {195457}, [261] = {36554}},
+        SHAMAN = {[262] = {79206, 90328, 192063}, [263] = {90328, 192063}, [264] = {79206, 90328, 192063}},
+        WARLOCK = {[265] = {48020}, [266] = {48020}, [267] = {48020}},
+        WARRIOR = {[71] = {6544, 100}, [72] = {6544, 100}, [73] = {6544, 100}}
+    }
 end
 
-MovementAlert.movementAbilitiesBySpec = movementAbilitiesBySpec
+-- Spec ids are unique across classes, so the class layer above is only there to keep
+-- the list readable. On Forever the class name stands in for the spec id, in the
+-- profile included. Exposed because defaults.lua seeds a profile from it and
+-- options.shared.lua builds the options lists from it.
+MovementAlert.movementAbilitiesBySpec = {}
+
+if ItruliaQoL.isForever then
+    for class, spellIds in pairs(movementAbilities) do
+        MovementAlert.movementAbilitiesBySpec[class] = spellIds
+    end
+else
+    for _, specs in pairs(movementAbilities) do
+        for specId, spellIds in pairs(specs) do
+            MovementAlert.movementAbilitiesBySpec[specId] = spellIds
+        end
+    end
+end
 
 -- List taken from: https://www.curseforge.com/wow/addons/time-spiral-tracker
 -- Exposed because options.shared.lua lists it per class.
@@ -127,7 +143,7 @@ local spellsWithOwnGCD = {
 }
 
 function MovementAlert:GetMovementSpellChoices(specId)
-    return specId and movementAbilitiesBySpec[specId]
+    return specId and self.movementAbilitiesBySpec[specId]
 end
 
 function MovementAlert:IsTimeSpiralSpell(spellId)
@@ -156,9 +172,13 @@ function MovementAlert:IsSpellTracked(specId, spellId)
 end
 
 function MovementAlert:GetCurrentSpecId()
-    local specialization = GetSpecialization()
+    if ItruliaQoL.isForever then
+        return ItruliaQoL.playerClass
+    end
 
-    return specialization and (GetSpecializationInfo(specialization))
+    local specIndex = C_SpecializationInfo.GetSpecialization()
+
+    return specIndex and (C_SpecializationInfo.GetSpecializationInfo(specIndex))
 end
 
 local function OnUpdate(self, elapsed, ...)
@@ -308,7 +328,7 @@ function MovementAlert:GenerateFrame(name, parent)
                 and not cdInfo.isOnGCD
                 -- cdInfo.isOnGCD is nil when double jumping (evoker / dh)
                 -- WL teleport isOnGCD exists while on gcd and then is nil
-                and (cdInfo.isOnGCD ~= nil or ItruliaQoL.PlayerClass == "WARLOCK")
+                and (cdInfo.isOnGCD ~= nil or ItruliaQoL.playerClass == "WARLOCK")
             then
                 return spell, cdInfo
             end
@@ -318,8 +338,8 @@ function MovementAlert:GenerateFrame(name, parent)
     end
 
     function frame:GetSpellsToIgnoreGlowsFrom()
-        local class = ItruliaQoL.PlayerClass
-        local specId = select(1, GetSpecializationInfo(GetSpecialization()))
+        local class = ItruliaQoL.playerClass
+        local specId = MovementAlert:GetCurrentSpecId()
         local specs = self.spellsThatTriggerGlows[class]
 
         if not specs or not specId then
@@ -389,6 +409,7 @@ function MovementAlert:EnsureFrame()
     frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     frame:RegisterEvent("PLAYER_TALENT_UPDATE")
     frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+    frame:RegisterEvent("SPELLS_CHANGED")
     frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
     frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
     frame:RegisterUnitEvent("UNIT_SPELLCAST_SENT", "player")

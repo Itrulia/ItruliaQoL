@@ -22,11 +22,17 @@ local function getClasses()
             local color = C_ClassColor.GetClassColor(classInfo.classFile)
             local specs = {}
 
-            for specIndex = 1, C_SpecializationInfo.GetNumSpecializationsForClassID(classId) do
-                local specId, specName = GetSpecializationInfoForClassID(classId, specIndex)
+            if ItruliaQoL.isForever then
+                if MovementAlert.movementAbilitiesBySpec[classInfo.classFile] then
+                    specs[1] = {specId = classInfo.classFile, specName = "Abilities"}
+                end
+            else
+                for specIndex = 1, C_SpecializationInfo.GetNumSpecializationsForClassID(classId) do
+                    local specId, specName = GetSpecializationInfoForClassID(classId, specIndex)
 
-                if specId and MovementAlert.movementAbilitiesBySpec[specId] then
-                    specs[#specs + 1] = {specId = specId, specName = specName}
+                    if specId and MovementAlert.movementAbilitiesBySpec[specId] then
+                        specs[#specs + 1] = {specId = specId, specName = specName}
+                    end
                 end
             end
 
