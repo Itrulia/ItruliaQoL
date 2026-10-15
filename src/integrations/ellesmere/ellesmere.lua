@@ -14,9 +14,8 @@ local addonName, ItruliaQoL = ...
 -- A module that draws something also gets a live preview of its own frame pinned
 -- above the page, in EllesmereUI's content header -- see EUIPreviewHeaderBuilder.
 --
--- The registration technique (loadstring trampoline to pass EllesmereUI's
--- caller whitelist, plus manual sidebar injection) follows NaowhUI_EUI, the
--- reference third-party companion addon.
+-- Registration goes through EllesmereUI's Plugin API (see the Registration
+-- section below and EllesmereUI/PLUGINS_API.md).
 
 -- Resolve a value that may be a plain value or an AceConfig callback.
 local function resolve(v, ...)
@@ -25,6 +24,14 @@ local function resolve(v, ...)
     end
 
     return v
+end
+
+-- True while EllesmereUI's global search runs a page builder in its hidden
+-- pre-build pass, against stub widgets that build no frames.
+local function isEUISearchPrebuild()
+    local EUI = ItruliaQoL.EUI
+
+    return EUI and EUI.IsSearchPrebuild and EUI.IsSearchPrebuild() or false
 end
 
 -- Live-restyle a module's named frame -- the faithful equivalent of the
@@ -214,7 +221,10 @@ local function attachEUICog(region, cog)
         return
     end
 
-    if not (EUI and EUI.BuildCogPopup) then
+    -- During the search pre-build `region` is a stub, which CreateFrame below would
+    -- reject, ending the indexing of the rest of the page. The popup's rows are
+    -- never indexed anyway.
+    if not (EUI and EUI.BuildCogPopup) or isEUISearchPrebuild() then
         return
     end
 
@@ -338,7 +348,7 @@ local function attachEUIMultiSelect(region, item)
         return
     end
 
-    if not (EUI and EUI.BuildVisOptsCBDropdown) or EUI._prebuilding then
+    if not (EUI and EUI.BuildVisOptsCBDropdown) or isEUISearchPrebuild() then
         return
     end
 
@@ -727,7 +737,18 @@ function ItruliaQoL:EUIPreviewHeaderBuilder(module, pageName)
         return nil
     end
 
-    return function(hdr, hdrW)
+    -- One builder per page, handed out again on every call. EllesmereUI keeps a
+    -- guarded wrapper for each builder a plugin hands it, in a weak table whose
+    -- value holds the builder itself, so a fresh closure per call is never freed.
+    module.euiHeaderBuilders = module.euiHeaderBuilders or {}
+
+    local builderKey = pageName or true
+
+    if module.euiHeaderBuilders[builderKey] then
+        return module.euiHeaderBuilders[builderKey]
+    end
+
+    local builder = function(hdr, hdrW)
         -- Clipped so an oversized preview (a long alert text, a wide bar) stays in the
         -- header strip instead of drawing over the page below it.
         local display = CreateFrame("frame", nil, hdr)
@@ -744,6 +765,10 @@ function ItruliaQoL:EUIPreviewHeaderBuilder(module, pageName)
 
         return previewHeaderHeight
     end
+
+    module.euiHeaderBuilders[builderKey] = builder
+
+    return builder
 end
 
 -- The builder for one page of a sidebar entry, or nil when that page previews nothing.
@@ -767,8 +792,8 @@ function ItruliaQoL:RestoreEUIPreview(module, pageName)
     end
 end
 
--- Prominent "still being built" banner, shown on the General page only (see
--- `betaNotice` in addEntry): it is about the integration as a whole, so a copy
+-- Prominent "still being built" banner, shown on the General page only (see the
+-- General check in RegisterEUI's addEntry): it is about the integration as a whole, so a copy
 -- above every module's settings would just be a row they scroll past. Returns
 -- (frame, height) so it slots into the same `y = y - h` flow as everything else.
 function ItruliaQoL:RenderEUIBetaNotice(parent, y)
@@ -1419,30 +1444,83 @@ end)
 
 -- Sidebar layout
 --
--- Every module gets its own row under a group header carrying the addon's
--- display name (ItruliaQoL.displayName, "Itrulia QoL" on retail and "Itrulia
--- Forever" on WoW Forever), matching how EllesmereUI lists its own suite, so a
--- module is one click away instead of being buried on an arbitrary
--- Indicators/Alerts/Utility page. Each row owns a single page; the panel header
--- already names the module, so pages don't need distinct names beyond the two
--- on the Profiles row.
+-- Every module gets its own row, under sections headed by the addon's display
+-- name (ItruliaQoL.displayName, "Itrulia QoL" on retail and "ItruliaQoL Foreva"
+-- on WoW Forever), matching how EllesmereUI lists its own suite, so a module is
+-- one click away. Each row owns a single page; the panel header already names the
+-- module, so pages don't need distinct names beyond the two on the Profiles row.
+--
+-- `groupKey` names this addon's rows as a whole, across all of its sections. It
+-- keys the row `/itrulia` reopens (see OpenEUIGroup).
 local groupKey   = "itrulia"
 local groupLabel = ItruliaQoL.displayName
 
 -- The on-screen form of the name, in the addon's own colours (the same escape
 -- sequence as `## Title` in the .toc, so it reads the way the addon does in the
--- AddOns list). Used for the two places EllesmereUI renders it as a FontString:
--- the sidebar group heading and the panel header above each of our pages.
+-- AddOns list). EllesmereUI strips colour codes from a plugin's section label, so
+-- this is set on the section header once it is built (see decorateEUIHeader).
+-- Embedded |cff codes win over SetTextColor, so the accent colour EllesmereUI
+-- keeps applying to its headers does not wash it out.
 --
--- Embedded |cff codes win over SetTextColor, which is the point for the sidebar
--- heading: EllesmereUI tints group labels with its accent colour (and re-applies
--- it from an accent callback), leaving our group indistinguishable from its
--- own groups.
---
--- Plain groupLabel stays the name wherever the string is not rendered text --
--- the unlock-mode group, which EllesmereUI also keys movers by, and the sidebar
--- search text, which is matched against the player's plain-text query.
+-- Plain groupLabel stays the name wherever the string is not rendered text:
+-- the section labels EllesmereUI registers and searches, and the unlock-mode
+-- group, which EllesmereUI also keys movers by.
 local groupLabelColored = ItruliaQoL.displayNameColored
+
+-- The sidebar sections, in order. EllesmereUI caps a section at 20 rows, which one
+-- flat list outgrew, so the modules are filed by theme. `note` puts "(Inofficial
+-- Module)" beside the header; only the first section carries it, a longer header
+-- has no room for it in the sidebar's width.
+local sectionMain       = "Main"
+local sectionIndicators = "Indicators"
+local sectionAlerts     = "Alerts"
+
+local sectionLayout = {
+    {
+        key = sectionMain,
+        id = addonName,
+        label = groupLabel,
+        labelColored = groupLabelColored,
+        note = true,
+    },
+    {
+        key = sectionIndicators,
+        id = addonName .. "-" .. sectionIndicators,
+        label = groupLabel .. " " .. sectionIndicators,
+        labelColored = groupLabelColored .. " |cffe9e9ed" .. sectionIndicators .. "|r",
+    },
+    {
+        key = sectionAlerts,
+        id = addonName .. "-" .. sectionAlerts,
+        label = groupLabel .. " " .. sectionAlerts,
+        labelColored = groupLabelColored .. " |cffe9e9ed" .. sectionAlerts .. "|r",
+    },
+}
+
+-- The section each row is filed under, by module key (or combined row key). A row
+-- not listed here goes to the main section, alongside General, Misc and Profiles.
+local sectionByRow = {
+    CharacterIndicator = sectionIndicators,
+    CombatTimer = sectionIndicators,
+    CursorCircle = sectionIndicators,
+    DefensiveIndicator = sectionIndicators,
+    FlyingBar = sectionIndicators,
+    FocusInterruptIndicator = sectionIndicators,
+    HealerManaIndicator = sectionIndicators,
+    MeleeIndicator = sectionIndicators,
+    NoTargetIndicator = sectionIndicators,
+    PetIndicators = sectionIndicators,
+    RepairIndicator = sectionIndicators,
+    StealthIndicator = sectionIndicators,
+
+    CombatAlert = sectionAlerts,
+    DeathAlert = sectionAlerts,
+    MovementAlert = sectionAlerts,
+    PotionAlert = sectionAlerts,
+    RuneforgeAlert = sectionAlerts,
+    SelfDispelAlert = sectionAlerts,
+    StanceAlert = sectionAlerts,
+}
 
 local pageGeneral      = "General"
 local pageDisplay      = "Display"
@@ -1460,8 +1538,8 @@ local function defaultPage(module)
 end
 
 -- Modules whose settings share one sidebar row instead of getting one each. Each
--- member becomes a tab on that row, and the row is emitted where its first member
--- would have appeared, so the surrounding order is untouched. The row needs its
+-- member becomes a tab on that row. The row sorts under its own `display` and is
+-- filed in sectionByRow under its own `key`, not its members'. The row needs its
 -- own `description`: it is shown per row rather than per tab, so the members'
 -- individual blurbs are not rendered anywhere.
 local combinedRows = {
@@ -1883,95 +1961,257 @@ end
 
 -- Registration
 --
--- EllesmereUI's config sidebar is built from a hardcoded roster; add our entry
--- to the extension hooks it reads (mirrors NaowhUI_EUI). Safe to call once at
--- login: the sidebar is built lazily on first panel open.
--- `entries` is the ordered list of { key = , display = } rows to show under our
--- group header. Each key is a synthetic folder name (never a real addon folder),
--- so it must be marked alwaysLoaded: EllesmereUI otherwise greys the row and
--- offers a power toggle for an addon that does not exist.
-function ItruliaQoL:InjectEUISidebar(entries)
-    local EUI = self.EUI
+-- Every row is registered through EllesmereUI's Plugin API (RegisterPlugin, see
+-- EllesmereUI/PLUGINS_API.md). Since 9.5.5 that is the only way in: the sidebar
+-- is built from a private model, a plugin section holds at most 20 rows, and the
+-- row and header tables the old injection relied on are private.
+--
+-- These helpers are shared with ItruliaUI and ItruliaEUI, which register their
+-- own sections through RegisterEUISection and open them with OpenEUIGroup. A
+-- `groupKey` names the addon a section belongs to, since one addon can own
+-- several sections.
 
-    if not EUI then
+-- RegisterPlugin rejects a whole section over this many rows, so a longer one is
+-- registered as numbered continuations instead.
+local euiMaxRows = 20
+
+-- Shared by ItruliaQoL, ItruliaUI and ItruliaEUI.
+local euiSections = {}
+
+local lastEUIEntries = {}
+
+-- Our row and section header frames, keyed by full module key and section id.
+-- Kept once found: a header no longer matches its label after we recolour it.
+local euiRowFrames = {}
+local euiHeaderFrames = {}
+
+-- EllesmereUI has no API for its sidebar frames, so they are found among the
+-- children of its scroll child: rows carry the module key in _folder, section
+-- headers are flagged _isGroup and carry the section label as text.
+local function scanEUISidebar()
+    local EUI = ItruliaQoL.EUI
+    local scrollChild = EUI and EUI._addonScrollChild
+
+    if not scrollChild then
         return
     end
 
-    EUI._addonInfoByFolder = EUI._addonInfoByFolder or {}
-    EUI._syncExempt = EUI._syncExempt or {}
+    for _, frame in ipairs({ scrollChild:GetChildren() }) do
+        if type(frame._folder) == "string" then
+            euiRowFrames[frame._folder] = frame
+        elseif frame._isGroup and frame._label then
+            local text = frame._label:GetText()
 
-    local members = {}
-
-    for _, entry in ipairs(entries) do
-        EUI._addonInfoByFolder[entry.key] = EUI._addonInfoByFolder[entry.key] or {
-            folder = entry.key,
-            display = entry.display,
-            search_name = entry.display .. " " .. groupLabel .. " Itrulia",
-            alwaysLoaded = true,
-        }
-
-        EUI._syncExempt[entry.key] = true
-        members[#members + 1] = entry.key
-    end
-
-    EUI.ADDON_GROUPS = EUI.ADDON_GROUPS or {}
-
-    -- Member order is authoritative for the sidebar, so on a repeat call replace
-    -- the list rather than bailing -- otherwise a changed module set keeps the
-    -- stale rows.
-    for _, group in ipairs(EUI.ADDON_GROUPS) do
-        if group.key == groupKey then
-            group.members = members
-
-            return
+            for _, section in ipairs(euiSections) do
+                if not euiHeaderFrames[section.id]
+                    and (text == section.label or (EUI.L and text == EUI.L(section.label))) then
+                    euiHeaderFrames[section.id] = frame
+                end
+            end
         end
     end
-
-    -- Appended, not prepended: we are a companion rather than part of the suite,
-    -- and this group is long enough that putting it first would push EllesmereUI's
-    -- own addons down the list.
-    table.insert(EUI.ADDON_GROUPS, {
-        key = groupKey,
-        label = groupLabelColored,
-        members = members,
-    })
 end
 
--- "(Inofficial Module)" beside our sidebar group header, so the group reads as a
--- companion addon rather than part of the EllesmereUI suite.
---
--- EllesmereUI's group rows carry only their own accent-coloured label, so the note
--- is a second FontString anchored to it, smaller and grey. The row is built once
--- per CreateMainFrame (kept in _sidebarGroupButtons, keyed by group), so attaching
--- once is enough -- guarded by _itruliaNote, since this runs on every panel open.
---
--- `targetGroupKey` defaults to our own group so existing callers need not pass
--- it; the companion addons (ItruliaEUI) hand in theirs, since the note belongs on
--- every group we inject and the frame-level guard keeps them independent.
-function ItruliaQoL:AttachEUISidebarGroupNote(targetGroupKey)
-    local EUI = self.EUI
-    local headers = EUI and EUI._sidebarGroupButtons
-    local header = headers and headers[targetGroupKey or groupKey]
+-- The section header in the addon's own colours, plus "(Inofficial Module)" beside
+-- it when the section asks for one, so the sections read as a companion rather
+-- than part of the EllesmereUI suite.
+local function decorateEUIHeader(section)
+    local header = euiHeaderFrames[section.id]
 
-    if not header or header._itruliaNote or not header._label then
+    if not header or header._itruliaDecorated then
         return
     end
 
+    header._itruliaDecorated = true
+
+    if section.labelColored then
+        header._label:SetText(section.labelColored)
+    end
+
+    if not section.note then
+        return
+    end
+
+    local EUI = ItruliaQoL.EUI
     local note = header:CreateFontString(nil, "OVERLAY")
     note:SetFont((EUI.GetFontPath and EUI.GetFontPath()) or STANDARD_TEXT_FONT, 11, "")
     note:SetTextColor(1, 1, 1, 0.35)
     note:SetText("(Inofficial Module)")
     PixelUtil.SetPoint(note, "LEFT", header._label, "RIGHT", 6, -1)
-
-    header._itruliaNote = note
 end
 
--- Bring our sidebar group into view, for when the panel is opened at one of our
--- rows (`/itrulia`, `/itrulia eui`). The group is appended after EllesmereUI's own
--- suite (see InjectEUISidebar), so it starts below the fold -- the panel would open
--- with its content on our page but the sidebar scrolled to somebody else's rows.
+-- Per-module enable switch on the sidebar row itself, so a module can be turned on
+-- or off without opening its page.
 --
--- The sidebar's smooth-scroll target and its thumb updater are both file-locals in
+-- EllesmereUI has no API for this and draws its own power toggle only for real
+-- addon folders, so ours is attached to the row frame it built. Rows are built
+-- once per panel and only repositioned afterwards, so attaching once per row is
+-- enough (guarded by row._itruliaEnable). The switch sits in the slot of
+-- EllesmereUI's power toggle, which a plugin row never has, and the label is
+-- already clamped short of it by the hidden download icon every row carries.
+--
+-- A combined row switches every member at once: the switch reads as on when ANY of
+-- them is on, and a click sets them all to the same state. The members still own
+-- their own enabled flags, editable individually from their tabs.
+local function attachEUIRowSwitch(row, entry)
+    local EUI = ItruliaQoL.EUI
+    local members = entry.members
+    local label = row._label
+
+    local btn = CreateFrame("Button", nil, row)
+
+    PixelUtil.SetSize(btn, 13, 13)
+    PixelUtil.SetPoint(btn, "RIGHT", row, "RIGHT", -18, 0)
+    btn:SetFrameLevel(row:GetFrameLevel() + 5)
+
+    local tex = btn:CreateTexture(nil, "OVERLAY")
+    tex:SetAllPoints()
+    tex:SetTexture(EUI.ICONS_PATH .. "power.png")
+
+    local function anyOn()
+        for _, member in ipairs(members) do
+            if member.module.db and member.module.db.enabled then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    -- A module that is off greys its name, the way EllesmereUI dims an addon that is
+    -- not installed. Its NAV_* colours are file locals, so the alphas are copied
+    -- from the top of EllesmereUI_Panel.lua: 1 selected, 0.6 enabled, 0.86 hovered,
+    -- 0.11 disabled and 0.39 hovered while disabled.
+    --
+    -- `fromEUI` means EllesmereUI has just coloured the label itself. Its colour
+    -- stands for a module that is on, since it covers states we cannot see, like a
+    -- row locked during an override session.
+    local painting = false
+
+    local function paint(fromEUI)
+        local on = anyOn()
+
+        tex:SetVertexColor(1, 1, 1, on and 1 or 0.5)
+
+        if not label or (on and fromEUI) then
+            return
+        end
+
+        -- The active row never takes a hover alpha, the same rule EllesmereUI
+        -- follows: its hover scripts skip the active row, so nothing would take
+        -- the hover alpha back off once the cursor leaves. A row locked during an
+        -- override session keeps EllesmereUI's lock grey, which its hover scripts
+        -- would not restore either.
+        local active = EUI.GetActiveModule and EUI:GetActiveModule() == entry.fullKey
+        local hovered = not active and row:IsMouseOver()
+        local alpha
+
+        if row._ovLocked then
+            alpha = 0.11
+        elseif not on then
+            alpha = hovered and 0.39 or 0.11
+        elseif active then
+            alpha = 1
+        else
+            alpha = hovered and 0.86 or 0.6
+        end
+
+        painting = true
+        label:SetTextColor(1, 1, 1, alpha)
+        painting = false
+    end
+
+    -- EllesmereUI recolours the label from its own state, which counts every plugin
+    -- row as enabled: on each panel open, each module switch, each hover and from
+    -- the override locks. Following SetTextColor itself catches every one of them
+    -- without hooking EllesmereUI's functions, which its plugin rules rule out.
+    if label then
+        hooksecurefunc(label, "SetTextColor", function()
+            if not painting then
+                paint(true)
+            end
+        end)
+    end
+
+    -- Wrapped, not passed directly: OnShow hands the frame to its handler, which
+    -- would arrive as a truthy `fromEUI`.
+    btn:SetScript("OnShow", function()
+        paint()
+    end)
+
+    btn:SetScript("OnClick", function()
+        -- Every member follows the row: on when any was off, off otherwise.
+        local enable = not anyOn()
+
+        for _, member in ipairs(members) do
+            if member.module.db then
+                member.module.db.enabled = enable
+
+                if member.module.RefreshConfig then
+                    member.module:RefreshConfig()
+                end
+            end
+        end
+
+        paint()
+
+        -- Keep the members' own Enable toggles in step if the page is open.
+        if EUI.GetActiveModule and EUI:GetActiveModule() == entry.fullKey and EUI.RefreshPage then
+            EUI:RefreshPage(true)
+        end
+    end)
+
+    -- Hover previews the action, red to turn off and green to turn on, matching
+    -- EllesmereUI's own power icon.
+    btn:SetScript("OnEnter", function(button)
+        local on = anyOn()
+
+        if on then
+            tex:SetVertexColor(0.824, 0.212, 0.212, 1)
+        else
+            tex:SetVertexColor(0.212, 0.824, 0.325, 1)
+        end
+
+        if EUI.ShowWidgetTooltip then
+            EUI.ShowWidgetTooltip(button, (on and "Disable " or "Enable ") .. entry.display)
+        end
+    end)
+
+    btn:SetScript("OnLeave", function()
+        paint()
+
+        if EUI.HideWidgetTooltip then
+            EUI.HideWidgetTooltip()
+        end
+    end)
+
+    paint()
+
+    row._itruliaEnable = btn
+end
+
+local function decorateEUISidebar()
+    scanEUISidebar()
+
+    for _, section in ipairs(euiSections) do
+        decorateEUIHeader(section)
+
+        for _, entry in ipairs(section.entries) do
+            local row = entry.members and entry.members[1] and euiRowFrames[entry.fullKey]
+
+            if row and not row._itruliaEnable then
+                attachEUIRowSwitch(row, entry)
+            end
+        end
+    end
+end
+
+-- Bring a row into view, for when the panel is opened at one of our rows. Our
+-- sections sit below EllesmereUI's own suite, so they start below the fold and
+-- the panel would open on our page with the sidebar scrolled to somebody else's
+-- rows.
+--
+-- The sidebar's smooth-scroll target and its thumb updater are both file locals in
 -- EllesmereUI, so the scroll is set directly and the thumb refreshed through the
 -- OnScrollRangeChanged script that updater is installed as. Setting the offset
 -- outright is safe here: the wheel handler only follows its own target while its
@@ -1982,35 +2222,27 @@ end
 -- a session only needs the one frame: the rows exist and are only repositioned. The
 -- first open of a session builds the whole panel a frame after ShowModule was called
 -- (EllesmereUI splits that work, see its _SplitFirstOpen), so on that path the rows
--- have only just been created when the first attempt runs -- GetTop() and the scroll
--- range are both still unset, and a single attempt would silently give up.
+-- have only just been created when the first attempt runs. GetTop() and the scroll
+-- range are both still unset then, and a single attempt would silently give up.
 local sidebarScrollMargin = 6
 local sidebarScrollAttempts = 20
 
-function ItruliaQoL:ScrollEUISidebarToGroup(moduleKey, targetGroupKey)
-    local EUI = self.EUI
-
-    if not EUI then
-        return
-    end
-
+local function scrollEUISidebarTo(entry)
+    local EUI = ItruliaQoL.EUI
     local attempts = 0
 
     local function scroll()
         attempts = attempts + 1
 
+        scanEUISidebar()
+
         local sf = EUI._addonScrollFrame
         local child = EUI._addonScrollChild
-        local headers = EUI._sidebarGroupButtons
-        local header = headers and headers[targetGroupKey or groupKey]
+        local header = euiHeaderFrames[entry.sectionId]
         local childTop = child and child:GetTop()
         local headerTop = header and header:IsShown() and header:GetTop()
         local maxScroll = (sf and EUI.SafeScrollRange and EUI.SafeScrollRange(sf)) or 0
 
-        -- Not measurable yet, or the sidebar search has filtered our group out. The
-        -- first is worth waiting a frame for, the second never resolves, so both get
-        -- the same bounded retry and whatever the player is searching for keeps the
-        -- scroll position.
         if not (sf and childTop and headerTop) or maxScroll <= 0 then
             if attempts < sidebarScrollAttempts then
                 C_Timer.After(0, scroll)
@@ -2021,11 +2253,11 @@ function ItruliaQoL:ScrollEUISidebarToGroup(moduleKey, targetGroupKey)
 
         local target = childTop - headerTop - sidebarScrollMargin
 
-        -- The group header at the top is only the starting point: the row the panel
-        -- opened at can sit below the fold in a group this long, and a sidebar that
-        -- does not show the selected row is worse than one scrolled a little further.
-        local rows = EUI._sidebarButtons
-        local row = moduleKey and rows and rows[moduleKey]
+        -- The section header at the top is only the starting point: the row the
+        -- panel opened at can sit below the fold in a long section, and a sidebar
+        -- that does not show the selected row is worse than one scrolled a little
+        -- further.
+        local row = euiRowFrames[entry.fullKey]
         local rowBottom = row and row:IsShown() and row:GetBottom()
 
         if rowBottom then
@@ -2048,278 +2280,267 @@ function ItruliaQoL:ScrollEUISidebarToGroup(moduleKey, targetGroupKey)
     C_Timer.After(0, scroll)
 end
 
--- Per-module enable switch on the sidebar row itself, so a module can be turned on
--- or off without opening its page.
---
--- EllesmereUI has no API for this -- rows are built from _addonInfoByFolder and the
--- only right-edge controls it knows about are its own power / sync / download
--- icons -- so we attach ours to the row frame it exposes via _sidebarButtons. Three
--- things this has to work around:
---   * the row is a Button that selects the module on click, so ours sits several
---     frame levels above it to receive its own clicks;
---   * rows are created once per CreateMainFrame and only repositioned afterwards,
---     so attaching once per row is enough (guarded by row._itruliaEnable);
---   * EllesmereUI clamps the row label against btn._dlIcon, which exists (hidden)
---     on every row, so the right edge is already reserved and long display names
---     will not run under the switch.
---
--- A combined row switches every member at once: the switch reads as on when ANY of
--- them is on, and a click sets them all to the same state. The members still own
--- their own enabled flags, editable individually from their tabs.
-function ItruliaQoL:AttachEUISidebarSwitches(entries)
-    local EUI = self.EUI
-    local rows = EUI._sidebarButtons
+local function registerEUIPlugin(plugin)
+    local EUI = ItruliaQoL.EUI
+    local modules = {}
 
-    if not rows then
-        return
+    for _, entry in ipairs(plugin.entries) do
+        local buildPage = entry.buildPage
+        local onPageCacheRestore = entry.onPageCacheRestore
+
+        modules[#modules + 1] = {
+            key = entry.key,
+            title = entry.display,
+            description = entry.description,
+            pages = entry.pages,
+            -- EllesmereUI's search pre-build pass runs this against stub widgets
+            -- and reports every error a plugin callback raises. A builder that
+            -- hands a stub to a real API (CreateFrame's parent, math.abs) would
+            -- then raise one the first time the search box is focused each
+            -- session, so failures in that pass are swallowed and the rest of the
+            -- page is indexed once it is opened.
+            buildPage = function(pageName, parent, yOffset)
+                if isEUISearchPrebuild() then
+                    local ok, height = pcall(buildPage, pageName, parent, yOffset)
+
+                    return ok and tonumber(height) or math.abs(yOffset)
+                end
+
+                lastEUIEntries[plugin.groupKey] = entry
+
+                return buildPage(pageName, parent, yOffset)
+            end,
+            getHeaderBuilder = entry.getHeaderBuilder,
+            -- A cached page shown again skips buildPage, so this is the other half
+            -- of remembering which row was last shown.
+            onPageCacheRestore = function(pageName)
+                lastEUIEntries[plugin.groupKey] = entry
+
+                if onPageCacheRestore then
+                    onPageCacheRestore(pageName)
+                end
+            end,
+            onReset = entry.onReset,
+        }
     end
 
-    for _, entry in ipairs(entries) do
-        local members = entry.members
-        local row = members and members[1] and rows[entry.key]
+    -- RegisterPlugin reports a rejected spec through the error handler with its
+    -- reason; this only names it in chat as well.
+    if not EUI.RegisterPlugin(plugin.id, { label = plugin.label, modules = modules }) then
+        ItruliaQoL:Print("|cffff0000EllesmereUI registration failed for|r", plugin.id)
 
-        if row and not row._itruliaEnable then
-            local btn = CreateFrame("Button", nil, row)
+        return false
+    end
 
-            -- Same icon, size and slot EllesmereUI uses for its own power toggle.
-            PixelUtil.SetSize(btn, 13, 13)
-            PixelUtil.SetPoint(btn, "RIGHT", row, "RIGHT", -18, 0)
-            btn:SetFrameLevel(row:GetFrameLevel() + 5)
+    for _, entry in ipairs(plugin.entries) do
+        entry.sectionId = plugin.id
+        entry.fullKey = EUI.GetPluginModuleKey(plugin.id, entry.key)
+    end
 
-            local tex = btn:CreateTexture(nil, "OVERLAY")
-            tex:SetAllPoints()
-            tex:SetTexture(EUI.ICONS_PATH .. "power.png")
+    euiSections[#euiSections + 1] = plugin
 
-            -- On when ANY member is on, so a combined row reads as enabled even if
-            -- only one of its modules is.
-            local function anyOn()
-                for _, member in ipairs(members) do
-                    if member.module.db and member.module.db.enabled then
-                        return true
-                    end
-                end
+    -- Once for every section of every addon. The rows only exist once EllesmereUI
+    -- has built its panel, and OnShow runs after it has built and recoloured them.
+    -- Protected because EllesmereUI runs its own OnShow callbacks in the same loop,
+    -- after ours: an error here must not stop its panel from opening properly.
+    if not ItruliaQoL._euiSidebarHooked and EUI.RegisterOnShow then
+        ItruliaQoL._euiSidebarHooked = true
 
-                return false
-            end
+        EUI:RegisterOnShow(function()
+            xpcall(decorateEUISidebar, geterrorhandler())
+        end)
+    end
 
-            -- Icon alpha plus the row label: a module that is off greys its name, the
-            -- way EllesmereUI dims an addon that is not installed. Its NAV_* colours
-            -- are file-locals, so the alphas are copied from EllesmereUI.lua's
-            -- "Sidebar nav states" block -- all 1,1,1 with alpha 1 (selected), 0.6
-            -- (enabled), 0.11 (disabled), 0.86 (hover enabled), 0.39 (hover disabled).
-            --
-            -- We cannot simply set row._loaded = false and let EllesmereUI paint it:
-            -- the row's OnClick is gated on _loaded, so the row would stop opening and
-            -- there would be no way back in to re-enable the module.
-            local function paint(hovered)
-                local on = anyOn()
+    return true
+end
 
-                tex:SetVertexColor(1, 1, 1, on and 1 or 0.5)
+-- Registers one sidebar section for the addon named by `targetGroupKey`.
+--
+-- `section` is { id =, label =, labelColored =, note =, entries = }. `id` is the
+-- plugin id (the addon folder name for its first section), `label` the plain
+-- header text EllesmereUI registers and searches, `labelColored` what the header
+-- shows instead, and `note` adds "(Inofficial Module)" beside it.
+--
+-- Each entry is { key =, display =, description =, pages =, buildPage =,
+-- getHeaderBuilder =, onPageCacheRestore =, onReset =, members = }. `key` is the
+-- module's key within the section, `display` its row text and panel title (plain
+-- text), the callbacks are EllesmereUI's own, and `members`, a list of
+-- { key =, module = } for each module the row fronts, gives the row its enable
+-- switch. Registration fills in `sectionId` and `fullKey` on each entry.
+--
+-- Returns true when every part of the section registered.
+function ItruliaQoL:RegisterEUISection(targetGroupKey, section)
+    local EUI = self.EUI
 
-                local label = row._label
+    if not (EUI and EUI.RegisterPlugin and EUI.GetPluginModuleKey) then
+        return false
+    end
 
-                if not label then
-                    return
-                end
+    local entries = section.entries
+    local registered = true
 
-                if not on then
-                    label:SetTextColor(1, 1, 1, hovered and 0.39 or 0.11)
-                elseif hovered then
-                    label:SetTextColor(1, 1, 1, 0.86)
-                elseif EUI.GetActiveModule and EUI:GetActiveModule() == entry.key then
-                    label:SetTextColor(1, 1, 1, 1)
-                else
-                    label:SetTextColor(1, 1, 1, 0.6)
-                end
-            end
+    for first = 1, #entries, euiMaxRows do
+        local part = (first - 1) / euiMaxRows + 1
+        local plugin = {
+            id = section.id,
+            label = section.label,
+            labelColored = section.labelColored,
+            note = section.note,
+            groupKey = targetGroupKey,
+            entries = {},
+        }
 
-            row._itruliaRepaint = paint
+        if part > 1 then
+            plugin.id = section.id .. "-" .. part
+            plugin.label = section.label .. " " .. part
+            plugin.labelColored = section.labelColored and (section.labelColored .. " " .. part)
+            plugin.note = nil
+        end
 
-            -- EllesmereUI's own hover scripts recolour the label from _loaded, which
-            -- is always true for our rows, so wrap them and restore our state after.
-            local rowEnter, rowLeave = row:GetScript("OnEnter"), row:GetScript("OnLeave")
+        for index = first, math.min(first + euiMaxRows - 1, #entries) do
+            plugin.entries[#plugin.entries + 1] = entries[index]
+        end
 
-            row:SetScript("OnEnter", function(self2, ...)
-                if rowEnter then
-                    rowEnter(self2, ...)
-                end
-
-                paint(true)
-            end)
-
-            row:SetScript("OnLeave", function(self2, ...)
-                if rowLeave then
-                    rowLeave(self2, ...)
-                end
-
-                paint(false)
-            end)
-
-            paint()
-
-            -- Wrapped, not passed directly: OnShow hands the frame to its handler,
-            -- which would arrive as a truthy `hovered`.
-            btn:SetScript("OnShow", function()
-                paint()
-            end)
-
-            btn:SetScript("OnClick", function()
-                -- Every member follows the row: on when any was off, off otherwise.
-                local enable = not anyOn()
-
-                for _, member in ipairs(members) do
-                    if member.module.db then
-                        member.module.db.enabled = enable
-
-                        if member.module.RefreshConfig then
-                            member.module:RefreshConfig()
-                        end
-                    end
-                end
-
-                paint()
-
-                -- Keep the members' own Enable toggles in step if the page is open.
-                if EUI.GetActiveModule and EUI:GetActiveModule() == entry.key and EUI.RefreshPage then
-                    EUI:RefreshPage(true)
-                end
-            end)
-
-            -- Hover previews the action, red to turn off and green to turn on,
-            -- matching EllesmereUI's own power icon.
-            btn:SetScript("OnEnter", function(self2)
-                local on = anyOn()
-
-                if on then
-                    tex:SetVertexColor(0.824, 0.212, 0.212, 1)
-                else
-                    tex:SetVertexColor(0.212, 0.824, 0.325, 1)
-                end
-
-                if EUI.ShowWidgetTooltip then
-                    EUI.ShowWidgetTooltip(self2,
-                        (on and "Disable " or "Enable ") .. entry.display)
-                end
-            end)
-
-            btn:SetScript("OnLeave", function()
-                paint()
-
-                if EUI.HideWidgetTooltip then
-                    EUI.HideWidgetTooltip()
-                end
-            end)
-
-            row._itruliaEnable = btn
+        if not registerEUIPlugin(plugin) then
+            registered = false
         end
     end
+
+    return registered
 end
 
--- Repaint every row we own. EllesmereUI recolours labels from its own state in
--- RefreshSidebarStates (on each panel open) and UpdateSidebarHighlight (on each
--- module switch), so the disabled grey has to be reapplied after both.
-function ItruliaQoL:RefreshEUISidebarRows(entries)
-    local rows = self.EUI._sidebarButtons
+function ItruliaQoL:IsEUIGroupRegistered(targetGroupKey)
+    targetGroupKey = targetGroupKey or groupKey
 
-    if not rows then
-        return
-    end
-
-    for _, entry in ipairs(entries) do
-        local row = rows[entry.key]
-
-        if row and row._itruliaRepaint then
-            row._itruliaRepaint()
+    for _, section in ipairs(euiSections) do
+        if section.groupKey == targetGroupKey then
+            return true
         end
     end
+
+    return false
 end
 
--- RegisterModule whitelists callers by their "AddOns/<folder>/" path via
--- debugstack. From a loadstring chunk the caller reads as "[string ...]", so the
--- guard falls through. (Same approach as NaowhUI_EUI.) Compiled once and reused
--- for every row; it reads the pending registration back out of a global.
-local euiRegisterChunk = loadstring([[
-    local r = _G.__ItruliaQoL_pendingReg
-    if r and EllesmereUI and EllesmereUI.RegisterModule then
-        EllesmereUI:RegisterModule(r.key, r.config)
-    end
-]], "ItruliaQoL-register")
+local function defaultEUIEntry(targetGroupKey, defaultKey)
+    local first
 
--- Never assume registration worked. RegisterModule returns silently when the
--- caller isn't whitelisted, so a clean pcall proves nothing -- check the registry
--- itself (_modules is EllesmereUI's read-only alias). Without this a rejected
--- registration is indistinguishable from a working one until you notice the
--- sidebar row selects nothing.
-function ItruliaQoL:RegisterEUIModule(key, config)
+    for _, section in ipairs(euiSections) do
+        if section.groupKey == targetGroupKey then
+            for _, entry in ipairs(section.entries) do
+                if entry.key == defaultKey then
+                    return entry
+                end
+
+                first = first or entry
+            end
+        end
+    end
+
+    return first
+end
+
+-- Opens the panel on the row the group last showed a page of this session, else on
+-- the row keyed `defaultKey`, else on the group's first row. EllesmereUI restores
+-- that row's own tab. Returns false when nothing could be opened, in combat say.
+function ItruliaQoL:OpenEUIGroup(targetGroupKey, defaultKey)
     local EUI = self.EUI
-    local ok, err = false, nil
 
-    _G.__ItruliaQoL_pendingReg = { key = key, config = config }
+    targetGroupKey = targetGroupKey or groupKey
 
-    if euiRegisterChunk then
-        ok, err = pcall(euiRegisterChunk)
+    if not (EUI and EUI.OpenPlugin) then
+        return false
     end
 
-    _G.__ItruliaQoL_pendingReg = nil
+    local entry = lastEUIEntries[targetGroupKey] or defaultEUIEntry(targetGroupKey, defaultKey)
 
-    if not ok then
-        ok, err = pcall(EUI.RegisterModule, EUI, key, config)
+    if not (entry and EUI.OpenPlugin(entry.sectionId, entry.key)) then
+        return false
     end
 
-    if not (EUI._modules and EUI._modules[key]) then
-        self:Print("|cffff0000EllesmereUI registration failed for|r", key,
-            err or "caller rejected by EllesmereUI:RegisterModule")
-    end
+    scrollEUISidebarTo(entry)
+
+    return true
 end
 
--- Build and register the EllesmereUI rows. Called from init.lua's
+-- EllesmereUI cuts a plugin description off mid-word at 300 characters, colour
+-- codes included. A longer one is cut after the last sentence that fits instead,
+-- and the remaining sentences are returned for the page to show, one per row:
+-- a text row is a single line that never wraps. Counted in bytes, which is never
+-- fewer than EllesmereUI's characters.
+local euiMaxDescription = 300
+
+local function splitEUIDescription(text)
+    if #text <= euiMaxDescription then
+        return text, nil
+    end
+
+    local stops = {}
+    local cut
+
+    for stop in text:gmatch("()%.%s") do
+        stops[#stops + 1] = stop
+
+        if stop <= euiMaxDescription then
+            cut = stop
+        end
+    end
+
+    if not cut then
+        return text, nil
+    end
+
+    local sentences = {}
+    local start = cut + 1
+
+    for _, stop in ipairs(stops) do
+        if stop > cut then
+            sentences[#sentences + 1] = (text:sub(start, stop):gsub("^%s+", ""))
+            start = stop + 1
+        end
+    end
+
+    local rest = text:sub(start):gsub("^%s+", "")
+
+    if rest ~= "" then
+        sentences[#sentences + 1] = rest
+    end
+
+    return text:sub(1, cut), sentences
+end
+
+-- Build and register the EllesmereUI sections. Called from init.lua's
 -- RegisterOptions with the fully-built AceConfig `parentOptions`.
--- The row a slash command reopens its group at, remembered for the session.
--- EllesmereUI keeps the tab within a module itself (_lastPagePerModule), so the row
--- is all we track. Per group, so the sibling addons that borrow this integration
--- (ItruliaUI, ItruliaEUI) each remember their own without seeing each other's.
-local lastEUIModuleKeys = {}
-
-function ItruliaQoL:RememberEUIModule(folderName, targetGroupKey)
-    lastEUIModuleKeys[targetGroupKey or groupKey] = folderName
-end
-
-function ItruliaQoL:GetLastEUIModule(targetGroupKey)
-    local EUI = self.EUI
-    local registered = EUI and EUI._modules
-    local remembered = lastEUIModuleKeys[targetGroupKey or groupKey]
-
-    if remembered and registered and registered[remembered] then
-        return remembered
-    end
-
-    return nil
-end
-
 function ItruliaQoL:RegisterEUI(parentOptions)
     local EUI = self.EUI
 
     -- Never gate on EUI.Widgets here. EllesmereUI_Widgets.lua wraps its whole
     -- body in a deferred init, so EUI.Widgets only exists once EnsureLoaded()
-    -- has run -- and whether that happened before we get here is a PLAYER_LOGIN
-    -- handler-order race (EllesmereUI registers its EnsureLoaded frame at file
-    -- scope, we arrive via AceAddon's frame), so it flips whenever the installed
-    -- addon set changes and silently skips the entire integration. Widgets is
-    -- only read from buildPage, which runs on panel open, long after
-    -- EnsureLoaded. NaowhUI_EUI guards on RegisterModule alone for this reason.
-    if not (EUI and EUI.RegisterModule) then
-        return
-    end
-
-    if self._euiRegistered then
+    -- has run, and whether that happened before we get here is a PLAYER_LOGIN
+    -- handler-order race. Widgets is only read from buildPage, which runs on
+    -- panel open, long after EnsureLoaded.
+    if not EUI or self._euiRegistered then
         return
     end
 
     self._euiRegistered = true
 
+    -- Test mode follows unlock mode (the EllesmereUI equivalent of hooking ElvUI's
+    -- ToggleMovers). Ahead of the plugin check: the movers register with unlock mode
+    -- on an EllesmereUI too old for RegisterPlugin as well, and init.lua only falls
+    -- back to Edit Mode when EllesmereUI is missing entirely.
+    if EUI.RegisterUnlockModeListener then
+        EUI:RegisterUnlockModeListener(addonName, function(active)
+            ItruliaQoL:ToggleTestMode(active and true or false)
+        end)
+    end
+
+    if not EUI.RegisterPlugin then
+        return
+    end
+
     -- One sidebar row per module, alphabetical by the name the row shows. The
     -- AceConfig `order` fields are ignored here on purpose: they group the
-    -- standalone/ElvUI tree by theme, which reads as arbitrary in a flat sidebar
+    -- standalone/ElvUI tree by theme, which reads as arbitrary in a sidebar
     -- long enough to need scrolling.
     local moduleKeys = {}
 
@@ -2377,28 +2598,82 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         return na < nb
     end)
 
-    local entries = {}
+    -- Modules keep the order sorted above within whichever section they are filed under.
+    local sectionEntries = {}
 
-    -- Keys are namespaced so they can never collide with a real addon folder in
-    -- EllesmereUI's roster. `build` takes (pageName, parent, y).
-    -- `members` is the list of { key = , module = } this row fronts -- one entry for
+    for _, section in ipairs(sectionLayout) do
+        sectionEntries[section.key] = {}
+    end
+
+    -- `members` is the list of { key = , module = } this row fronts: one entry for
     -- a normal module row, several for a combined one. It is what gives the row its
-    -- enable switch (see AttachEUISidebarSwitches); rows without it (General,
-    -- Profiles) get none.
+    -- enable switch; rows without it (General, Profiles) get none.
     -- `previewFor` maps a page name to the module whose preview belongs in that page's
-    -- content header -- one module for a normal row, the tab's own member for a
+    -- content header: one module for a normal row, the tab's own member for a
     -- combined one. Rows without it (General, Profiles) show no preview.
-    local function addEntry(key, display, pages, build, description, members, previewFor)
-        entries[#entries + 1] = {
-            key = addonName .. "_" .. key,
+    local function addEntry(section, key, display, pages, build, description, members, previewFor)
+        local headerText, overflowSentences = splitEUIDescription("|cffffbf33BETA:|r " .. (description or ""))
+
+        local entry = {
+            key = key,
             display = display,
+            description = headerText,
             pages = pages,
-            build = build,
-            description = description,
             members = members,
             previewFor = previewFor,
-            betaNotice = key == "General",
         }
+
+        entry.buildPage = function(pageName, parent, yOffset)
+            -- Filling the content header is the page's own job on a cold build;
+            -- getHeaderBuilder below only hands the same builder back so
+            -- EllesmereUI can re-run it after invalidating its header cache.
+            --
+            -- Not while prebuilding: EllesmereUI's global search runs buildPage
+            -- against an off-screen wrapper to index it, and there is only ever
+            -- one preview instance per module. Filling the header here would
+            -- move it out of the page the player is actually looking at.
+            local headerBuilder = not isEUISearchPrebuild()
+                and ItruliaQoL:EUIPageHeaderBuilder(entry, pageName)
+
+            if headerBuilder and EUI.SetContentHeader then
+                EUI:SetContentHeader(headerBuilder)
+            end
+
+            local y = yOffset
+
+            if key == "General" then
+                local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, y)
+                y = y - noticeH
+            end
+
+            if overflowSentences and pageName == pages[1] then
+                local widgets = EUI.Widgets
+                local _, rowHeight = widgets:Spacer(parent, y, 8)
+                y = y - rowHeight
+
+                for _, sentence in ipairs(overflowSentences) do
+                    _, rowHeight = widgets:DualRow(parent, y, { text = sentence })
+                    y = y - rowHeight
+                end
+            end
+
+            return build(pageName, parent, y) or math.abs(y)
+        end
+
+        entry.getHeaderBuilder = function(pageName)
+            return ItruliaQoL:EUIPageHeaderBuilder(entry, pageName)
+        end
+
+        entry.onPageCacheRestore = function(pageName)
+            local module = previewFor and previewFor(pageName)
+
+            if module then
+                ItruliaQoL:RestoreEUIPreview(module, pageName)
+            end
+        end
+
+        local list = sectionEntries[section]
+        list[#list + 1] = entry
     end
 
     -- Each module's own blurb, reused as the panel header description so it does
@@ -2419,7 +2694,11 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         return (tostring(text):gsub("%s+$", ""))
     end
 
-    addEntry("General", "General", { pageGeneral }, function(_, parent, y)
+    -- No row passes EllesmereUI an onReset. Its footer confirm is worded from the
+    -- row title alone ("reset all General settings"), which no longer names the
+    -- addon, while ours would wipe the whole profile. Profiles' "Reset Current
+    -- Profile" does that behind a confirm that says so.
+    addEntry(sectionMain, "General", "General", { pageGeneral }, function(_, parent, y)
         return ItruliaQoL:BuildEUIGeneralPage(parent, y)
     end, "Quality-of-life indicators, alerts and helpers. Move things with EllesmereUI's unlock mode.")
 
@@ -2428,7 +2707,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
     for _, key in ipairs(moduleKeys) do
         local combined = combinedByModule[key]
 
-        -- Skip modules with no hand-authored list -- they would get a sidebar row
+        -- Skip modules with no hand-authored list: they would get a sidebar row
         -- that opens an empty page. DungeonTeleports is the only one today.
         if combined then
             if not emittedCombined[combined.key] then
@@ -2458,7 +2737,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
                         moduleByPage[part.display] = part.module
                     end
 
-                    addEntry(combined.key, combined.display, pages,
+                    addEntry(sectionByRow[combined.key] or sectionMain, combined.key, combined.display, pages,
                         function(pageName, parent, y)
                             local module = moduleByPage[pageName] or parts[1].module
 
@@ -2480,7 +2759,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
                     members = { { key = key, module = module } }
                 end
 
-                addEntry(key, displayFor(key), module.EUIPages or { defaultPage(module) },
+                addEntry(sectionByRow[key] or sectionMain, key, displayFor(key), module.EUIPages or { defaultPage(module) },
                     function(pageName, parent, y)
                         return ItruliaQoL:BuildEUIModulePage(module, parent, y, true, pageName)
                     end, descriptionFor(key), members, function()
@@ -2490,7 +2769,7 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         end
     end
 
-    addEntry("Profiles", "Profiles", { pageProfiles, pageImportExport }, function(pageName, parent, y)
+    addEntry(sectionMain, "Profiles", "Profiles", { pageProfiles, pageImportExport }, function(pageName, parent, y)
         if pageName == pageImportExport then
             return ItruliaQoL:BuildEUIImportExportPage(parent, y)
         end
@@ -2498,113 +2777,17 @@ function ItruliaQoL:RegisterEUI(parentOptions)
         return ItruliaQoL:BuildEUIProfilesPage(parent, y)
     end)
 
-    self:InjectEUISidebar(entries)
+    for _, section in ipairs(sectionLayout) do
+        local entries = sectionEntries[section.key]
 
-    -- Attach the row switches as soon as the panel opens rather than waiting for a
-    -- page to be built. The rows only exist once CreateMainFrame has run, and that
-    -- is reachable only from these three, each of which also runs
-    -- RefreshSidebarStates before returning -- so a post-hook on them is the
-    -- earliest point at which every row is present. Attaching is idempotent, so
-    -- firing on every open (and on Toggle's close) costs nothing.
-    local ours = {}
-
-    for _, entry in ipairs(entries) do
-        ours[entry.key] = true
-    end
-
-    if not self._euiSwitchHooked then
-        self._euiSwitchHooked = true
-
-        for _, name in ipairs({ "Show", "Toggle", "ShowModule" }) do
-            if EUI[name] then
-                hooksecurefunc(EUI, name, function()
-                    ItruliaQoL:AttachEUISidebarGroupNote()
-                    ItruliaQoL:AttachEUISidebarSwitches(entries)
-                    ItruliaQoL:RefreshEUISidebarRows(entries)
-                end)
-            end
+        if #entries > 0 then
+            self:RegisterEUISection(groupKey, {
+                id = section.id,
+                label = section.label,
+                labelColored = section.labelColored,
+                note = section.note,
+                entries = entries,
+            })
         end
-
-        -- SelectModule recolours the outgoing and incoming labels itself. It is also
-        -- where the row `/itrulia` reopens is remembered from -- EllesmereUI keeps
-        -- the tab per module itself, so the row is all we have to hold on to.
-        if EUI.SelectModule then
-            hooksecurefunc(EUI, "SelectModule", function(_, folderName)
-                if ours[folderName] then
-                    ItruliaQoL:RememberEUIModule(folderName)
-                end
-
-                ItruliaQoL:RefreshEUISidebarRows(entries)
-            end)
-        end
-    end
-
-    for _, entry in ipairs(entries) do
-        local build = entry.build
-
-        -- onReset wipes the whole profile, so it only belongs on the General row.
-        -- EllesmereUI labels the footer button "Reset <row>", which on a module
-        -- row would read as resetting that module alone.
-        local onReset
-
-        if entry.key == addonName .. "_General" then
-            onReset = function()
-                ItruliaQoL.db:ResetProfile()
-                ItruliaQoL:RefreshModules()
-
-                if EUI.RefreshPage then
-                    EUI:RefreshPage()
-                end
-            end
-        end
-
-        self:RegisterEUIModule(entry.key, {
-            title = groupLabelColored .. " - " .. entry.display,
-            description = "|cffffbf33BETA:|r " .. (entry.description or ""),
-            pages = entry.pages,
-            buildPage = function(pageName, parent, yOffset)
-                -- Filling the content header is the page's own job on a cold build;
-                -- getHeaderBuilder below only hands the same builder back so
-                -- EllesmereUI can re-run it after invalidating its header cache.
-                --
-                -- Not while prebuilding: EllesmereUI's global search runs buildPage
-                -- against an off-screen wrapper to index it, and there is only ever
-                -- one preview instance per module -- filling the header here would
-                -- move it out of the page the player is actually looking at.
-                local headerBuilder = not EUI._prebuilding
-                    and ItruliaQoL:EUIPageHeaderBuilder(entry, pageName)
-
-                if headerBuilder and EUI.SetContentHeader then
-                    EUI:SetContentHeader(headerBuilder)
-                end
-
-                local y = yOffset
-
-                if entry.betaNotice then
-                    local _, noticeH = ItruliaQoL:RenderEUIBetaNotice(parent, y)
-                    y = y - noticeH
-                end
-
-                return build(pageName, parent, y) or math.abs(y)
-            end,
-            getHeaderBuilder = function(pageName)
-                return ItruliaQoL:EUIPageHeaderBuilder(entry, pageName)
-            end,
-            onPageCacheRestore = function(pageName)
-                local module = entry.previewFor and entry.previewFor(pageName)
-
-                if module then
-                    ItruliaQoL:RestoreEUIPreview(module, pageName)
-                end
-            end,
-            onReset = onReset,
-        })
-    end
-
-    -- Test mode follows unlock mode (the EllesmereUI equivalent of hooking ElvUI's ToggleMovers).
-    if EUI.RegisterUnlockModeListener then
-        EUI:RegisterUnlockModeListener(addonName, function(active)
-            ItruliaQoL:ToggleTestMode(active and true or false)
-        end)
     end
 end

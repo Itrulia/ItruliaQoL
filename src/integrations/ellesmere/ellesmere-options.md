@@ -54,6 +54,18 @@ called every time the page is (re)built, so read/write `module.db` **live**
 inside the callbacks — never capture `local db = self.db` (that snapshot goes
 stale on a profile switch).
 
+That includes builds nobody sees. The first time the player focuses EllesmereUI's
+search box, EllesmereUI runs every page that has not been opened yet once, in a
+hidden pre-build pass against stub widgets that only record the labels, so the
+settings are searchable before anyone visits them. `GetEUIOptions`, and anything it
+runs while building the list, must therefore be free of side effects: no
+registering events, no hooks, no timers, no previews, no touching the module's live
+frames. Code that cannot avoid one checks `EllesmereUI.IsSearchPrebuild()` first
+(`isEUISearchPrebuild()` inside `ellesmere.lua`). An error during that pass is
+swallowed by the wrapper in `ellesmere.lua` and the page is indexed the first time
+it is opened instead, so a builder that only works against real widgets costs search
+results rather than a broken panel.
+
 It also receives one optional argument, the selected page name. That only matters
 for modules that declare tabs — see **Tabs** below.
 
@@ -453,22 +465,58 @@ with a raw file path.
 ## Where the module appears
 
 Every module with an `options.eui.lua` gets **its own row** in EllesmereUI's
-sidebar, under a group appended after EllesmereUI's own groups. The group is
-labelled with `ItruliaQoL.displayName` from `utils.lua`: "Itrulia QoL" on retail
-and "Itrulia Forever" on WoW Forever, coloured through
-`ItruliaQoL.displayNameColored` wherever EllesmereUI renders it as text. The same
-variable names the AceConfig tree, the Blizzard options entry, the chat prefix and
-the support note on the summary page.
-There are no shared category pages — the old `MODULE_PAGE` bucketing (Indicators /
-Alerts / Utility) is gone, and nothing needs registering to place a new module: add
-`options.eui.lua` and the row appears. Rows are sorted alphabetically by the name
-they show; the AceConfig `order` fields are ignored here on purpose, because the
-themed grouping they give the standalone tree reads as arbitrary in a flat sidebar.
-Two rows are built in: **General**, and **Profiles** (which holds the Profiles and
-Import / Export tabs).
+sidebar. The rows are registered through EllesmereUI's Plugin API
+(`EllesmereUI.RegisterPlugin`, see `EllesmereUI/PLUGINS_API.md`), which gives each
+plugin one section of its own below EllesmereUI's suite and caps it at 20 rows. One
+list of every module outgrew that, so ItruliaQoL registers three sections, split by
+theme and shown in this order:
+
+| section | rows |
+|---------|------|
+| **`<name>`**, the main section | General, every module not filed elsewhere, then Profiles |
+| **`<name>` Indicators** | the indicators |
+| **`<name>` Alerts** | the alerts |
+
+`<name>` is `ItruliaQoL.displayName` from `utils.lua`: "Itrulia QoL" on retail and
+"ItruliaQoL Foreva" on WoW Forever. EllesmereUI only accepts plain text as a section
+label, so the plain name is what EllesmereUI registers and searches, and
+`ellesmere.lua` recolours each header with `ItruliaQoL.displayNameColored` once
+EllesmereUI has built it. The first section also gets "(Inofficial Module)" beside
+its header. The same variable names the AceConfig tree, the Blizzard options entry,
+the chat prefix and the support note on the summary page.
+
+A row is filed through the `sectionByRow` table in `ellesmere.lua`, keyed by module
+name (a combined row by its own `key`, see **Combined rows** below). A row not listed
+there lands in the main section, next to General, Misc and Profiles, so a new
+**indicator or alert has to be added to `sectionByRow`**. An excerpt:
+
+```lua
+local sectionByRow = {
+    CombatTimer = sectionIndicators,
+    PetIndicators = sectionIndicators,
+
+    DeathAlert = sectionAlerts,
+}
+```
+
+Any other module needs nothing registered: add `options.eui.lua` and the row
+appears. Should a section still outgrow 20 rows, it is split automatically into
+numbered continuations ("Itrulia QoL Indicators 2" and so on) rather than refused.
+The registration helpers (`RegisterEUISection`, `OpenEUIGroup`) are shared with
+ItruliaUI and ItruliaEUI, which register and open their own sections the same way.
+
+There are still no shared category pages. The sections only group the rows: every
+module keeps a row and a page of its own, unlike the old `MODULE_PAGE` bucketing
+(Indicators / Alerts / Utility), which is gone. Within a section, rows are sorted
+alphabetically by the name they show; the AceConfig `order` fields are ignored here
+on purpose, because the grouping they give the standalone tree reads as arbitrary in
+a sidebar long enough to need scrolling. Two rows are built in, both in the main
+section: **General** at the top, and **Profiles** (which holds the Profiles and
+Import / Export tabs) at the bottom.
 
 A module can leave that alphabetical run by setting `EUISortLast`, which parks its
-row after every other module and before Profiles:
+row after every other module in its section. In the main section that is just
+before Profiles:
 
 ```lua
 Misc.EUISortLast = true
@@ -477,6 +525,20 @@ Misc.EUISortLast = true
 `Misc` is the one module using it today: a catch-all belongs at the end of the list
 rather than filed under M. It is ignored on a member of a combined row, which sorts
 under the combined row's name.
+
+EllesmereUI checks every row when its section registers, and one bad row makes it
+refuse the whole section, so a mistake in one module empties its entire section from
+the sidebar. The reason goes to the error handler (BugSack shows it), and chat names
+the section that failed: `EllesmereUI registration failed for ItruliaQoL-Alerts`.
+The limits a module can run into:
+
+- The row is keyed by the module's name (a combined row by its `key`), which has to
+  be a letter followed by letters, digits, `_` or `-`, at most 40 characters.
+- Every page name has to be plain text, see **Tabs** below.
+
+The name a row shows is the module's AceConfig group `name`, which doubles as the
+panel title. EllesmereUI cleans that one rather than refusing it: colour codes are
+stripped and anything past 48 characters is cut off, so keep it plain and short.
 
 ### The panel header
 
@@ -496,6 +558,16 @@ Because of that, do **not** open `rows` with a plain `{ text = ... }` describing
 module. `ellesmere.lua` strips a leading text-only row precisely because it would
 repeat the header. Put per-control explanations in `tooltip` instead.
 
+EllesmereUI cuts the header text off at 300 characters, counting colour codes and
+the `BETA:` prefix `ellesmere.lua` puts in front of it. That leaves roughly 280
+characters of prose, two or three sentences. A longer description is not cut
+mid-word: `ellesmere.lua` ends the header after the last sentence that fits and
+shows the remaining sentences at the top of the module's first tab, one row per
+sentence because a text row is a single line that never wraps (KeystoneLister is
+the one module that needs this today). Sentences are found by a
+full stop followed by whitespace, so a description without one is left for
+EllesmereUI to cut.
+
 ### The preview
 
 A module that draws something on screen gets a **live preview of its own frame**
@@ -508,6 +580,8 @@ The preview is a *second instance* built by the module's own `GenerateFrame`, so
 styles itself through the same `UpdateStyles` as the live one — there is no
 duplicated drawing code to keep in sync. It is built the first time its page is
 opened and parked (hidden, out of the panel's frame tree) once you navigate away.
+The search's pre-build pass (see **File skeleton**) never builds it, so
+`PreparePreview` needs no guard of its own.
 
 To opt in, add a `preview.lua` to the module's folder — registered in its `init.xml`
 between `defaults.lua` and the options files — defining `Module:PreparePreview(frame)`.
@@ -589,10 +663,21 @@ in `src/preview.lua` so no module has to care:
 
 ### The enable switch
 
-Each row carries a power icon on its right edge, styled like the one EllesmereUI
-puts on its own addons. It toggles `db.enabled` and calls `RefreshConfig()`, so a
-module can be switched on or off without opening its page. Nothing to author — it
-appears automatically for every module row.
+Each module row carries a power icon on its right edge, styled like the one
+EllesmereUI puts on its own addons. It toggles `db.enabled` and calls
+`RefreshConfig()`, so a module can be switched on or off without opening its page,
+and a module that is off has its name greyed out in the sidebar. Nothing to author:
+every module row gets one by default, while General and Profiles never do.
+
+A module with nothing to turn off opts out by setting `EUINoEnableSwitch` in its
+`options.eui.lua`, which leaves its row without a switch:
+
+```lua
+MacroFactory.EUINoEnableSwitch = true
+```
+
+`MacroFactory` is the one module using it today: its page is a set of one-click
+macro buttons, with no running feature behind it to switch off.
 
 ### Tabs (`EUIPages`)
 
@@ -622,6 +707,11 @@ Always return a valid list for the no-argument case — other hosts may call wit
 one. Tabs lay out in a single non-wrapping row, so keep the names short and the
 count to roughly six or fewer.
 
+Page names are handed to EllesmereUI as they are, so they have to be plain text: no
+colour codes or any other `|` escape, and no two alike on one module. EllesmereUI
+refuses a bad page name rather than cleaning it, and with it the whole section the
+module sits in (see **Where the module appears**).
+
 A module that declares no `EUIPages` still gets one tab, named for it by
 `ellesmere.lua`: **Display** for a module that draws something (it defines
 `PreparePreview` — see **The preview**), **Settings** for a pure event listener
@@ -647,11 +737,16 @@ local combinedRows = {
 }
 ```
 
-The row is emitted where its first member would have appeared, so the surrounding
-order is unchanged. Three things follow from it being one row:
+The row sorts under its own `display` name rather than its members', and is filed in
+`sectionByRow` by its own `key` (`PetIndicators` sits in the Indicators section);
+the members' keys are not looked up there. `display` is the row name and panel
+title, so the plain text and 48 character limit of any row name apply to it. A few
+things follow from it being one row:
 
 - It needs its own `description`. The header is per row, not per tab, so the
   members' individual `description` args are never shown.
+- Its tabs are named after the members' AceConfig `name`s, so those have to be
+  plain text like any other page name (see **Tabs**).
 - Its enable switch sets **all** members at once, and reads as on when *any* member
   is on.
 - `EUIPages` on a member is ignored — a combined row already spends its tabs on its

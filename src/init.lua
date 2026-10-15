@@ -314,21 +314,12 @@ local hosts = {
     eui = {
         label = "EllesmereUI",
         available = function(self)
-            return self.EUI and self.EUI.ShowModule and true or false
+            return self.IsEUIGroupRegistered and self:IsEUIGroupRegistered() or false
         end,
         open = function(self)
             -- Back to the row it was left on, General on the first open of the
-            -- session (see integrations/ellesmere/ellesmere.lua's addEntry keys).
-            -- EllesmereUI restores that row's own tab.
-            local moduleKey = self:GetLastEUIModule() or (addonName .. "_General")
-
-            self.EUI:ShowModule(moduleKey)
-
-            -- Our group sits below EllesmereUI's own suite, so the row we just
-            -- selected is off screen until the sidebar is scrolled to it.
-            if self.ScrollEUISidebarToGroup then
-                self:ScrollEUISidebarToGroup(moduleKey)
-            end
+            -- session (see OpenEUIGroup in integrations/ellesmere/ellesmere.lua).
+            self:OpenEUIGroup()
         end,
     },
     standalone = {
