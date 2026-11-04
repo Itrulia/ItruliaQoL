@@ -13,6 +13,7 @@ local sourceOptions = {
     {key = "PALADIN", label = "Paladin"},
     {key = "PRIEST", label = "Priest"},
     {key = "SHAMAN", label = "Shaman"},
+    {key = "WARLOCK", label = "Warlock (Singe Magic)"},
     {key = "RACIAL", label = "Dwarf racials"},
 }
 

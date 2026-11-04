@@ -31,6 +31,10 @@ SelfDispelAlert.sources = {
     {sourceKey = "PRIEST", spellId = 213634, types = {Disease = true}}, -- Purify Disease
     {sourceKey = "SHAMAN", spellId = 77130, types = {Magic = true, Curse = true}}, -- Purify Spirit
     {sourceKey = "SHAMAN", spellId = 51886, types = {Curse = true}}, -- Cleanse Spirit
+    -- Both Singe Magics ride on Command Demon, which only overrides into them while an
+    -- imp is out (or sacrificed), so neither shows up as a plain known spell.
+    {sourceKey = "WARLOCK", spellId = 132411, overrideOf = 119898, types = {Magic = true}}, -- Singe Magic (Grimoire of Sacrifice)
+    {sourceKey = "WARLOCK", spellId = 119905, overrideOf = 119898, petSpellId = 89808, types = {Magic = true}}, -- Singe Magic (Imp)
     {sourceKey = "RACIAL", spellId = 20594, types = racialTypes}, -- Stoneform
     {sourceKey = "RACIAL", spellId = 265221, types = racialTypes}, -- Fireblood
 }
@@ -63,6 +67,27 @@ function SelfDispelAlert:IsSourceEnabled(key)
     return enabled
 end
 
+function SelfDispelAlert:IsSourceKnown(source)
+    if source.talentSpellId and not ItruliaQoL:IsSpellKnown(source.talentSpellId) then
+        return false
+    end
+
+    if ItruliaQoL:IsSpellKnown(source.spellId) then
+        return true
+    end
+
+    if source.overrideOf and C_Spell.GetOverrideSpell
+        and C_Spell.GetOverrideSpell(source.overrideOf) == source.spellId then
+        return true
+    end
+
+    if source.petSpellId and Enum.SpellBookSpellBank.Pet then
+        return C_SpellBook.IsSpellKnown(source.petSpellId, Enum.SpellBookSpellBank.Pet) or false
+    end
+
+    return false
+end
+
 -- Cached because the spellbook is not necessarily readable at login; the spell events
 -- and the options refill it. The signature is what change detection compares, so a
 -- restyle only happens when a type actually changed hands.
@@ -71,10 +96,7 @@ function SelfDispelAlert:ResolveTypeSources()
     local primary = nil
 
     for _, source in ipairs(self.sources) do
-        if self:IsSourceEnabled(source.sourceKey)
-            and (not source.talentSpellId or ItruliaQoL:IsSpellKnown(source.talentSpellId))
-            and ItruliaQoL:IsSpellKnown(source.spellId)
-        then
+        if self:IsSourceEnabled(source.sourceKey) and self:IsSourceKnown(source) then
             for _, token in ipairs(self.dispelTypes) do
                 if source.types[token] and not map[token] then
                     map[token] = source
@@ -338,7 +360,8 @@ end
 
 local function OnEvent(self, event)
     if event == "PLAYER_ENTERING_WORLD" or event == "SPELLS_CHANGED"
-        or event == "PLAYER_TALENT_UPDATE" or event == "TRAIT_CONFIG_UPDATED" then
+        or event == "PLAYER_TALENT_UPDATE" or event == "TRAIT_CONFIG_UPDATED"
+        or event == "UNIT_PET" then
         local previous = SelfDispelAlert.sourceSignature
 
         SelfDispelAlert:ResolveTypeSources()
@@ -372,6 +395,8 @@ function SelfDispelAlert:EnsureFrame()
     frame:RegisterEvent("PLAYER_CONTROL_GAINED")
     frame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
     frame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
+    -- Imp summoned or dismissed, which swaps Command Demon's override.
+    frame:RegisterUnitEvent("UNIT_PET", "player")
 
     if E then
         E:CreateMover(frame, frame:GetName() .. "Mover", moduleName, nil,

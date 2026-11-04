@@ -26,7 +26,7 @@ function SelfDispelAlert:GetOptions(onChange)
             preview = ItruliaQoL:CreatePreviewOption(SelfDispelAlert),
             description = {
                 type = "description",
-                name = "Shows a reminder to press your self dispel while you carry a debuff it can remove, per type: class dispels first, Feign Death with Emergency Salve on hunters, and the dwarf racials for whatever is left\n\n",
+                name = "Shows a reminder to press your self dispel while you carry a debuff it can remove, per type: class dispels first, Feign Death with Emergency Salve on hunters, Singe Magic on warlocks with an imp or Grimoire of Sacrifice, and the dwarf racials for whatever is left\n\n",
                 width = "full",
                 order = 1,
             },
